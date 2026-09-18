@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Mi Tarjeta VIP · Maivy Jireth Cosmetóloga</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="css/style.css" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "rosa-base": "#FDE8EF",
+          "rosa-acento": "#E882A6",
+          "rosa-vip": "#AE2967",
+          "gris-elegante": "#2B2B2B",
+        },
+        fontFamily: {
+          display: ["Playfair Display", "serif"],
+          body: ["Poppins", "sans-serif"],
+          script: ["Mrs Saint Delafield", "cursive"],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+</head>
+
+<body class="font-body bg-white text-[#2B2B2B] antialiased">
+
+<!-- ======================================================================
+     BARRA SUPERIOR SIMPLE
+====================================================================== -->
+<header class="border-b border-[#f1dbe3]">
+  <div class="max-w-4xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-10 h-10 rounded-full object-cover" />
+      <span class="font-display font-semibold">Maivy Jireth</span>
+    </a>
+    <a href="index.html" class="text-sm font-medium text-[#C85F82] flex items-center gap-1">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al inicio
+    </a>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-5 md:px-8 py-14 md:py-20">
+
+  <!-- ---------- Estado: cargando ---------- -->
+  <div id="estado-cargando" class="text-center py-16">
+    <div class="w-10 h-10 border-4 border-[#f1dbe3] border-t-[#AE2967] rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-sm text-[#6b6464]">Buscando tu tarjeta…</p>
+  </div>
+
+  <!-- ---------- Estado: código inválido / no encontrada ---------- -->
+  <div id="estado-error" class="text-center py-16 hidden">
+    <span class="w-14 h-14 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-5">
+      <i data-lucide="frown" class="w-6 h-6 text-[#AE2967]"></i>
+    </span>
+    <h1 class="font-display text-2xl font-semibold mb-3">No encontramos esa tarjeta</h1>
+    <p class="text-sm text-[#6b6464] max-w-sm mx-auto mb-7">
+      Revisa que el código esté escrito tal como te lo compartió Maivy Jireth, o contáctanos si
+      crees que esto es un error.
+    </p>
+    <a href="tarjeta-vip.html?tarjeta=1" class="btn-primary inline-flex font-semibold px-6 py-3 rounded-full">
+      Intentar de nuevo
+    </a>
+  </div>
+
+  <!-- ---------- Estado: tarjeta encontrada ---------- -->
+  <div id="estado-tarjeta" class="hidden">
+    <div class="text-center mb-10">
+      <p class="eyebrow text-sm mb-3">Tarjeta Cliente VIP</p>
+      <h1 class="font-display text-3xl md:text-4xl font-semibold">
+        Hola, <span id="tarjeta-nombre" class="text-[#C85F82]">—</span>
+      </h1>
+    </div>
+
+    <div class="mv-flip-wrap" id="mv-flip-wrap">
+      <div class="mv-flip-inner" id="mv-flip-inner">
+        <!-- Delantera: mismo diseño exacto de tarjeta-vip.html -->
+        <div class="mv-face mv-face--front">
+          <div class="vip-card-wrap">
+            <div class="vip-card">
+              <span class="vc-el vc-cliente" id="front-nombre">Cliente</span>
+              <span class="vc-el vc-vip font-script">Vip</span>
+              <img src="imagenes/logocosmec.jpeg" alt="" class="vc-el vc-logo rounded-full object-cover" />
+              <img src="imagenes/tarjeta-chip.png" alt="" class="vc-el vc-chip" />
+              <svg viewBox="0 0 24 24" class="vc-el vc-contactless" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
+                <path d="M6.5 12a5.5 5.5 0 0 1 11 0" opacity="0.7"/>
+                <path d="M9 12a3 3 0 0 1 6 0"/>
+              </svg>
+              <p class="vc-el vc-number" id="front-numero"><span>****</span><span>****</span><span>****</span><span>****</span></p>
+              <p class="vc-el vc-valido">Válido hasta: <span id="front-valido">**/**/**</span></p>
+              <p class="vc-el vc-insta"><i data-lucide="instagram"></i>Cosmetologa_maivyjireth</p>
+              <div class="vc-el vc-dots">
+                <img src="imagenes/circulo-dorado.png" alt="" class="dot-gold" />
+                <img src="imagenes/circulo-rosa.png" alt="" class="dot-rose" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trasera: circulitos de visitas, con sticker cuando ya se cumplió -->
+        <div class="mv-face mv-face--back">
+          <div class="mv-card-back">
+            <div class="mv-back-logo"><img src="imagenes/logocosmec.jpeg" alt="" /></div>
+            <p class="mv-back-heading">Tu constancia, nuestra recompensa</p>
+            <div class="mv-punch-grid" id="mv-punch-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button type="button" id="btn-voltear" class="mv-flip-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+          <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+        <span id="btn-voltear-texto">Toca la tarjeta para ver el reverso</span>
+      </button>
+    </div>
+
+    <div class="max-w-md mx-auto mt-12">
+      <div class="flex items-center justify-between text-sm mb-2">
+        <span class="font-semibold" id="progreso-texto">0 de 10 visitas</span>
+        <span class="text-[#6b6464]" id="progreso-ciclos"></span>
+      </div>
+      <div class="mv-progress-track"><span id="progreso-fill" style="width:0%"></span></div>
+      <p class="text-sm text-[#6b6464] mt-3 text-center" id="progreso-hint"></p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto mt-10">
+      <div class="bg-[#FEF4F8] rounded-2xl p-5 text-center">
+        <p class="font-display text-lg font-semibold text-[#AE2967]">Cita 5 → 50%</p>
+        <p class="text-xs text-[#6b6464] mt-1">50% de descuento en un tratamiento.</p>
+      </div>
+      <div class="bg-[#FEF4F8] rounded-2xl p-5 text-center">
+        <p class="font-display text-lg font-semibold text-[#AE2967]">Cita 10 → Obsequio</p>
+        <p class="text-xs text-[#6b6464] mt-1">Obsequio y tratamiento gratis.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-white border-t border-[#f1dbe3] pt-10 pb-8">
+  <div class="max-w-4xl mx-auto px-5 md:px-8 text-center text-xs text-[#a99]">
+    <p>© <span id="current-year"></span> Maivy Jireth Cosmetóloga. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script type="module" src="js/mi-tarjeta.js"></script>
+</body>
+</html>

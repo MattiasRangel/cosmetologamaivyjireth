@@ -1,0 +1,884 @@
+/* =========================================================================
+   Maivy Jireth · Cosmetóloga — hoja de estilos de marca
+   Tailwind (CDN/JIT) resuelve el sistema de utilidades; este archivo cubre
+   todo lo que las utilidades no expresan bien: tipografía importada,
+   variables de marca, el "Hilo del Ritual", las tarjetas de tratamiento ideal,
+   el stepper de reserva y el detalle de accesibilidad/movimiento.
+   ========================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600;700&family=Mrs+Saint+Delafield&display=swap");
+
+:root {
+  --rosa-base: #fde8ef;
+  --rosa-base-soft: #fef4f8;
+  --rosa-acento: #e882a6;
+  --rosa-acento-dark: #c85f82;
+  /* Estas variables se siguen llamando "dorado" por el código heredado,
+     pero ahora guardan un tono de rosa intenso (frambuesa/vino) en vez de
+     oro — así se usan en TODO el sitio sin tocar cada regla una por una. */
+  --dorado: #ae2967;
+  --dorado-light: #f5ccdf;
+  --dorado-dark: #6b1940;
+  --gris: #2b2b2b;
+  --gris-suave: #6b6464;
+  --blanco: #ffffff;
+
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-body: "Poppins", "Segoe UI", sans-serif;
+  --font-script: "Mrs Saint Delafield", cursive;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--gris);
+  background: var(--blanco);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* --- Scrollbar de marca -------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--rosa-base-soft);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rosa-acento);
+  border-radius: 999px;
+  border: 2px solid var(--rosa-base-soft);
+}
+
+/* --- Foco visible accesible ----------------------------------------------*/
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--dorado);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --- Selección de texto de marca ------------------------------------------*/
+::selection {
+  background: var(--rosa-acento);
+  color: var(--blanco);
+}
+
+/* =========================================================================
+   Utilidades de texto / trazos dorados
+   ========================================================================= */
+.eyebrow {
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: var(--dorado-dark);
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 1px var(--dorado);
+}
+
+.divider-gold {
+  height: 2px;
+  width: 64px;
+  background: linear-gradient(90deg, var(--dorado), var(--rosa-acento));
+  border-radius: 999px;
+}
+
+/* =========================================================================
+   Glow ambiental del Hero (respiración suave)
+   ========================================================================= */
+.ambient-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: breathe 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.ambient-glow.delay {
+  animation-delay: 2.5s;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.15) translate(10px, -10px);
+    opacity: 0.65;
+  }
+}
+
+/* Marco del retrato del hero: rectángulo limpio con esquinas redondeadas,
+   sin la forma de "blob" que quedaba grande y difícil de encajar. */
+.hero-frame {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 45px -20px rgba(43, 43, 43, 0.3);
+}
+.hero-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+/* =========================================================================
+   Scroll reveal genérico (activado desde main.js con IntersectionObserver)
+   ========================================================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.98);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(24px) scale(0.98);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.15s; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.25s; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.35s; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.45s; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.55s; }
+
+/* =========================================================================
+   Animaciones de entrada al cargar la página (hero + navbar).
+   A diferencia de .reveal (que espera a que se haga scroll hasta el
+   elemento), estas corren solas apenas la página termina de cargar —
+   pensadas para lo que ya está a la vista sin necesidad de scroll.
+   ========================================================================= */
+@keyframes entradaSuave {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.entrada {
+  opacity: 0;
+  animation: entradaSuave 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.entrada-1 { animation-delay: 0.05s; }
+.entrada-2 { animation-delay: 0.2s; }
+.entrada-3 { animation-delay: 0.35s; }
+.entrada-4 { animation-delay: 0.5s; }
+.entrada-5 { animation-delay: 0.65s; }
+
+@keyframes navbarEntrada {
+  from { opacity: 0; transform: translateY(-18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#navbar {
+  animation: navbarEntrada 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* =========================================================================
+   Navbar
+   ========================================================================= */
+#navbar {
+  transition: background-color 0.4s ease, box-shadow 0.4s ease,
+    padding 0.4s ease;
+}
+#navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px -12px rgba(43, 43, 43, 0.18);
+}
+
+.nav-link {
+  position: relative;
+  color: var(--gris);
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: var(--rosa-acento);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* =========================================================================
+   Botones de marca
+   ========================================================================= */
+.btn-primary {
+  background: var(--rosa-acento);
+  color: var(--blanco);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  box-shadow: 0 10px 25px -10px rgba(232, 130, 166, 0.7);
+}
+.btn-primary:hover {
+  background: var(--rosa-acento-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -10px rgba(232, 130, 166, 0.8);
+}
+
+.btn-outline-gold {
+  border: 1.5px solid var(--dorado);
+  color: var(--dorado-dark);
+  transition: all 0.25s ease;
+}
+.btn-outline-gold:hover {
+  background: var(--dorado);
+  color: var(--blanco);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  border: 1.5px solid var(--gris);
+  color: var(--gris);
+  transition: all 0.25s ease;
+}
+.btn-ghost:hover {
+  background: var(--gris);
+  color: var(--blanco);
+}
+
+/* =========================================================================
+   Tarjetas de servicio
+   ========================================================================= */
+.service-card {
+  background: var(--blanco);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s ease, border-color 0.4s ease;
+  border: 1px solid transparent;
+}
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 45px -20px rgba(43, 43, 43, 0.25);
+  border-color: var(--dorado-light);
+}
+.service-card .service-img {
+  transition: transform 0.6s ease;
+}
+.service-card:hover .service-img {
+  transform: scale(1.08);
+}
+
+/* =========================================================================
+   El Ritual — "Hilo del Ritual" (elemento distintivo de la marca)
+   ========================================================================= */
+.ritual-thread-wrap {
+  position: relative;
+}
+.ritual-thread-line {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  transform: translateX(-50%) scaleY(0);
+  transform-origin: top;
+  background: linear-gradient(180deg, var(--dorado), var(--rosa-acento), var(--dorado));
+  transition: transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+.ritual-thread-line.is-drawn {
+  transform: translateX(-50%) scaleY(1);
+}
+
+.ritual-node {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s ease, background 0.5s ease;
+  box-shadow: 0 0 0 6px rgba(174, 41, 103, 0.12);
+}
+.ritual-step.is-visible .ritual-node {
+  transform: scale(1.12);
+  background: var(--dorado);
+  box-shadow: 0 0 0 10px rgba(174, 41, 103, 0.22);
+}
+.ritual-node::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1px solid var(--dorado);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s ease;
+}
+.ritual-step.is-visible .ritual-node::after {
+  opacity: 1;
+  transform: scale(1.3);
+}
+
+/* =========================================================================
+   Encuentra tu Tratamiento Ideal — cuadrícula de tarjetas por necesidad
+   (1 columna en móvil · 2 en tablet · 4 en escritorio)
+   ========================================================================= */
+.tratamiento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .tratamiento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .tratamiento-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.75rem;
+  }
+}
+
+.tratamiento-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--blanco);
+  border: 1px solid var(--rosa-base);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -15px rgba(43, 43, 43, 0.25);
+  /* Incluye opacity/transform de .reveal para no perder la animación de entrada */
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.tratamiento-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 45px -20px rgba(43, 43, 43, 0.25);
+  border-color: var(--dorado-light);
+}
+
+.tratamiento-card-media {
+  overflow: hidden;
+}
+.tratamiento-card-img {
+  display: block;
+  width: 100%;
+  height: 14rem; /* alto fijo: todas las imágenes quedan uniformes */
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.tratamiento-card:hover .tratamiento-card-img {
+  transform: scale(1.08);
+}
+
+.tratamiento-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.5rem;
+}
+.tratamiento-card-pregunta {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+.tratamiento-card-solucion {
+  margin: 0 0 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: #4b5563;
+}
+
+.tratamiento-card-btn {
+  margin-top: auto; /* mantiene todos los botones alineados abajo */
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dorado); /* #ae2967, color de marca */
+  color: var(--blanco);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 25px -10px rgba(174, 41, 103, 0.6);
+}
+.tratamiento-card-btn:hover {
+  background: #8f2054;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -10px rgba(174, 41, 103, 0.7);
+}
+.tratamiento-card-btn:focus-visible {
+  outline: 2px solid var(--dorado);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   Tarjeta VIP — medida directamente sobre la tarjeta de referencia
+   (posiciones en % + tipografía en cqw para que TODO escale junto,
+   igual de proporcionado en un celular de 320px que en un monitor).
+   ========================================================================= */
+.font-script {
+  font-family: var(--font-script);
+}
+.vip-card-wrap {
+  container-type: inline-size;
+  width: 100%;
+  padding-top: 57.14%; /* proporción 1.75:1, la misma de la tarjeta real */
+  position: relative;
+}
+.vip-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 4cqw;
+  border: 0.9cqw solid #f4a9c6;
+  background: #fdf3f1;
+  box-shadow: 0 30px 55px -25px rgba(174, 41, 103, 0.35);
+  overflow: hidden;
+}
+.vc-el { position: absolute; }
+.vc-cliente {
+  left: 6.5%; top: 13%;
+  font-family: var(--font-display);
+  font-size: 7.2cqw;
+  letter-spacing: 0.03em;
+  color: #2b2b2b;
+  white-space: nowrap;
+}
+.vc-vip {
+  left: 33%; top: 0%;
+  font-size: 15.5cqw;
+  color: #e8739f;
+  line-height: 1;
+}
+.vc-logo {
+  left: 62%; top: 3%;
+  width: 34%;
+  height: auto;
+  object-fit: contain;
+}
+.vc-chip {
+  left: 6.5%; top: 40%;
+  width: 13.5%;
+  height: auto;
+}
+.vc-contactless {
+  left: 18%; top: 41%;
+  width: 9%;
+  color: #e8739f;
+  transform: rotate(90deg);
+}
+.vc-number {
+  left: 6.5%; top: 64%;
+  font-family: var(--font-display);
+  font-size: 5.6cqw;
+  color: #2b2b2b;
+  white-space: nowrap;
+  display: flex;
+}
+.vc-number span { margin-right: 2.6cqw; }
+.vc-number span:last-child { margin-right: 0; }
+.vc-valido {
+  left: 6.5%; top: 78.5%;
+  font-family: var(--font-display);
+  font-size: 3.1cqw;
+  color: #2b2b2b;
+  white-space: nowrap;
+}
+.vc-insta {
+  left: 6.5%; top: 86%;
+  font-family: var(--font-display);
+  font-size: 3.1cqw;
+  color: #2b2b2b;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.vc-insta i { width: 1em; height: 1em; color: #e8739f; }
+.vc-dots {
+  left: 82%; top: 77%;
+  width: 13%;
+  height: 22cqw;
+  max-height: 12%;
+}
+.vc-dots img {
+  position: absolute;
+  top: 0;
+  width: 62%;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(43, 43, 43, 0.25);
+}
+.vc-dots img.dot-gold { right: 0; }
+.vc-dots img.dot-rose { right: 30%; }
+
+/* Tarjeta de constancia (10 citas): mismo marco, contenido en flujo normal */
+.dotted-line {
+  flex: 1;
+  border-bottom: 1.5px dashed #e3b6c8;
+  margin-left: 0.65rem;
+  min-width: 50px;
+}
+.punch-row {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.punch-row::before {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 50%;
+  border-top: 2px dashed #f0bfd3;
+  z-index: 0;
+}
+.punch-node {
+  position: relative;
+  z-index: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #fbd9e6;
+  border: 1.5px solid #f4a9c6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  color: #6b1940;
+  text-align: center;
+  line-height: 1.1;
+}
+@media (min-width: 480px) {
+  .punch-node { width: 3.2rem; height: 3.2rem; }
+}
+@media (min-width: 640px) {
+  .punch-node { width: 4rem; height: 4rem; }
+}
+.punch-node .punch-label {
+  font-size: 0.45rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+@media (min-width: 480px) { .punch-node .punch-label { font-size: 0.5rem; } }
+.punch-node .punch-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+@media (min-width: 480px) { .punch-node .punch-value { font-size: 1rem; } }
+.punch-node.is-milestone {
+  width: 2.9rem;
+  height: 2.9rem;
+  background: var(--dorado);
+  border-color: var(--dorado-dark);
+  color: #fff;
+  box-shadow: 0 10px 22px -10px rgba(174, 41, 103, 0.6);
+}
+@media (min-width: 480px) {
+  .punch-node.is-milestone { width: 3.6rem; height: 3.6rem; }
+}
+@media (min-width: 640px) {
+  .punch-node.is-milestone { width: 4.5rem; height: 4.5rem; }
+}
+.punch-node.is-milestone .punch-value {
+  font-size: 0.68rem;
+}
+@media (min-width: 480px) { .punch-node.is-milestone .punch-value { font-size: 0.85rem; } }
+
+.ribbon-banner {
+  background-image: url("imagenes/cinta-gracias.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 2rem;
+  border-radius: 999px;
+}
+
+/* =========================================================================
+   Testimonios
+   ========================================================================= */
+.testimonial-track {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.star {
+  color: var(--dorado);
+}
+.star-empty {
+  color: #e7dae0;
+}
+
+/* =========================================================================
+   Modal de Reserva (Stepper)
+   ========================================================================= */
+#booking-modal {
+  transition: opacity 0.3s ease;
+}
+#booking-modal[hidden] {
+  display: none;
+}
+.booking-panel {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+.step-dot {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  border: 2px solid #e7d3da;
+  color: var(--gris-suave);
+  background: var(--blanco);
+  transition: all 0.35s ease;
+  flex-shrink: 0;
+}
+.step-dot.is-active {
+  border-color: var(--rosa-acento);
+  background: var(--rosa-acento);
+  color: var(--blanco);
+}
+.step-dot.is-complete {
+  border-color: var(--dorado);
+  background: var(--dorado);
+  color: var(--blanco);
+}
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #e7d3da;
+  margin: 0 0.25rem;
+  transition: background 0.35s ease;
+}
+.step-line.is-complete {
+  background: var(--dorado);
+}
+
+.booking-step {
+  display: none;
+}
+.booking-step.is-active {
+  display: block;
+  animation: stepIn 0.4s ease;
+}
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.service-choice,
+.time-slot {
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.service-choice.is-selected {
+  border-color: var(--rosa-acento) !important;
+  background: var(--rosa-base-soft);
+  box-shadow: 0 8px 20px -12px rgba(232, 130, 166, 0.6);
+}
+.time-slot.is-selected {
+  border-color: var(--dorado) !important;
+  background: var(--dorado);
+  color: var(--blanco) !important;
+}
+
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+.calendar-day:hover:not(.is-disabled) {
+  background: var(--rosa-base);
+}
+.calendar-day.is-selected {
+  background: var(--rosa-acento);
+  color: var(--blanco);
+  font-weight: 600;
+}
+.calendar-day.is-disabled {
+  color: #d8cfcf;
+  cursor: not-allowed;
+}
+.calendar-day.is-today {
+  border: 1.5px solid var(--dorado);
+}
+
+.input-field {
+  border: 1.5px solid #eadde2;
+  background: var(--blanco);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.input-field:focus {
+  border-color: var(--rosa-acento);
+  box-shadow: 0 0 0 4px rgba(232, 130, 166, 0.15);
+  outline: none;
+}
+.input-field.is-invalid {
+  border-color: #d9534f;
+}
+
+/* =========================================================================
+   Reseñas — formulario desplegable
+   ========================================================================= */
+#review-form-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#review-form-wrap.is-open {
+  max-height: 900px;
+}
+
+/* =========================================================================
+   Menú móvil
+   ========================================================================= */
+#mobile-menu {
+  transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+#mobile-menu.is-open {
+  max-height: 480px;
+  opacity: 1;
+}
+
+/* =========================================================================
+   Accesibilidad: respeto a "reduce motion"
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* =========================================================================
+   Tarjeta VIP del cliente (mi-tarjeta-vip.html) — flip 3D delantera/trasera
+   Misma técnica de escalado que .vip-card (cqw), así que delantera y
+   trasera quedan proporcionadas exactamente igual.
+   ========================================================================= */
+.mv-flip-wrap {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  padding-top: 57.14%;
+  position: relative;
+  perspective: 2000px;
+}
+.mv-flip-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 1s cubic-bezier(0.45, 0.2, 0.2, 1);
+  cursor: pointer;
+}
+.mv-flip-wrap.is-flipped .mv-flip-inner { transform: rotateY(180deg); }
+.mv-flip-wrap:not(.is-flipped) .mv-flip-inner:hover { transform: rotateY(-6deg) rotateX(2deg); }
+.mv-flip-wrap.is-flipped .mv-flip-inner:hover { transform: rotateY(186deg) rotateX(2deg); }
+
+.mv-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.mv-face--back { transform: rotateY(180deg); }
+.mv-face--front .vip-card-wrap { padding-top: 0; position: absolute; inset: 0; }
+
+.mv-card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 4cqw;
+  border: 0.9cqw solid #f4a9c6;
+  background: linear-gradient(160deg, #ffffff 0%, #fde8ef 100%);
+  box-shadow: 0 30px 55px -25px rgba(174, 41, 103, 0.35);
+  overflow: hidden; /* red de seguridad: si algo no cabe, se recorta en vez de "salirse" de la tarjeta */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5cqw 5cqw;
+  box-sizing: border-box;
+  gap: 0.8cqw;
+}
+.mv-back-logo {
+  width: 7.5cqw; height: 7.5cqw; border-radius: 50%; overflow: hidden;
+  background: #fff; box-shadow: 0 0 0 0.35cqw #fff; flex-shrink: 0;
+}
+.mv-back-logo img { width: 100%; height: 100%; object-fit: cover; }
+.mv-back-heading {
+  font-family: var(--font-display); font-style: italic; font-weight: 600;
+  font-size: 2.5cqw; color: var(--rosa-vip, #ae2967); text-align: center; margin: 0;
+  line-height: 1.15;
+}
+.mv-punch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1cqw; width: 100%; }
+.mv-punch {
+  aspect-ratio: 1; border-radius: 50%; border: 0.3cqw dashed #d998b3; background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15cqw;
+  color: #6b1940; overflow: hidden;
+}
+.mv-punch-label { font-size: 1.5cqw; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; line-height: 1; }
+.mv-punch-value { font-family: var(--font-display); font-weight: 600; font-size: 2.5cqw; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.mv-punch-value svg { width: 2.7cqw; height: 2.7cqw; }
+.mv-punch.is-hito { border-style: solid; border-color: var(--rosa-vip, #ae2967); }
+.mv-punch.is-completado {
+  border-style: solid; border-color: var(--rosa-vip, #ae2967);
+  background: linear-gradient(135deg, #e882a6, #ae2967);
+  color: #fff; box-shadow: 0 0.5cqw 1.2cqw -0.4cqw rgba(174, 41, 103, 0.55);
+  padding: 0;
+}
+.mv-punch-sticker-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.mv-punch-sticker-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.mv-punch-sticker { width: 4.2cqw; height: 4.2cqw; }
+
+.mv-flip-hint {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #6b6464;
+  margin-top: 18px; cursor: pointer; background: none; border: none; padding: 0;
+}
+.mv-flip-hint svg { width: 16px; height: 16px; color: #ae2967; }
+
+.mv-progress-track { height: 10px; border-radius: 999px; background: #fde8ef; overflow: hidden; }
+.mv-progress-track span { display: block; height: 100%; background: linear-gradient(90deg, #e882a6, #ae2967); border-radius: 999px; transition: width 0.4s ease; }
+
+@media (max-width: 480px) {
+  .mv-punch-label { font-size: 2cqw; }
+}

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tarjeta Cliente VIP · Maivy Jireth Cosmetóloga</title>
+<meta name="description" content="Conoce los beneficios de la Tarjeta Cliente VIP de Maivy Jireth: descuentos, obsequios y tratamientos gratis por tu fidelidad." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="css/style.css" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "rosa-base": "#FDE8EF",
+          "rosa-acento": "#E882A6",
+          "rosa-vip": "#AE2967",
+          "gris-elegante": "#2B2B2B",
+        },
+        fontFamily: {
+          display: ["Playfair Display", "serif"],
+          body: ["Poppins", "sans-serif"],
+          script: ["Mrs Saint Delafield", "cursive"],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+</head>
+
+<body class="font-body bg-white text-[#2B2B2B] antialiased">
+
+<a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-[#2B2B2B] text-white px-4 py-2 rounded">
+  Saltar al contenido
+</a>
+
+<!-- ======================================================================
+     NAVBAR
+====================================================================== -->
+<header id="navbar" class="fixed top-0 inset-x-0 z-50">
+  <nav class="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-11 h-11 rounded-full object-cover" />
+      <span class="leading-tight">
+        <span class="block font-display text-lg font-semibold tracking-wide">Maivy Jireth</span>
+        <span class="block text-[10px] uppercase tracking-[0.2em] text-[#a99]">Cosmetóloga</span>
+      </span>
+    </a>
+
+    <ul class="hidden lg:flex items-center gap-9 font-medium text-sm">
+      <li><a href="index.html#servicios" class="nav-link">Servicios</a></li>
+      <li><a href="index.html#ritual" class="nav-link">El Ritual</a></li>
+      <li><a href="index.html#opiniones" class="nav-link">Opiniones</a></li>
+      <li><a href="index.html#ubicacion" class="nav-link">Ubicación</a></li>
+    </ul>
+
+    <div class="hidden lg:flex items-center gap-3">
+      <span class="inline-flex items-center gap-2 text-sm font-semibold text-[#6B1940] border-2 border-[#AE2967] px-5 py-2.5 rounded-full bg-[#AE2967]/10">
+        <i data-lucide="crown" class="w-4 h-4"></i>
+        Tarjeta VIP
+      </span>
+      <a href="index.html?agendar=1" class="btn-primary text-sm font-semibold px-5 py-2.5 rounded-full">
+        Agendar Cita
+      </a>
+    </div>
+
+    <button id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu"
+      class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full border border-[#eadde2]">
+      <i data-lucide="menu" id="icon-menu-open" class="w-5 h-5"></i>
+      <i data-lucide="x" id="icon-menu-close" class="w-5 h-5 hidden"></i>
+    </button>
+  </nav>
+
+  <div id="mobile-menu" class="lg:hidden bg-white/95 backdrop-blur border-t border-[#f1dbe3] px-5">
+    <ul class="flex flex-col py-4 gap-1 font-medium text-sm">
+      <li><a href="index.html" class="block py-2.5">Inicio</a></li>
+      <li><a href="index.html#servicios" class="block py-2.5">Servicios</a></li>
+      <li><a href="index.html#opiniones" class="block py-2.5">Opiniones</a></li>
+      <li>
+        <a href="index.html?agendar=1" class="btn-primary w-full rounded-full py-2.5 font-semibold mt-2 mb-4 flex items-center justify-center">
+          Agendar Cita
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<main id="contenido">
+
+<!-- ======================================================================
+     HERO
+====================================================================== -->
+<section class="relative overflow-hidden pt-36 pb-20 md:pt-44 md:pb-28 bg-[#FDE8EF]">
+  <div class="ambient-glow w-72 h-72 bg-[#AE2967]/30 -top-10 -right-10"></div>
+  <div class="ambient-glow delay w-96 h-96 bg-[#E882A6]/25 bottom-0 -left-20"></div>
+
+  <div class="max-w-6xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
+    <div>
+      <p class="eyebrow text-sm mb-5 entrada entrada-1">Programa de fidelidad</p>
+      <h1 class="font-display text-4xl sm:text-5xl font-semibold leading-[1.1] mb-6 entrada entrada-2">
+        Tu constancia también <span class="italic text-[#C85F82]">merece un ritual.</span>
+      </h1>
+      <p class="text-base md:text-lg text-[#5c5555] leading-relaxed mb-9 max-w-xl entrada entrada-3">
+        La Tarjeta Cliente VIP es nuestra forma de agradecerte por cuidar tu piel de manera
+        constante. Cada cita suma, y cada hito desbloquea un beneficio exclusivo.
+      </p>
+      <a href="index.html?agendar=1" class="btn-primary inline-flex font-semibold px-7 py-3.5 rounded-full entrada entrada-4">
+        Empezar a sumar visitas
+      </a>
+    </div>
+
+    <div class="entrada entrada-3">
+      <div class="vip-card-wrap max-w-lg mx-auto">
+        <div class="vip-card">
+          <span class="vc-el vc-cliente">CLIENTE</span>
+          <span class="vc-el vc-vip font-script">Vip</span>
+          <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="vc-el vc-logo rounded-full object-cover" />
+          <img src="imagenes/tarjeta-chip.png" alt="" class="vc-el vc-chip" />
+          <svg viewBox="0 0 24 24" class="vc-el vc-contactless" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
+            <path d="M6.5 12a5.5 5.5 0 0 1 11 0" opacity="0.7"/>
+            <path d="M9 12a3 3 0 0 1 6 0"/>
+          </svg>
+          <p class="vc-el vc-number"><span>****</span><span>****</span><span>****</span><span>****</span></p>
+          <p class="vc-el vc-valido">Válido hasta: **/**/**</p>
+          <p class="vc-el vc-insta"><i data-lucide="instagram"></i>Cosmetologa_maivyjireth</p>
+          <div class="vc-el vc-dots">
+            <img src="imagenes/circulo-dorado.png" alt="" class="dot-gold" />
+            <img src="imagenes/circulo-rosa.png" alt="" class="dot-rose" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     CÓMO FUNCIONA
+====================================================================== -->
+<section class="py-24 md:py-28 bg-white">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
+    <div class="max-w-2xl mx-auto text-center mb-16 reveal">
+      <p class="eyebrow text-sm mb-4">Cómo funciona</p>
+      <h2 class="font-display text-3xl md:text-4xl font-semibold">Tan simple como seguir tu ritual</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 reveal-stagger">
+      <div class="bg-[#FEF4F8] rounded-2xl p-8 text-center">
+        <span class="w-14 h-14 rounded-full bg-white border-2 border-[#AE2967] flex items-center justify-center mx-auto mb-5">
+          <i data-lucide="calendar-check" class="w-6 h-6 text-[#6B1940]"></i>
+        </span>
+        <h3 class="font-display text-lg font-semibold mb-2">Agenda tus citas</h3>
+        <p class="text-sm text-[#6b6464] leading-relaxed">Cada tratamiento que agendas y completas con Maivy Jireth suma una visita a tu tarjeta.</p>
+      </div>
+      <div class="bg-[#FEF4F8] rounded-2xl p-8 text-center">
+        <span class="w-14 h-14 rounded-full bg-white border-2 border-[#AE2967] flex items-center justify-center mx-auto mb-5">
+          <i data-lucide="trending-up" class="w-6 h-6 text-[#6B1940]"></i>
+        </span>
+        <h3 class="font-display text-lg font-semibold mb-2">Alcanza los hitos</h3>
+        <p class="text-sm text-[#6b6464] leading-relaxed">En tu quinta y décima visita se desbloquean beneficios especiales, automáticamente.</p>
+      </div>
+      <div class="bg-[#FEF4F8] rounded-2xl p-8 text-center">
+        <span class="w-14 h-14 rounded-full bg-white border-2 border-[#AE2967] flex items-center justify-center mx-auto mb-5">
+          <i data-lucide="sparkles" class="w-6 h-6 text-[#6B1940]"></i>
+        </span>
+        <h3 class="font-display text-lg font-semibold mb-2">Disfruta tu beneficio</h3>
+        <p class="text-sm text-[#6b6464] leading-relaxed">Lo aplicamos directamente en tu siguiente cita, sin trámites ni letras pequeñas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     CONSULTAR MI TARJETA — la clienta ingresa su código y ve su tarjeta
+====================================================================== -->
+<section class="py-20 bg-[#FEF4F8]">
+  <div class="max-w-2xl mx-auto px-5 md:px-8 text-center reveal">
+    <span class="w-14 h-14 rounded-full bg-white border-2 border-[#AE2967] flex items-center justify-center mx-auto mb-5">
+      <i data-lucide="search" class="w-6 h-6 text-[#6B1940]"></i>
+    </span>
+    <h2 class="font-display text-2xl md:text-3xl font-semibold mb-3">¿Ya tienes tu Tarjeta VIP?</h2>
+    <p class="text-sm md:text-base text-[#6b6464] mb-7">
+      Ingresa el código que te dio Maivy Jireth para ver tu tarjeta y cuántas visitas llevas acumuladas.
+    </p>
+    <button type="button" id="btn-consultar-tarjeta" class="btn-primary inline-flex font-semibold px-7 py-3.5 rounded-full">
+      Consultar mi tarjeta
+    </button>
+  </div>
+</section>
+
+<!-- ======================================================================
+     MODAL — código de acceso de la Tarjeta VIP
+====================================================================== -->
+<div id="modal-consultar-tarjeta" class="fixed inset-0 z-[90] hidden items-center justify-center px-5">
+  <div id="modal-consultar-overlay" class="absolute inset-0 bg-black/50"></div>
+  <div class="relative bg-white rounded-2xl max-w-sm w-full p-7 md:p-8 text-center">
+    <button type="button" id="modal-consultar-cerrar" aria-label="Cerrar"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#FEF4F8] text-[#6b6464]">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+    <span class="w-12 h-12 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-4">
+      <i data-lucide="crown" class="w-5 h-5 text-[#AE2967]"></i>
+    </span>
+    <h3 class="font-display text-xl font-semibold mb-2">Consulta tu Tarjeta VIP</h3>
+    <p class="text-sm text-[#6b6464] mb-5">Escribe el código que te compartió Maivy Jireth.</p>
+    <form id="form-consultar-tarjeta">
+      <input type="text" id="input-codigo-tarjeta" placeholder="MJVIP-XXXXX" autocomplete="off"
+        class="w-full text-center tracking-widest uppercase font-semibold border-2 border-[#eadde2] focus:border-[#AE2967] rounded-full px-5 py-3 mb-2 outline-none transition-colors" />
+      <p id="error-codigo-tarjeta" class="text-sm text-red-500 mb-3 hidden">Código no válido. Revísalo e intenta de nuevo.</p>
+      <button type="submit" id="btn-ver-tarjeta" class="btn-primary w-full font-semibold px-6 py-3 rounded-full">
+        Ver mi tarjeta
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ======================================================================
+     BENEFICIOS PERMANENTES
+====================================================================== -->
+<section class="py-24 md:py-28 bg-white">
+  <div class="max-w-5xl mx-auto px-5 md:px-8">
+    <div class="max-w-2xl mx-auto text-center mb-14 reveal">
+      <p class="eyebrow text-sm mb-4">Además, siempre</p>
+      <h2 class="font-display text-3xl md:text-4xl font-semibold">Beneficios por ser clienta VIP</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-6 reveal-stagger">
+      <div class="text-center px-4">
+        <span class="w-12 h-12 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="calendar-clock" class="w-5 h-5 text-[#C85F82]"></i>
+        </span>
+        <h3 class="font-display font-semibold mb-1">Agenda prioritaria</h3>
+        <p class="text-sm text-[#6b6464]">Acceso preferente a horarios de alta demanda.</p>
+      </div>
+      <div class="text-center px-4">
+        <span class="w-12 h-12 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="cake" class="w-5 h-5 text-[#C85F82]"></i>
+        </span>
+        <h3 class="font-display font-semibold mb-1">Detalle de cumpleaños</h3>
+        <p class="text-sm text-[#6b6464]">Una sorpresa especial en el mes de tu cumpleaños.</p>
+      </div>
+      <div class="text-center px-4">
+        <span class="w-12 h-12 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="tag" class="w-5 h-5 text-[#C85F82]"></i>
+        </span>
+        <h3 class="font-display font-semibold mb-1">Descuentos en productos</h3>
+        <p class="text-sm text-[#6b6464]">Precios preferenciales en productos recomendados para tu piel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     CONDICIONES
+====================================================================== -->
+<section class="py-20 bg-[#FEF4F8]">
+  <div class="max-w-3xl mx-auto px-5 md:px-8 reveal">
+    <h2 class="font-display text-2xl font-semibold mb-6 text-center">Condiciones del programa</h2>
+    <ul class="space-y-3 text-sm text-[#5c5555]">
+      <li class="flex gap-3"><i data-lucide="dot" class="w-5 h-5 text-[#AE2967] flex-shrink-0"></i>La Tarjeta VIP es personal e intransferible.</li>
+      <li class="flex gap-3"><i data-lucide="dot" class="w-5 h-5 text-[#AE2967] flex-shrink-0"></i>Las visitas se acumulan únicamente por citas agendadas y realizadas directamente con Maivy Jireth.</li>
+      <li class="flex gap-3"><i data-lucide="dot" class="w-5 h-5 text-[#AE2967] flex-shrink-0"></i>El 50% de descuento de la cita 5 aplica sobre un solo tratamiento.</li>
+      <li class="flex gap-3"><i data-lucide="dot" class="w-5 h-5 text-[#AE2967] flex-shrink-0"></i>El obsequio y tratamiento gratis de la cita 10 se agendan dentro de los 60 días posteriores a su desbloqueo.</li>
+      <li class="flex gap-3"><i data-lucide="dot" class="w-5 h-5 text-[#AE2967] flex-shrink-0"></i>El conteo de visitas reinicia una vez canjeado el beneficio de la cita 10, para comenzar un nuevo ciclo VIP.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================================================================
+     CTA FINAL
+====================================================================== -->
+<section class="py-24 bg-[#2B2B2B]">
+  <div class="max-w-2xl mx-auto px-5 text-center reveal">
+    <h2 class="font-display text-3xl md:text-4xl font-semibold text-white mb-8">
+      Empieza a sumar tu primera visita hoy.
+    </h2>
+    <a href="index.html?agendar=1" class="btn-primary inline-flex font-semibold px-8 py-4 rounded-full">
+      Agendar mi cita
+    </a>
+  </div>
+</section>
+
+</main>
+
+<!-- ======================================================================
+     FOOTER
+====================================================================== -->
+<footer class="bg-white border-t border-[#f1dbe3] pt-14 pb-8">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-10 h-10 rounded-full object-cover" />
+      <span class="font-display font-semibold">Maivy Jireth</span>
+    </a>
+    <a href="index.html" class="text-sm font-medium text-[#C85F82] flex items-center gap-1">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al inicio
+    </a>
+  </div>
+  <div class="max-w-7xl mx-auto px-5 md:px-8 pt-6 border-t border-[#f1dbe3] text-center text-xs text-[#a99]">
+    <p>© <span id="current-year"></span> Maivy Jireth Cosmetóloga. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script type="module" src="js/tarjeta-consulta.js"></script>
+<script>
+  // Un solo lucide.createIcons() al cargar basta. (El MutationObserver que
+  // había aquí antes era la causa del congelamiento — ver la nota en
+  // index.html para el detalle completo.)
+  window.addEventListener("load", () => {
+    if (window.lucide) lucide.createIcons();
+  });
+</script>
+</body>
+</html>
