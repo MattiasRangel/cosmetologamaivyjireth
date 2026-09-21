@@ -1,28 +1,24 @@
 /**
  * booking.js — flujo de reserva de citas en 4 pasos.
  * Maivy es la única cosmetóloga, así que no existe paso de "profesional".
- *
- * Estado guardado en `bookingState` y renderizado en `#booking-modal`.
- * El paso 4 simula el envío; el comentario junto a `confirmBooking()`
- * marca dónde iría el POST real a Spring Boot (`/api/citas`).
  */
 
 const bookingState = {
   step: 1,
   serviceId: null,
-  date: null, // objeto Date
+  date: null, 
   time: null,
   cliente: { nombre: "", telefono: "", email: "" },
 };
 
 let calendarViewDate = new Date();
+let diasBloqueados = [];      
+let horariosSemana = []; // ACTUALIZADO: Guardará toda la configuración de días y franjas
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindOpenTriggers();
   bindModalControls();
   buildStepIndicator();
-  // SERVICES lo llena data.js con una consulta real a Supabase; se espera
-  // esa promesa antes de pintar el paso 1 para no mostrar la lista vacía.
   await window.datosListos;
   renderStepOneServices();
   renderCalendar();
@@ -39,7 +35,7 @@ function bindOpenTriggers() {
   });
 }
 
-window.openBookingModal = function (serviceId = null) {
+window.openBookingModal = async function (serviceId = null) {
   resetBookingState();
   if (serviceId) bookingState.serviceId = serviceId;
 
@@ -51,10 +47,20 @@ window.openBookingModal = function (serviceId = null) {
   });
 
   renderStepOneServices();
-  // El calendario y los horarios también deben "olvidar" la selección de
-  // una reserva anterior: sin estas dos líneas, bookingState.date/time se
-  // reiniciaban por dentro pero la grilla seguía mostrando en pantalla el
-  // día/hora elegidos la última vez que se abrió el modal.
+
+  // ACTUALIZADO: Consultar días bloqueados y horarios completos con franjas
+  try {
+    const [bloqueadosRes, horariosRes] = await Promise.all([
+      window.supabaseClient.from("dias_bloqueados").select("fecha_iso"),
+      window.supabaseClient.from("horarios").select("*") 
+    ]);
+    
+    if (bloqueadosRes.data) diasBloqueados = bloqueadosRes.data.map(d => d.fecha_iso);
+    if (horariosRes.data) horariosSemana = horariosRes.data;
+  } catch (err) {
+    console.error("Error consultando configuración del calendario:", err);
+  }
+
   renderCalendar();
   renderTimeSlots();
   goToStep(1);
@@ -242,9 +248,23 @@ function renderCalendar() {
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateObj = new Date(year, month, day);
+    
+    const mesIso = String(month + 1).padStart(2, "0");
+    const diaIso = String(day).padStart(2, "0");
+    const fechaActualISO = `${year}-${mesIso}-${diaIso}`;
+    
+    const nombreDia = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][dateObj.getDay()];
+
     const isPast = dateObj < today;
-    const isSunday = dateObj.getDay() === 0; // cerrado los domingos
-    const isDisabled = isPast || isSunday;
+    
+    // ACTUALIZADO: Consultar si este día en específico está configurado como cerrado
+    const configDia = horariosSemana.find(h => h.dia.toLowerCase() === nombreDia);
+    const isClosedDay = configDia ? configDia.cerrado : false;
+    
+    const isBlocked = diasBloqueados.includes(fechaActualISO);
+
+    const isDisabled = isPast || isClosedDay || isBlocked;
+    
     const isToday = dateObj.getTime() === today.getTime();
     const isSelected =
       bookingState.date &&
@@ -283,7 +303,6 @@ function changeCalendarMonth(offset) {
     calendarViewDate.getMonth() + offset,
     1
   );
-  // No permitir retroceder antes del mes actual
   if (candidate.getFullYear() < now.getFullYear() ||
      (candidate.getFullYear() === now.getFullYear() && candidate.getMonth() < now.getMonth())) {
     return;
@@ -292,23 +311,46 @@ function changeCalendarMonth(offset) {
   renderCalendar();
 }
 
+// ACTUALIZADO: Lógica dinámica para generar botones de horas según las franjas
 async function renderTimeSlots() {
   const wrap = document.getElementById("time-slots");
-  if (!wrap || typeof TIME_SLOTS === "undefined") return;
+  if (!wrap) return;
 
   if (!bookingState.date) {
     wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full">Elige primero una fecha disponible.</p>`;
     return;
   }
 
-  // 1. Obtener la fecha seleccionada en formato ISO (YYYY-MM-DD)
   const year = bookingState.date.getFullYear();
   const month = String(bookingState.date.getMonth() + 1).padStart(2, "0");
   const day = String(bookingState.date.getDate()).padStart(2, "0");
   const fechaISO = `${year}-${month}-${day}`;
 
-  // 2. Muestra un mensaje de carga mientras consulta a Supabase
   wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full animate-pulse">Consultando disponibilidad...</p>`;
+
+  // 1. Identificar qué día de la semana es y buscar sus franjas de atención
+  const nombreDia = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][bookingState.date.getDay()];
+  const horarioDia = horariosSemana.find(h => h.dia.toLowerCase() === nombreDia);
+  
+  let slotsDinamicos = [];
+  
+  if (horarioDia && horarioDia.franjas && horarioDia.franjas.length > 0) {
+    horarioDia.franjas.forEach(franja => {
+      const horaInicio = parseInt(franja.inicio.split(":")[0], 10);
+      const horaFin = parseInt(franja.fin.split(":")[0], 10);
+      
+      for (let h = horaInicio; h < horaFin; h++) {
+        const ampm = h >= 12 ? 'pm' : 'am';
+        let h12 = h % 12;
+        if (h12 === 0) h12 = 12;
+        const horaStr = String(h12).padStart(2, '0');
+        slotsDinamicos.push(`${horaStr}:00 ${ampm}`); 
+      }
+    });
+  } else {
+     wrap.innerHTML = `<p class="text-sm text-[#C85F82] font-medium col-span-full">No hay horarios de atención configurados para este día.</p>`;
+     return;
+  }
 
   let horasOcupadas = [];
   try {
@@ -316,7 +358,7 @@ async function renderTimeSlots() {
       .from("citas")
       .select("hora")
       .eq("fecha_iso", fechaISO)
-      .neq("estado", "cancelado"); // Ignora las citas canceladas para liberar el cupo
+      .neq("estado", "cancelado"); 
 
     if (!error && data) {
       horasOcupadas = data.map((c) => c.hora);
@@ -325,8 +367,7 @@ async function renderTimeSlots() {
     console.error("[booking.js] Error al consultar horas ocupadas:", err);
   }
 
-  // 3. Pintar los botones desactivando las horas ocupadas
-  wrap.innerHTML = TIME_SLOTS.map((t) => {
+  wrap.innerHTML = slotsDinamicos.map((t) => {
     const estaOcupado = horasOcupadas.includes(t);
     return `
     <button type="button" data-time="${t}" ${estaOcupado ? "disabled" : ""}
@@ -339,7 +380,6 @@ async function renderTimeSlots() {
     </button>`;
   }).join("");
 
-  // 4. Asignar el evento clic solo a los botones disponibles
   wrap.querySelectorAll(".time-slot:not([disabled])").forEach((btn) => {
     btn.addEventListener("click", () => {
       bookingState.time = btn.dataset.time;
@@ -500,7 +540,6 @@ async function confirmBooking() {
     document.getElementById("booking-footer").classList.add("hidden");
     document.getElementById("booking-success").classList.remove("hidden");
 
-    // 1. CREAR EL ARCHIVO DEL CALENDARIO
     let [timeStr, modifier] = bookingState.time.split(" ");
     let [hours, minutes] = timeStr.split(":").map(Number);
     if (modifier && modifier.toLowerCase() === "pm" && hours < 12) hours += 12;
@@ -529,15 +568,13 @@ async function confirmBooking() {
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
     const icsUrl = URL.createObjectURL(blob);
 
-    // 2. FORZAR LA DESCARGA AUTOMÁTICA (TRUCO JS)
     const link = document.createElement("a");
     link.href = icsUrl;
     link.download = "cita-maivy-jireth.ics";
     document.body.appendChild(link);
-    link.click(); // Clic automático
-    document.body.removeChild(link); // Borramos el rastro
+    link.click(); 
+    document.body.removeChild(link); 
 
-    // 3. ABRIR WHATSAPP (Con un micro-retraso para no asustar al iPhone)
     const fechaWA = bookingState.date.toLocaleDateString("es-CO");
     const numeroAdmin = "573122855055";
     const mensaje = `¡Hola Maivy! Acabo de agendar una cita. ✨%0A%0A` +
@@ -550,7 +587,7 @@ async function confirmBooking() {
       
     setTimeout(() => {
         window.open(`https://wa.me/${numeroAdmin}?text=${mensaje}`, "_blank");
-    }, 600); // Espera 0.6 segundos antes de abrir WhatsApp
+    }, 600); 
 
   } catch (err) {
     console.error("[booking.js] Error al guardar la cita en Supabase:", err);
