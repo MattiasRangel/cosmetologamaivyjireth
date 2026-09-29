@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initNavbar();
   initMobileMenu();
   initScrollReveal();
+  initAbout();
   initImageLightbox();
   initYear();
   initAutoOpenBooking();
@@ -455,4 +456,52 @@ function initAutoOpenBooking() {
   if (params.get("agendar") === "1") {
     setTimeout(() => window.openBookingModal?.(), 400);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sobre mí: contadores animados + parallax suave con el mouse            */
+/* ---------------------------------------------------------------------- */
+function initAbout() {
+  const section = document.getElementById("sobre-mi");
+  if (!section) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const counters = section.querySelectorAll("[data-count]");
+  const run = (el) => {
+    const target = Number(el.dataset.count);
+    if (reduce) { el.textContent = target; return; }
+    const t0 = performance.now();
+    const dur = 1600;
+    const tick = (now) => {
+      const p = Math.min((now - t0) / dur, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const stats = section.querySelector(".about-stats");
+  if ("IntersectionObserver" in window && stats) {
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        counters.forEach(run);
+        io.disconnect();
+      }
+    }, { threshold: 0.4 });
+    io.observe(stats);
+  } else {
+    counters.forEach(run);
+  }
+
+  const stage = section.querySelector(".about-stage");
+  if (!stage || reduce || !window.matchMedia("(hover: hover)").matches) return;
+  stage.addEventListener("mousemove", (e) => {
+    const r = stage.getBoundingClientRect();
+    stage.style.setProperty("--px", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+    stage.style.setProperty("--py", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+  });
+  stage.addEventListener("mouseleave", () => {
+    stage.style.setProperty("--px", 0);
+    stage.style.setProperty("--py", 0);
+  });
 }

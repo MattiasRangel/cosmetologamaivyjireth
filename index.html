@@ -80,6 +80,7 @@
     <!-- Nav desktop -->
     <ul class="hidden lg:flex items-center gap-9 font-medium text-sm">
       <li><a href="#servicios" class="nav-link">Servicios</a></li>
+      <li><a href="#sobre-mi" class="nav-link">Sobre mí</a></li>
       <li><a href="#ritual" class="nav-link">El Ritual</a></li>
       <li><a href="#nuestro-contenido" class="nav-link">Nuestro contenido</a></li>
       <li><a href="#ubicacion" class="nav-link">Ubicación</a></li>
@@ -108,6 +109,7 @@
   <div id="mobile-menu" class="lg:hidden bg-white/95 backdrop-blur border-t border-[#f1dbe3] px-5">
     <ul class="flex flex-col py-4 gap-1 font-medium text-sm">
       <li><a href="#servicios" class="block py-2.5">Servicios</a></li>
+      <li><a href="#sobre-mi" class="block py-2.5">Sobre mí</a></li>
       <li><a href="#ritual" class="block py-2.5">El Ritual</a></li>
       <li><a href="#nuestro-contenido" class="block py-2.5">Nuestro contenido</a></li>
       <li><a href="#ubicacion" class="block py-2.5">Ubicación</a></li>
@@ -312,6 +314,66 @@
 
     <div id="services-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
       <!-- Renderizado dinámicamente desde js/data.js -->
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     SOBRE MÍ
+====================================================================== -->
+<section id="sobre-mi" class="about relative overflow-hidden py-24 md:py-32">
+  <div class="ambient-glow w-72 h-72 bg-[#E882A6]/30 top-10 -right-16"></div>
+  <div class="ambient-glow delay w-80 h-80 bg-[#F5CCDF]/70 bottom-0 -left-20"></div>
+  <div class="max-w-6xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-[0.9fr_1.1fr] gap-16 lg:gap-20 items-center">
+    <div class="about-photo reveal">
+      <div class="about-stage">
+        <span class="about-blob" aria-hidden="true"></span>
+        <span class="about-ring" aria-hidden="true"></span>
+        <span class="about-outline" aria-hidden="true"></span>
+        <div class="about-arch">
+          <img src="imagenes/maivy.jpeg" alt="Maivy Jireth, cosmetóloga profesional" loading="lazy" />
+        </div>
+        <div class="about-badge about-badge--a">
+          <span class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center flex-shrink-0">
+            <i data-lucide="heart-handshake" class="w-5 h-5 text-[#C85F82]"></i>
+          </span>
+          <div class="leading-tight">
+            <p class="font-display font-semibold text-sm">Trato cercano</p>
+            <p class="text-xs text-[#6b6464]">Cada piel, su ritual</p>
+          </div>
+        </div>
+        <div class="about-badge about-badge--b">
+          <i data-lucide="award" class="w-5 h-5 text-[#AE2967]"></i>
+          <p class="font-display font-semibold text-sm">Cosmetóloga profesional</p>
+        </div>
+      </div>
+    </div>
+    <div class="reveal-stagger">
+      <div>
+        <p class="eyebrow text-sm mb-4">Sobre mí</p>
+        <h2 class="font-display text-3xl md:text-5xl font-semibold leading-[1.1]">
+          Hola, soy <span class="italic text-[#C85F82]">Maivy Jireth</span>
+        </h2>
+      </div>
+      <p class="about-script">con amor por tu piel</p>
+      <div class="space-y-4 text-[#5c5555] leading-relaxed mb-8">
+        <p>Creo en algo sencillo: tu piel no necesita una receta genérica, necesita que alguien la escuche. Por eso cada cita empieza conversando contigo, entendiendo tu rutina y lo que realmente quieres lograr.</p>
+        <p>Trabajo con técnica certificada y productos profesionales, y te acompaño incluso después de la cita, para que el resultado dure y tu piel se sienta tan bien como se ve.</p>
+      </div>
+      <ul class="space-y-3 mb-9">
+        <li class="about-value"><i data-lucide="sparkles" class="w-4 h-4"></i> Valoración honesta de tu piel</li>
+        <li class="about-value"><i data-lucide="shield-check" class="w-4 h-4"></i> Técnica certificada, productos profesionales</li>
+        <li class="about-value"><i data-lucide="heart" class="w-4 h-4"></i> Seguimiento después de cada cita</li>
+      </ul>
+      <div class="about-stats grid grid-cols-3 gap-4 mb-9">
+        <div class="about-stat"><p class="about-stat-num">+<span data-count="500">0</span></p><p class="about-stat-label">Rituales realizados</p></div>
+        <div class="about-stat"><p class="about-stat-num"><span data-count="100">0</span>%</p><p class="about-stat-label">Personalizado</p></div>
+        <div class="about-stat"><p class="about-stat-num"><span data-count="4">0</span></p><p class="about-stat-label">Pasos en cada ritual</p></div>
+      </div>
+      <div class="flex flex-wrap gap-4">
+        <button type="button" class="js-open-booking btn-primary font-semibold px-7 py-3.5 rounded-full">Agendar mi cita</button>
+        <a href="#ritual" class="btn-ghost font-semibold px-7 py-3.5 rounded-full">Conocer el ritual</a>
+      </div>
     </div>
   </div>
 </section>
@@ -565,6 +627,7 @@
       <p class="font-display font-semibold mb-4">Navegación</p>
       <ul class="space-y-2 text-sm text-[#6b6464]">
         <li><a href="#servicios" class="hover:text-[#C85F82]">Servicios</a></li>
+        <li><a href="#sobre-mi" class="hover:text-[#C85F82]">Sobre mí</a></li>
         <li><a href="#ritual" class="hover:text-[#C85F82]">El Ritual</a></li>
         <li><a href="#nuestro-contenido" class="hover:text-[#C85F82]">Nuestro contenido</a></li>
         <li><a href="#ubicacion" class="hover:text-[#C85F82]">Ubicación</a></li>
