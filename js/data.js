@@ -164,6 +164,10 @@ async function cargarCatalogo() {
       if (Array.isArray(s.imagenes) && s.imagenes.length > 0) {
         servicio.imagenes = s.imagenes;
       }
+      // Opciones a elegir (ej. "Una zona" / "Cuerpo completo"): columna JSONB `variantes`.
+      if (Array.isArray(s.variantes) && s.variantes.length > 0) {
+        servicio.variantes = s.variantes;
+      }
       SERVICES.push(servicio);
     });
   } catch (err) {

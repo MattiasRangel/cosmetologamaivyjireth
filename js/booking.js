@@ -6,6 +6,7 @@
 const bookingState = {
   step: 1,
   serviceId: null,
+  varianteId: null,
   date: null, 
   time: null,
   cliente: { nombre: "", telefono: "", email: "" },
@@ -35,9 +36,45 @@ function bindOpenTriggers() {
   });
 }
 
-window.openBookingModal = async function (serviceId = null) {
+/* Resuelve el servicio elegido (y su opción, si tiene) a un solo objeto con
+   nombre, duración y precio finales. */
+function resolverSeleccion() {
+  const s = SERVICES.find((x) => x.id === bookingState.serviceId);
+  if (!s) return null;
+  const v = s.variantes?.find((x) => x.id === bookingState.varianteId);
+  if (s.variantes?.length && !v) return null;
+  return {
+    id: s.id,
+    imagen: s.imagen,
+    nombre: v ? `${s.nombre} · ${v.nombre}` : s.nombre,
+    duracion: v ? v.duracion : s.duracion,
+    precio: v ? v.precio : s.precio,
+  };
+}
+
+/* Una fila por servicio, o una por opción cuando el servicio tiene variantes. */
+function opcionesReserva() {
+  return SERVICES.flatMap((s) =>
+    s.variantes?.length
+      ? s.variantes.map((v) => ({
+          key: `${s.id}::${v.id}`, servicioId: s.id, varianteId: v.id, imagen: s.imagen,
+          nombre: `${s.nombre} · ${v.nombre}`, duracion: v.duracion, precio: v.precio,
+        }))
+      : [{ key: s.id, servicioId: s.id, varianteId: null, imagen: s.imagen,
+           nombre: s.nombre, duracion: s.duracion, precio: s.precio }]
+  );
+}
+
+window.openBookingModal = async function (serviceId = null, varianteId = null) {
   resetBookingState();
-  if (serviceId) bookingState.serviceId = serviceId;
+  if (serviceId) {
+    const svc = typeof SERVICES !== "undefined" ? SERVICES.find((x) => x.id === serviceId) : null;
+    // Si el servicio tiene opciones y no llegó una, que la elija en el paso 1.
+    if (!(svc?.variantes?.length && !varianteId)) {
+      bookingState.serviceId = serviceId;
+      bookingState.varianteId = varianteId;
+    }
+  }
 
   const modal = document.getElementById("booking-modal");
   modal.hidden = false;
@@ -92,6 +129,7 @@ function bindModalControls() {
 function resetBookingState() {
   bookingState.step = 1;
   bookingState.serviceId = null;
+  bookingState.varianteId = null;
   bookingState.date = null;
   bookingState.time = null;
   bookingState.cliente = { nombre: "", telefono: "", email: "" };
@@ -190,25 +228,29 @@ function renderStepOneServices() {
   const wrap = document.getElementById("step-panel-1");
   if (!wrap || typeof SERVICES === "undefined") return;
 
-  wrap.innerHTML = SERVICES.map(
-    (s) => `
+  const keyActual = bookingState.varianteId
+    ? `${bookingState.serviceId}::${bookingState.varianteId}`
+    : bookingState.serviceId;
+
+  wrap.innerHTML = opcionesReserva().map(
+    (o) => `
     <label class="service-choice flex items-center gap-4 border-2 border-[#eadde2] rounded-xl p-3 sm:p-4 ${
-      bookingState.serviceId === s.id ? "is-selected" : ""
-    }" data-service-choice="${s.id}">
-      <img src="${s.imagen}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+      keyActual === o.key ? "is-selected" : ""
+    }" data-service-choice="${o.key}">
+      <img src="${o.imagen}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
       <div class="flex-1 min-w-0">
-        <p class="font-display font-semibold truncate">${s.nombre}</p>
-        <p class="text-xs text-[#6b6464]">${s.duracion} min</p>
+        <p class="font-display font-semibold truncate">${o.nombre}</p>
+        <p class="text-xs text-[#6b6464]">${o.duracion} min</p>
       </div>
-      <span class="font-display font-semibold text-[#C85F82] whitespace-nowrap">${formatCOP(
-        s.precio
-      )}</span>
+      <span class="font-display font-semibold text-[#C85F82] whitespace-nowrap">${formatCOP(o.precio)}</span>
     </label>`
   ).join("");
 
   wrap.querySelectorAll("[data-service-choice]").forEach((card) => {
     card.addEventListener("click", () => {
-      bookingState.serviceId = card.dataset.serviceChoice;
+      const [sid, vid] = card.dataset.serviceChoice.split("::");
+      bookingState.serviceId = sid;
+      bookingState.varianteId = vid || null;
       wrap.querySelectorAll(".service-choice").forEach((c) =>
         c.classList.toggle("is-selected", c === card)
       );
@@ -447,7 +489,7 @@ function validateClientForm() {
 function renderSummary() {
   const wrap = document.getElementById("booking-summary");
   if (!wrap) return;
-  const service = SERVICES.find((s) => s.id === bookingState.serviceId);
+  const service = resolverSeleccion();
   const fecha = bookingState.date
     ? bookingState.date.toLocaleDateString("es-CO", {
         weekday: "long",
@@ -496,7 +538,7 @@ async function confirmBooking() {
     return;
   }
 
-  const servicio = SERVICES.find((s) => s.id === bookingState.serviceId);
+  const servicio = resolverSeleccion();
   if (!servicio || !bookingState.date || !bookingState.time) {
     alert("Falta información de la reserva. Por favor revisa los pasos anteriores.");
     return;

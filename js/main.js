@@ -187,7 +187,7 @@ function renderServices() {
       <div class="relative overflow-hidden">
         ${fotoHtml}
         <span class="absolute top-3 right-3 bg-white/90 text-[#2B2B2B] text-xs font-semibold px-3 py-1 rounded-full shadow pointer-events-none">
-          ${s.duracionTexto}
+          <span data-duracion-de="${s.id}">${s.variantes ? s.variantes[0].duracion + " min" : s.duracionTexto}</span>
         </span>
       </div>
       <div class="p-6 flex flex-col flex-1">
@@ -197,9 +197,18 @@ function renderServices() {
           <i data-lucide="map-pin" class="w-3.5 h-3.5 flex-shrink-0"></i>
           ${s.zona}
         </p>
+        ${s.variantes ? `
+        <div class="variant-picker mt-4" role="radiogroup" aria-label="Elige una opción" data-picker="${s.id}">
+          ${s.variantes.map((v, k) => `
+          <button type="button" role="radio" aria-checked="${k === 0}" data-variante="${v.id}"
+            class="variant-chip ${k === 0 ? "is-active" : ""}">
+            <span class="variant-chip-name">${v.nombre}</span>
+            <span class="variant-chip-info">${v.duracion} min · ${formatCOP(v.precio)}</span>
+          </button>`).join("")}
+        </div>` : ""}
         <div class="flex items-center justify-between mt-5 pt-5 border-t border-[#f1dbe3] gap-3">
-          <span class="font-display text-base font-semibold text-[#C85F82] leading-tight">${s.precioTexto}</span>
-          <button type="button" data-service="${s.id}"
+          <span data-precio-de="${s.id}" class="font-display text-base font-semibold text-[#C85F82] leading-tight">${s.variantes ? formatCOP(s.variantes[0].precio) : s.precioTexto}</span>
+          <button type="button" data-service="${s.id}" data-variante="${s.variantes ? s.variantes[0].id : ""}"
             class="js-agendar-servicio btn-primary text-sm font-medium px-4 py-2 rounded-full flex-shrink-0">
             Agendar
           </button>
@@ -215,7 +224,25 @@ function renderServices() {
 
   grid.querySelectorAll(".js-agendar-servicio").forEach((btn) => {
     btn.addEventListener("click", () => {
-      window.openBookingModal?.(btn.dataset.service);
+      window.openBookingModal?.(btn.dataset.service, btn.dataset.variante || null);
+    });
+  });
+
+  // Selector de opciones (una zona / cuerpo completo): actualiza precio, duración y el botón Agendar
+  grid.querySelectorAll(".variant-picker").forEach((picker) => {
+    const servicio = SERVICES.find((x) => x.id === picker.dataset.picker);
+    picker.querySelectorAll(".variant-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const v = servicio.variantes.find((x) => x.id === chip.dataset.variante);
+        picker.querySelectorAll(".variant-chip").forEach((c) => {
+          c.classList.toggle("is-active", c === chip);
+          c.setAttribute("aria-checked", c === chip);
+        });
+        const card = picker.closest("article");
+        card.querySelector("[data-precio-de]").textContent = formatCOP(v.precio);
+        card.querySelector("[data-duracion-de]").textContent = `${v.duracion} min`;
+        card.querySelector(".js-agendar-servicio").dataset.variante = v.id;
+      });
     });
   });
 
