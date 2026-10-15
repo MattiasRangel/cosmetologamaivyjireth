@@ -87,16 +87,183 @@ function initVoltear() {
   const boton = $("#btn-voltear");
   const textoBoton = $("#btn-voltear-texto");
 
-  const voltear = () => {
-    const yaVolteada = wrap.classList.toggle("is-flipped");
-    textoBoton.textContent = yaVolteada ? "Toca la tarjeta para ver el frente" : "Toca la tarjeta para ver el reverso";
+  if (!wrap) return;
+
+  const esMovil = window.matchMedia("(pointer: coarse)").matches;
+  const MAX_TILT = 16; // Inclinación vertical/mouse en grados
+  let baseFlipY = 0;   // Múltiplos de 180° (0 = frente, ±180 = reverso)
+  let dragAngleY = 0;  // Ángulo adicional mientras arrastras el dedo
+  let startX = 0;
+  let startY = 0;
+  let isDragging = false;
+  let lastTouchTime = 0;
+  let rafId = null;
+
+  const estaVolteada = () => Math.abs(Math.round(baseFlipY / 180)) % 2 === 1;
+
+  const actualizarTextoBoton = () => {
+    if (!textoBoton) return;
+    if (esMovil) {
+      textoBoton.textContent = estaVolteada()
+        ? "Desliza la tarjeta con tu dedo para ver el frente"
+        : "Desliza la tarjeta con tu dedo para ver el reverso";
+    } else {
+      textoBoton.textContent = estaVolteada()
+        ? "Haz clic en la tarjeta para ver el frente"
+        : "Haz clic en la tarjeta para ver el reverso";
+    }
   };
 
-  wrap.addEventListener("click", voltear);
-  boton.addEventListener("click", (e) => {
-    e.stopPropagation();
-    voltear();
+  const aplicarVolteoBase = (nuevoAngulo) => {
+    baseFlipY = nuevoAngulo;
+    wrap.classList.toggle("is-flipped", estaVolteada());
+    wrap.style.setProperty("--flip-y", `${baseFlipY}deg`);
+    actualizarTextoBoton();
+  };
+
+  const resetearInclinacion = () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    wrap.classList.remove("is-dragging");
+    wrap.style.setProperty("--rx", "0deg");
+    wrap.style.setProperty("--ry", "0deg");
+    wrap.style.setProperty("--px", "0");
+    wrap.style.setProperty("--py", "0");
+    wrap.style.setProperty("--gx", "35%");
+    wrap.style.setProperty("--gy", "25%");
+    wrap.style.setProperty("--scale", "1");
+    wrap.style.setProperty("--glare-op", "0.35");
+  };
+
+  actualizarTextoBoton();
+
+  // =====================================================================
+  // MÓVIL: Arrastrar con el dedo en 3D para inclinar y girar 180°
+  // =====================================================================
+  wrap.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      dragAngleY = 0;
+      isDragging = true;
+      wrap.classList.add("is-dragging");
+    },
+    { passive: true }
+  );
+
+  wrap.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      if (e.cancelable) e.preventDefault();
+
+      const touch = e.touches[0];
+      const rect = wrap.getBoundingClientRect();
+
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+
+      // Deslizar el 75% del ancho de la tarjeta equivale a un giro completo de 180°
+      const rawAngleY = (deltaX / (rect.width * 0.75)) * 180;
+      dragAngleY = Math.max(-180, Math.min(180, rawAngleY));
+
+      // Inclinación vertical 3D según el movimiento vertical del dedo
+      const py = Math.max(-1, Math.min(1, deltaY / (rect.height * 0.6)));
+      const rx = (-py * MAX_TILT).toFixed(2);
+
+      // Sombra y grosor 3D dinámicos según el ángulo de giro
+      const px = Math.sin((dragAngleY * Math.PI) / 180);
+
+      // Posición del reflejo de luz (glare) siguiendo al dedo
+      const xRel = Math.min(Math.max(touch.clientX - rect.left, 0), rect.width);
+      const yRel = Math.min(Math.max(touch.clientY - rect.top, 0), rect.height);
+      const gx = ((xRel / rect.width) * 100).toFixed(1);
+      const gy = ((yRel / rect.height) * 100).toFixed(1);
+
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        wrap.style.setProperty("--rx", `${rx}deg`);
+        wrap.style.setProperty("--ry", `${dragAngleY.toFixed(2)}deg`);
+        wrap.style.setProperty("--px", px.toFixed(3));
+        wrap.style.setProperty("--py", py.toFixed(3));
+        wrap.style.setProperty("--gx", `${gx}%`);
+        wrap.style.setProperty("--gy", `${gy}%`);
+        wrap.style.setProperty("--scale", "1.03");
+        wrap.style.setProperty("--glare-op", "0.8");
+      });
+    },
+    { passive: false }
+  );
+
+  const finalizarToque = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    lastTouchTime = Date.now();
+
+    // Si deslizó más de 45° hacia la derecha o izquierda, completa el giro 3D
+    if (dragAngleY > 45) {
+      aplicarVolteoBase(baseFlipY + 180);
+    } else if (dragAngleY < -45) {
+      aplicarVolteoBase(baseFlipY - 180);
+    }
+
+    dragAngleY = 0;
+    resetearInclinacion();
+  };
+
+  wrap.addEventListener("touchend", finalizarToque);
+  wrap.addEventListener("touchcancel", () => {
+    isDragging = false;
+    dragAngleY = 0;
+    resetearInclinacion();
   });
+
+  // =====================================================================
+  // ESCRITORIO: Inclinación 3D con el mouse y clic para voltear
+  // =====================================================================
+  wrap.addEventListener("mousemove", (e) => {
+    if (Date.now() - lastTouchTime < 600) return;
+    const rect = wrap.getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+
+    const px = (x / rect.width - 0.5) * 2;
+    const py = (y / rect.height - 0.5) * 2;
+    const rx = (-py * MAX_TILT).toFixed(2);
+    const ry = (px * MAX_TILT).toFixed(2);
+    const gx = ((x / rect.width) * 100).toFixed(1);
+    const gy = ((y / rect.height) * 100).toFixed(1);
+
+    wrap.classList.add("is-dragging");
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      wrap.style.setProperty("--rx", `${rx}deg`);
+      wrap.style.setProperty("--ry", `${ry}deg`);
+      wrap.style.setProperty("--px", px.toFixed(3));
+      wrap.style.setProperty("--py", py.toFixed(3));
+      wrap.style.setProperty("--gx", `${gx}%`);
+      wrap.style.setProperty("--gy", `${gy}%`);
+      wrap.style.setProperty("--scale", "1.03");
+      wrap.style.setProperty("--glare-op", "0.75");
+    });
+  });
+
+  wrap.addEventListener("mouseleave", resetearInclinacion);
+
+  // En escritorio el clic voltea; en celular se ignora el toque simple en la tarjeta
+  wrap.addEventListener("click", () => {
+    if (Date.now() - lastTouchTime < 600) return;
+    aplicarVolteoBase(baseFlipY + 180);
+  });
+
+  if (boton) {
+    boton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      aplicarVolteoBase(baseFlipY + 180);
+    });
+  }
 }
 
 async function init() {

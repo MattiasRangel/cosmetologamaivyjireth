@@ -438,8 +438,7 @@ textarea:focus-visible,
 
 /* =========================================================================
    Tarjeta VIP — medida directamente sobre la tarjeta de referencia
-   (posiciones en % + tipografía en cqw para que TODO escale junto,
-   igual de proporcionado en un celular de 320px que en un monitor).
+   (posiciones en % + tipografía en cqw intactas, con acabado 3D realista)
    ========================================================================= */
 .font-script {
   font-family: var(--font-script);
@@ -449,17 +448,77 @@ textarea:focus-visible,
   width: 100%;
   padding-top: 57.14%; /* proporción 1.75:1, la misma de la tarjeta real */
   position: relative;
+  perspective: 1100px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .vip-card {
   position: absolute;
   inset: 0;
   border-radius: 4cqw;
   border: 0.9cqw solid #f4a9c6;
-  background: #fdf3f1;
-  box-shadow: 0 30px 55px -25px rgba(174, 41, 103, 0.35);
+  background: linear-gradient(135deg, #fffcfb 0%, #fdf3f1 50%, #f9e2ec 100%);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px rgba(174, 41, 103, 0.2),
+    calc(var(--px, 0) * -3.5px) calc(var(--py, 0) * -3.5px) 0 #e38eb0,
+    calc(var(--px, 0) * -5px) calc(var(--py, 0) * -5px) 0 #c86b92,
+    0 25px 45px -18px rgba(174, 41, 103, 0.4);
   overflow: hidden;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1));
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
-.vc-el { position: absolute; }
+.vip-card-wrap.is-dragging .vip-card {
+  transition: transform 0.06s ease-out, box-shadow 0.06s ease-out;
+}
+
+/* Textura satinada diagonal sutil */
+.vip-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.55) 45%,
+    rgba(232, 130, 166, 0.18) 50%,
+    transparent 75%
+  );
+  background-size: 200% 200%;
+  background-position: var(--gx, 35%) var(--gy, 25%);
+  pointer-events: none;
+  z-index: 4;
+  mix-blend-mode: soft-light;
+}
+
+/* Reflejo de luz realista (Glare) que sigue al dedo */
+.vip-card::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    circle at var(--gx, 35%) var(--gy, 25%),
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 240, 246, 0.35) 28%,
+    transparent 62%
+  );
+  opacity: var(--glare-op, 0.35);
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.3s ease;
+}
+
+/* Posiciones originales intactas + relieve 3D sutil */
+.vc-el {
+  position: absolute;
+  z-index: 2;
+  transform: translate3d(calc(var(--px, 0) * 2.5px), calc(var(--py, 0) * 2.5px), 0);
+  transition: transform 0.08s ease-out;
+}
 .vc-cliente {
   left: 6.5%; top: 13%;
   font-family: var(--font-display);
@@ -467,29 +526,41 @@ textarea:focus-visible,
   letter-spacing: 0.03em;
   color: #2b2b2b;
   white-space: nowrap;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    calc(var(--px, 0) * -2px) calc(var(--py, 0) * -2px + 2px) 3px rgba(107, 25, 64, 0.18);
 }
 .vc-vip {
   left: 33%; top: 0%;
   font-size: 15.5cqw;
   color: #e8739f;
   line-height: 1;
+  filter: drop-shadow(calc(var(--px, 0) * -3px) calc(var(--py, 0) * -3px + 3px) 4px rgba(174, 41, 103, 0.25));
 }
 .vc-logo {
   left: 62%; top: 3%;
   width: 34%;
   height: auto;
   object-fit: contain;
+  box-shadow:
+    0 6px 15px -4px rgba(174, 41, 103, 0.3),
+    0 0 0 1.5px rgba(255, 255, 255, 0.85);
 }
 .vc-chip {
   left: 6.5%; top: 40%;
   width: 13.5%;
   height: auto;
+  filter:
+    drop-shadow(calc(var(--px, 0) * -2px) calc(var(--py, 0) * -2px + 2px) 3px rgba(43, 43, 43, 0.25))
+    contrast(1.06)
+    brightness(1.03);
 }
 .vc-contactless {
   left: 18%; top: 41%;
   width: 9%;
   color: #e8739f;
-  transform: rotate(90deg);
+  transform: translate3d(calc(var(--px, 0) * 2px), calc(var(--py, 0) * 2px), 0) rotate(90deg);
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
 }
 .vc-number {
   left: 6.5%; top: 64%;
@@ -498,6 +569,11 @@ textarea:focus-visible,
   color: #2b2b2b;
   white-space: nowrap;
   display: flex;
+  /* Efecto troquelado / relieve de tarjeta real */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 -0.5px 0 rgba(43, 43, 43, 0.25),
+    calc(var(--px, 0) * -2px) calc(var(--py, 0) * -2px + 2px) 4px rgba(107, 25, 64, 0.2);
 }
 .vc-number span { margin-right: 2.6cqw; }
 .vc-number span:last-child { margin-right: 0; }
@@ -507,6 +583,7 @@ textarea:focus-visible,
   font-size: 3.1cqw;
   color: #2b2b2b;
   white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 .vc-insta {
   left: 6.5%; top: 86%;
@@ -517,6 +594,7 @@ textarea:focus-visible,
   display: flex;
   align-items: center;
   gap: 0.5em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 .vc-insta i { width: 1em; height: 1em; color: #e8739f; }
 .vc-dots {
@@ -530,7 +608,7 @@ textarea:focus-visible,
   top: 0;
   width: 62%;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(43, 43, 43, 0.25);
+  box-shadow: 0 3px 8px rgba(43, 43, 43, 0.28);
 }
 .vc-dots img.dot-gold { right: 0; }
 .vc-dots img.dot-rose { right: 30%; }
@@ -796,42 +874,90 @@ textarea:focus-visible,
   }
 }
 /* =========================================================================
-   Tarjeta VIP del cliente (mi-tarjeta-vip.html) — flip 3D delantera/trasera
-   Misma técnica de escalado que .vip-card (cqw), así que delantera y
-   trasera quedan proporcionadas exactamente igual.
+   Tarjeta VIP del cliente (mi-tarjeta-vip.html) — 3D interactivo + flip
    ========================================================================= */
 .mv-flip-wrap {
+  --rx: 0deg;
+  --ry: 0deg;
+  --flip-y: 0deg;
+  --scale: 1;
+  --px: 0;
+  --py: 0;
+  --gx: 35%;
+  --gy: 25%;
+  --glare-op: 0.35;
+
   container-type: inline-size;
   width: 100%;
   max-width: 620px;
   margin: 0 auto;
   padding-top: 57.14%;
   position: relative;
-  perspective: 2000px;
+  perspective: 1100px;
+  touch-action: none; /* Permite mover la tarjeta con el dedo sin arrastrar la página */
+  user-select: none;
+  -webkit-user-select: none;
 }
 .mv-flip-inner {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transition: transform 1s cubic-bezier(0.45, 0.2, 0.2, 1);
-  cursor: pointer;
+  transform:
+    rotateX(var(--rx, 0deg))
+    rotateY(calc(var(--ry, 0deg) + var(--flip-y, 0deg)))
+    scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1));
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: grab;
+  will-change: transform;
 }
-.mv-flip-wrap.is-flipped .mv-flip-inner { transform: rotateY(180deg); }
-.mv-flip-wrap:not(.is-flipped) .mv-flip-inner:hover { transform: rotateY(-6deg) rotateX(2deg); }
-.mv-flip-wrap.is-flipped .mv-flip-inner:hover { transform: rotateY(186deg) rotateX(2deg); }
+.mv-flip-wrap.is-dragging .mv-flip-inner {
+  transition: transform 0.06s ease-out;
+  cursor: grabbing;
+}
+.mv-flip-wrap.is-flipped {
+  --flip-y: 180deg;
+}
 
-.mv-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.mv-face--back { transform: rotateY(180deg); }
-.mv-face--front .vip-card-wrap { padding-top: 0; position: absolute; inset: 0; }
+.mv-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.mv-face--back {
+  transform: rotateY(180deg);
+}
+.mv-face--front .vip-card-wrap {
+  padding-top: 0;
+  position: absolute;
+  inset: 0;
+  perspective: none;
+}
+/* En mi-tarjeta-vip.html la rotación 3D la lleva .mv-flip-inner para soportar el volteo */
+.mv-face--front .vip-card {
+  transform: none;
+}
 
 .mv-card-back {
   position: absolute;
   inset: 0;
   border-radius: 4cqw;
   border: 0.9cqw solid #f4a9c6;
-  background: linear-gradient(160deg, #ffffff 0%, #fde8ef 100%);
-  box-shadow: 0 30px 55px -25px rgba(174, 41, 103, 0.35);
-  overflow: hidden; /* red de seguridad: si algo no cabe, se recorta en vez de "salirse" de la tarjeta */
+  background:
+    radial-gradient(
+      circle at calc(100% - var(--gx, 35%)) var(--gy, 25%),
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(253, 232, 239, 0.5) 50%,
+      transparent 75%
+    ),
+    linear-gradient(160deg, #ffffff 0%, #fde8ef 100%);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px rgba(174, 41, 103, 0.2),
+    calc(var(--px, 0) * 3.5px) calc(var(--py, 0) * -3.5px) 0 #e38eb0,
+    calc(var(--px, 0) * 5px) calc(var(--py, 0) * -5px) 0 #c86b92,
+    calc(var(--px, 0) * 18px) calc(28px + var(--py, 0) * -18px) 48px -15px rgba(174, 41, 103, 0.45);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -840,21 +966,41 @@ textarea:focus-visible,
   box-sizing: border-box;
   gap: 0.8cqw;
 }
+.mv-card-back::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    circle at calc(100% - var(--gx, 35%)) var(--gy, 25%),
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 240, 246, 0.3) 30%,
+    transparent 62%
+  );
+  opacity: var(--glare-op, 0.35);
+  pointer-events: none;
+  z-index: 5;
+}
 .mv-back-logo {
   width: 7.5cqw; height: 7.5cqw; border-radius: 50%; overflow: hidden;
-  background: #fff; box-shadow: 0 0 0 0.35cqw #fff; flex-shrink: 0;
+  background: #fff; box-shadow: 0 2px 6px rgba(174, 41, 103, 0.25), 0 0 0 0.35cqw #fff; flex-shrink: 0;
+  position: relative; z-index: 2;
 }
 .mv-back-logo img { width: 100%; height: 100%; object-fit: cover; }
 .mv-back-heading {
   font-family: var(--font-display); font-style: italic; font-weight: 600;
   font-size: 2.5cqw; color: var(--rosa-vip, #ae2967); text-align: center; margin: 0;
-  line-height: 1.15;
+  line-height: 1.15; position: relative; z-index: 2;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
-.mv-punch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1cqw; width: 100%; }
+.mv-punch-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1cqw; width: 100%;
+  position: relative; z-index: 2;
+}
 .mv-punch {
   aspect-ratio: 1; border-radius: 50%; border: 0.3cqw dashed #d998b3; background: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15cqw;
   color: #6b1940; overflow: hidden;
+  box-shadow: inset 0 1.5px 3px rgba(174, 41, 103, 0.12), 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .mv-punch-label { font-size: 1.5cqw; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; line-height: 1; }
 .mv-punch-value { font-family: var(--font-display); font-weight: 600; font-size: 2.5cqw; display: flex; align-items: center; justify-content: center; line-height: 1; }
@@ -863,7 +1009,7 @@ textarea:focus-visible,
 .mv-punch.is-completado {
   border-style: solid; border-color: var(--rosa-vip, #ae2967);
   background: linear-gradient(135deg, #e882a6, #ae2967);
-  color: #fff; box-shadow: 0 0.5cqw 1.2cqw -0.4cqw rgba(174, 41, 103, 0.55);
+  color: #fff; box-shadow: 0 0.6cqw 1.4cqw -0.3cqw rgba(174, 41, 103, 0.6);
   padding: 0;
 }
 .mv-punch-sticker-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
@@ -879,8 +1025,12 @@ textarea:focus-visible,
 .mv-progress-track { height: 10px; border-radius: 999px; background: #fde8ef; overflow: hidden; }
 .mv-progress-track span { display: block; height: 100%; background: linear-gradient(90deg, #e882a6, #ae2967); border-radius: 999px; transition: width 0.4s ease; }
 
-@media (max-width: 480px) {
-  .mv-punch-label { font-size: 2cqw; }
+@media (min-width: 768px) {
+  .mv-flip-wrap {
+    max-width: 420px; /* Puedes subirlo a 450px o bajarlo a 380px a tu gusto */
+    padding-top: 0;
+    aspect-ratio: 1.75 / 1;
+  }
 }
 
 /* =========================================================================
