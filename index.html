@@ -68,7 +68,7 @@
 ====================================================================== -->
 <header id="navbar" class="fixed top-0 inset-x-0 z-50">
   <nav class="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
-    <!-- Logo -->
+    <!-- Logo (sin bordes adicionales) -->
     <a href="#inicio" class="flex items-center gap-3 group">
       <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-11 h-11 rounded-full object-cover" />
       <span class="leading-tight">
@@ -98,15 +98,15 @@
     </div>
 
     <!-- Botón menú móvil -->
-    <button id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu"
-      class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full border border-[#eadde2]">
+    <button id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menú"
+      class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full">
       <i data-lucide="menu" id="icon-menu-open" class="w-5 h-5"></i>
       <i data-lucide="x" id="icon-menu-close" class="w-5 h-5 hidden"></i>
     </button>
   </nav>
 
   <!-- Menú móvil -->
-  <div id="mobile-menu" class="lg:hidden bg-white/95 backdrop-blur border-t border-[#f1dbe3] px-5">
+  <div id="mobile-menu" class="lg:hidden bg-white/95 backdrop-blur-md border-t border-[#f1dbe3] px-5">
     <ul class="flex flex-col py-4 gap-1 font-medium text-sm">
       <li><a href="#servicios" class="block py-2.5">Servicios</a></li>
       <li><a href="#sobre-mi" class="block py-2.5">Sobre mí</a></li>
@@ -130,23 +130,23 @@
 <!-- ======================================================================
      HERO
 ====================================================================== -->
-<section id="inicio" class="relative overflow-hidden pt-36 pb-24 md:pt-44 md:pb-32 bg-[#FDE8EF]">
+<section id="inicio" class="relative overflow-hidden pt-32 pb-20 sm:pt-36 sm:pb-24 md:pt-44 md:pb-32 bg-[#FDE8EF]">
   <div class="ambient-glow w-72 h-72 bg-[#E882A6]/40 -top-10 -left-10"></div>
   <div class="ambient-glow delay w-96 h-96 bg-[#AE2967]/25 top-1/3 -right-20"></div>
 
-  <div class="max-w-7xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-2 gap-16 items-center">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
     <div>
-      <p class="eyebrow text-sm mb-5 entrada entrada-1">Ritual de belleza consciente</p>
-      <h1 class="font-display text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.08] mb-6 entrada entrada-2">
+      <p class="eyebrow text-sm mb-4 md:mb-5 entrada entrada-1">Ritual de belleza consciente</p>
+      <h1 class="font-display text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.08] mb-5 md:mb-6 entrada entrada-2">
         Tu piel tiene memoria.<br />
         <span class="italic text-[#C85F82]">Dale algo bueno.</span>
       </h1>
-      <p class="text-base md:text-lg text-[#5c5555] max-w-xl leading-relaxed mb-9 entrada entrada-3">
+      <p class="text-base md:text-lg text-[#5c5555] max-w-xl leading-relaxed mb-8 md:mb-9 entrada entrada-3">
         Tratamientos faciales y corporales diseñados a la medida de tu piel —no de un catálogo—.
         Cuidado profesional, técnica certificada y un espacio pensado para que cada cita se sienta
         como un verdadero ritual.
       </p>
-      <div class="flex flex-wrap gap-4 mb-10 entrada entrada-4">
+      <div class="flex flex-wrap gap-3.5 sm:gap-4 mb-9 md:mb-10 entrada entrada-4">
         <button type="button" class="js-open-booking btn-primary font-semibold px-7 py-3.5 rounded-full">
           Reservar Cita
         </button>
@@ -154,7 +154,7 @@
           Ver Servicios
         </a>
       </div>
-      <div class="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-[#5c5555] entrada entrada-5">
+      <div class="flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-[#5c5555] entrada entrada-5">
         <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4 text-[#AE2967]"></i>+500 rituales realizados</span>
         <span class="flex items-center gap-2"><i data-lucide="heart-handshake" class="w-4 h-4 text-[#AE2967]"></i>100% personalizado</span>
         <span class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-[#AE2967]"></i>Villa del Rosario, Colombia</span>
@@ -167,7 +167,7 @@
              alt="Tratamiento facial profesional en cabina de cosmetología"
              class="w-full h-full object-cover" />
       </div>
-      <div class="absolute -bottom-6 -left-4 sm:-left-8 bg-white rounded-2xl shadow-xl px-5 py-4 flex items-center gap-3 border border-[#f1dbe3] entrada entrada-5">
+      <div class="absolute -bottom-5 left-2 sm:-bottom-6 sm:-left-8 bg-white rounded-2xl shadow-xl px-5 py-4 flex items-center gap-3 entrada entrada-5">
         <span class="w-11 h-11 rounded-full bg-[#FDE8EF] flex items-center justify-center flex-shrink-0">
           <i data-lucide="award" class="w-5 h-5 text-[#C85F82]"></i>
         </span>
@@ -183,7 +183,7 @@
 <!-- ======================================================================
      SERVICIOS
 ====================================================================== -->
-<section id="servicios" class="py-24 md:py-32 bg-white">
+<section id="servicios" class="py-20 md:py-32 bg-white">
   <div class="max-w-7xl mx-auto px-5 md:px-8">
     <div class="max-w-2xl mx-auto text-center mb-10 reveal">
       <p class="eyebrow text-sm mb-4">Catálogo de tratamientos</p>
@@ -194,19 +194,11 @@
       </p>
     </div>
 
-<!-- ========================================== -->
-<!-- PROMOS DESTACADAS (INICIO DEL CATÁLOGO)    -->
-<!-- ========================================== -->
-
-<!-- ========================================== -->
-<!-- FIN PROMOS DESTACADAS                      -->
-<!-- ========================================== -->
-
-    <div id="services-category-tabs" class="flex flex-wrap justify-center gap-3 mb-12 reveal">
+    <div id="services-category-tabs" class="flex flex-wrap justify-center gap-2.5 sm:gap-3 mb-10 md:mb-12 reveal">
       <!-- Renderizado dinámicamente desde js/data.js (SERVICE_CATEGORIES) -->
     </div>
 
-    <div id="services-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
+    <div id="services-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
       <!-- Renderizado dinámicamente desde js/data.js -->
     </div>
   </div>
@@ -215,10 +207,10 @@
 <!-- ======================================================================
      SOBRE MÍ
 ====================================================================== -->
-<section id="sobre-mi" class="about relative overflow-hidden py-24 md:py-32">
+<section id="sobre-mi" class="about relative overflow-hidden py-20 md:py-32">
   <div class="ambient-glow w-72 h-72 bg-[#E882A6]/30 top-10 -right-16"></div>
   <div class="ambient-glow delay w-80 h-80 bg-[#F5CCDF]/70 bottom-0 -left-20"></div>
-  <div class="max-w-6xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-[0.9fr_1.1fr] gap-16 lg:gap-20 items-center">
+  <div class="max-w-6xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-[0.9fr_1.1fr] gap-14 lg:gap-20 items-center">
     <div class="about-photo reveal">
       <div class="about-stage">
         <span class="about-blob" aria-hidden="true"></span>
@@ -259,7 +251,7 @@
         <li class="about-value"><i data-lucide="shield-check" class="w-4 h-4"></i> Técnica certificada, productos profesionales</li>
         <li class="about-value"><i data-lucide="heart" class="w-4 h-4"></i> Seguimiento después de cada cita</li>
       </ul>
-      <div class="about-stats grid grid-cols-3 gap-4 mb-9">
+      <div class="about-stats grid grid-cols-3 gap-3 sm:gap-4 mb-9">
         <div class="about-stat"><p class="about-stat-num">+<span data-count="500">0</span></p><p class="about-stat-label">Rituales realizados</p></div>
         <div class="about-stat"><p class="about-stat-num"><span data-count="100">0</span>%</p><p class="about-stat-label">Personalizado</p></div>
         <div class="about-stat"><p class="about-stat-num"><span data-count="4">0</span></p><p class="about-stat-label">Pasos en cada ritual</p></div>
@@ -275,9 +267,9 @@
 <!-- ======================================================================
      EL RITUAL
 ====================================================================== -->
-<section id="ritual" class="py-24 md:py-32 bg-[#FDE8EF]">
+<section id="ritual" class="py-20 md:py-32 bg-[#FDE8EF]">
   <div class="max-w-6xl mx-auto px-5 md:px-8">
-    <div class="max-w-2xl mx-auto text-center mb-20 reveal">
+    <div class="max-w-2xl mx-auto text-center mb-16 md:mb-20 reveal">
       <p class="eyebrow text-sm mb-4">La experiencia</p>
       <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">El Ritual Maivy Jireth</h2>
       <p class="text-[#6b6464] leading-relaxed">
@@ -288,7 +280,7 @@
 
     <div class="ritual-thread-wrap">
       <div id="ritual-thread-line" class="ritual-thread-line hidden md:block"></div>
-      <div id="ritual-steps" class="space-y-12 md:space-y-16 relative">
+      <div id="ritual-steps" class="space-y-10 md:space-y-16 relative">
         <!-- Renderizado dinámicamente desde js/data.js -->
       </div>
     </div>
@@ -298,9 +290,9 @@
 <!-- ======================================================================
      ENCUENTRA TU TRATAMIENTO IDEAL
 ====================================================================== -->
-<section id="tratamiento-ideal" class="py-24 md:py-32 bg-white">
+<section id="tratamiento-ideal" class="py-20 md:py-32 bg-white">
   <div class="max-w-7xl mx-auto px-5 md:px-8">
-    <div class="max-w-2xl mx-auto text-center mb-14 reveal">
+    <div class="max-w-2xl mx-auto text-center mb-12 md:mb-14 reveal">
       <p class="eyebrow text-sm mb-4">Según lo que necesitas</p>
       <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">Encuentra tu Tratamiento Ideal</h2>
       <p class="text-[#6b6464] leading-relaxed">
@@ -386,13 +378,12 @@
   </div>
 </section>
 
-
 <!-- ======================================================================
      NUESTRO CONTENIDO — videos de TikTok con carga diferida
 ====================================================================== -->
-<section id="nuestro-contenido" class="py-24 md:py-32 bg-white">
-  <div class="max-w-4xl mx-auto px-5 md:px-8">
-    <div class="text-center mb-14 reveal">
+<section id="nuestro-contenido" class="py-20 md:py-32 bg-white">
+  <div class="max-w-5xl mx-auto px-5 md:px-8">
+    <div class="text-center mb-12 md:mb-14 reveal">
       <p class="eyebrow text-sm mb-4">Síguenos</p>
       <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">Nuestro contenido</h2>
       <p class="text-[#6b6464] leading-relaxed max-w-lg mx-auto">
@@ -400,8 +391,8 @@
       </p>
     </div>
 
-    <div id="tiktok-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 max-w-2xl mx-auto">
-      <!-- Las 3 tarjetas se arman en js/main.js a partir de TIKTOK_VIDEOS (js/data.js) -->
+    <div id="tiktok-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-5 max-w-4xl mx-auto">
+      <!-- Las 4 tarjetas se arman en js/main.js a partir de TIKTOK_VIDEOS (js/data.js) -->
     </div>
 
     <div class="text-center mt-12 reveal">
@@ -417,8 +408,8 @@
 <!-- ======================================================================
      UBICACIÓN
 ====================================================================== -->
-<section id="ubicacion" class="py-24 md:py-32 bg-[#FDE8EF]">
-  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-14 items-center">
+<section id="ubicacion" class="py-20 md:py-32 bg-[#FDE8EF]">
+  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-12 lg:gap-14 items-center">
     <div class="reveal">
       <p class="eyebrow text-sm mb-4">Visítanos</p>
       <h2 class="font-display text-3xl md:text-4xl font-semibold mb-5">Nuestra Ubicación</h2>
@@ -434,7 +425,6 @@
           </span>
           <div>
             <p class="font-display font-semibold">Dirección</p>
-            <!-- ⚠️ Reemplaza esto por tu dirección real -->
             <p class="text-sm text-[#6b6464]">Conjunto cerrado la rayuela casa B15, Villa del Rosario, Norte de Santander</p>
           </div>
         </li>
@@ -453,12 +443,12 @@
           </span>
           <div>
             <p class="font-display font-semibold">Reservas</p>
-            <p class="text-sm text-[#6b6464]">+57 300 000 0000</p>
+            <p class="text-sm text-[#6b6464]">+57 312 285 5055</p>
           </div>
         </li>
       </ul>
 
-      <a href="https://www.google.com/maps/search/?api=1&query=C%C3%BAcuta%2C+Norte+de+Santander%2C+Colombia"
+      <a href="https://www.google.com/maps/search/?api=1&query=Conjunto+cerrado+la+rayuela%2C+Villa+del+Rosario%2C+Norte+de+Santander"
         target="_blank" rel="noopener"
         class="btn-primary inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-full">
         <i data-lucide="navigation" class="w-4 h-4"></i>
@@ -467,11 +457,7 @@
     </div>
 
     <div class="reveal" style="transition-delay:150ms">
-      <!-- Mapa de ejemplo centrado en Cúcuta (no requiere API key). Para
-           mostrar la ubicación exacta: busca tu dirección en Google Maps →
-           Compartir → Insertar un mapa → copia esa URL y reemplázala aquí
-           en el atributo src del iframe. -->
-      <div class="rounded-2xl overflow-hidden shadow-xl border border-[#f1dbe3] aspect-[4/5] sm:aspect-[4/3]">
+      <div class="rounded-2xl overflow-hidden shadow-xl aspect-[4/4.2] sm:aspect-[4/3]">
         <iframe
           title="Ubicación de Maivy Jireth Cosmetóloga en el mapa"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d763.9262713951407!2d-72.47017427584264!3d7.823688892863439!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e664710530df583%3A0x4ae04ae0acf514f2!2sConjunto%20cerrado%20la%20rayuela!5e0!3m2!1ses-419!2sco!4v1786332676379!5m2!1ses-419!2sco"
@@ -512,7 +498,7 @@
         <span class="font-display font-semibold">Maivy Jireth</span>
       </a>
       <p class="text-sm text-[#6b6464] leading-relaxed">
-        Cosmetología profesional y personalizada en Cúcuta, Colombia. Cada piel merece su
+        Cosmetología profesional y personalizada en Villa del Rosario, Colombia. Cada piel merece su
         propio ritual.
       </p>
     </div>
@@ -541,14 +527,13 @@
     <div>
       <p class="font-display font-semibold mb-4">Síguenos</p>
       <div class="flex gap-3">
-        
         <a href="https://www.instagram.com/cosmetologa_maivyjireth?stkn=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener" aria-label="Instagram" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
           <img src="imagenes/instagram.svg" alt="" class="w-4 h-4" />
         </a>
-        <a href="#" target="_blank" rel="noopener" aria-label="TikTok" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
+        <a href="https://www.tiktok.com/@cosmetoloca_maivyjireth" target="_blank" rel="noopener" aria-label="TikTok" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
           <img src="imagenes/tiktok.svg" alt="" class="w-4 h-4" />
         </a>
-        <a href="https://wa.me/573122855055?text=Hola%20Maivy,%20me%20gustaría%20saber%20más%20sobre%20sus%20servicios." target="_blank" rel="noopener" aria-label="WhatsApp" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
+        <a href="https://wa.me/573122855055?text=Hola%20Maivy,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20sus%20servicios." target="_blank" rel="noopener" aria-label="WhatsApp" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
           <img src="imagenes/whatsapp.svg" alt="" class="w-4 h-4" />
         </a>
       </div>
@@ -688,16 +673,6 @@
 <script src="js/main.js"></script>
 <script src="js/booking.js"></script>
 <script>
-  // Todos los íconos de Lucide en esta página son estáticos (ya están
-  // en este HTML), así que basta con generarlos una sola vez al cargar.
-  //
-  // Antes había aquí también un MutationObserver que volvía a llamar
-  // lucide.createIcons() cada vez que el DOM cambiaba. El problema: cada
-  // ícono, una vez convertido a <svg>, CONSERVA el atributo data-lucide
-  // (así lo hace la librería). Entonces esa misma llamada generaba un
-  // cambio en el DOM, el observer lo detectaba, volvía a llamar
-  // createIcons(), eso generaba otro cambio... y así sin parar. Ese
-  // bucle infinito era lo que dejaba la página congelada.
   window.addEventListener("load", () => {
     if (window.lucide) lucide.createIcons();
   });
