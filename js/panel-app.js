@@ -535,10 +535,26 @@ function leerFilaHorario(row) {
   return { cerrado, franjas };
 }
 
+// Los guardados se encadenan (uno tras otro) para que un guardado viejo
+// no llegue tarde y pise al nuevo.
+let colaGuardadoHorario = Promise.resolve();
+
+/** "HH:MM" en 24h: se puede comparar como texto. */
+function franjasValidas(franjas) {
+  return franjas.every((f) => f.inicio && f.fin && f.fin > f.inicio);
+}
+
+/** @returns {Promise<boolean>} true si se guardó, false si se rechazó por horas inválidas */
 async function guardarFilaHorario(row) {
   const dia = row.dataset.dia;
   const data = leerFilaHorario(row);
-  await api.updateScheduleDay(dia, data);
+  if (!data.cerrado && !franjasValidas(data.franjas)) {
+    showToast("Revisa las horas: el fin debe ser mayor que el inicio. No se guardó.");
+    return false;
+  }
+  colaGuardadoHorario = colaGuardadoHorario.catch(() => {}).then(() => api.updateScheduleDay(dia, data));
+  await colaGuardadoHorario;
+  return true;
 }
 
 function onCambioHorarioSemana(e) {
@@ -547,9 +563,9 @@ function onCambioHorarioSemana(e) {
 
   if (e.target.matches("[data-cerrado]")) {
     row.classList.toggle("is-closed", e.target.checked);
-    guardarFilaHorario(row).then(() => showToast("Horario actualizado."));
+    guardarFilaHorario(row).then((ok) => ok && showToast("Horario actualizado."));
   } else if (e.target.matches("[data-slot-inicio], [data-slot-fin]")) {
-    guardarFilaHorario(row).then(() => showToast("Horario actualizado."));
+    guardarFilaHorario(row).then((ok) => ok && showToast("Horario actualizado."));
   }
 }
 
@@ -562,10 +578,10 @@ function onClickHorarioSemana(e) {
     const addBtn = $("[data-add-slot]", slotsWrap);
     const index = $all(".schedule-slot-row", row).length;
     addBtn.insertAdjacentHTML("beforebegin", renderFranjaRow({ inicio: "09:00", fin: "12:00" }, index));
-    guardarFilaHorario(row).then(() => showToast("Franja agregada."));
+    guardarFilaHorario(row).then((ok) => ok && showToast("Franja agregada."));
   } else if (e.target.closest("[data-remove-slot]")) {
     e.target.closest(".schedule-slot-row").remove();
-    guardarFilaHorario(row).then(() => showToast("Franja eliminada."));
+    guardarFilaHorario(row).then((ok) => ok && showToast("Franja eliminada."));
   }
 }
 
