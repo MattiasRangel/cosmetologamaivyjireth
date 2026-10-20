@@ -385,6 +385,46 @@ export async function removeBlockedDate(fechaISO) {
 }
 
 /* ========================================================================
+   HORARIOS ESPECIALES (por fecha) — reemplazan al horario semanal solo ese día
+   Tabla: horarios_especiales (fecha_iso date PK, cerrado, franjas jsonb, nota)
+   ======================================================================== */
+
+/** @returns {Promise<Array<{fechaISO:string, cerrado:boolean, franjas:Array, nota:string}>>} */
+export async function getSpecialSchedules() {
+  const { data, error } = await supabase().from("horarios_especiales").select("*").order("fecha_iso", { ascending: true });
+  if (error) {
+    console.error("[panel-data.js] Error obteniendo horarios especiales:", error);
+    return [];
+  }
+  return data.map((f) => ({
+    fechaISO: String(f.fecha_iso).slice(0, 10),
+    cerrado: Boolean(f.cerrado),
+    franjas: Array.isArray(f.franjas) ? f.franjas : [],
+    nota: f.nota || "",
+  }));
+}
+
+/** Crea o reemplaza el horario especial de una fecha. */
+export async function saveSpecialSchedule({ fechaISO, cerrado, franjas, nota }) {
+  const { error } = await supabase()
+    .from("horarios_especiales")
+    .upsert({ fecha_iso: fechaISO, cerrado, franjas, nota: nota || null }, { onConflict: "fecha_iso" });
+  if (error) {
+    console.error("[panel-data.js] Error guardando horario especial:", error);
+    throw error;
+  }
+}
+
+/** Quita el horario especial: esa fecha vuelve al horario semanal normal. */
+export async function deleteSpecialSchedule(fechaISO) {
+  const { error } = await supabase().from("horarios_especiales").delete().eq("fecha_iso", fechaISO);
+  if (error) {
+    console.error("[panel-data.js] Error quitando horario especial:", error);
+    throw error;
+  }
+}
+
+/* ========================================================================
    TARJETAS VIP
    Viven en vip-data.js (Supabase, tabla tarjetas_vip) en vez de un arreglo
    en memoria de este archivo, porque tanto el panel como las páginas

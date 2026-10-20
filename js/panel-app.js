@@ -398,10 +398,11 @@ function pintarGrillaMes(grid, year, month, opts = {}) {
     const esHoy = fechaISO === hoyISO;
     const esSeleccionado = fechaISO === opts.seleccionado;
     const bloqueada = opts.bloqueadas?.includes(fechaISO);
+    const especial = opts.especiales?.includes(fechaISO);
     const conteo = opts.counts?.[fechaISO];
 
     html += `
-      <div class="cal-day ${esHoy ? "is-today" : ""} ${esSeleccionado ? "is-selected" : ""} ${bloqueada ? "is-blocked" : ""}"
+      <div class="cal-day ${esHoy ? "is-today" : ""} ${esSeleccionado ? "is-selected" : ""} ${bloqueada ? "is-blocked" : ""} ${especial ? "is-special" : ""}"
            data-fecha="${fechaISO}">
         <span>${dia}</span>
         ${conteo ? `<span class="cal-day-count">${conteo}</span>` : ""}
@@ -479,6 +480,8 @@ function initHorariosTab() {
   $("#horarios-semana").addEventListener("change", onCambioHorarioSemana);
   $("#horarios-semana").addEventListener("click", onClickHorarioSemana);
 
+  initEspecialesTab();
+
   $("#bloq-prev").addEventListener("click", () => {
     bloqFecha.setMonth(bloqFecha.getMonth() - 1);
     cargarCalendarioBloqueo();
@@ -493,6 +496,7 @@ async function cargarHorarios() {
   $("#tab-horarios").dataset.cargado = "1";
   const horarios = await api.getSchedule();
   renderHorariosSemana(horarios);
+  cargarEspeciales();
   cargarCalendarioBloqueo();
 }
 
@@ -541,7 +545,7 @@ let colaGuardadoHorario = Promise.resolve();
 
 /** "HH:MM" en 24h: se puede comparar como texto. */
 function franjasValidas(franjas) {
-  return franjas.every((f) => f.inicio && f.fin && f.fin > f.inicio);
+  return franjas.every((f) => f.inicio && f.fin && f.fin >= f.inicio); // inicio = fin vale: un solo turno
 }
 
 /** @returns {Promise<boolean>} true si se guardó, false si se rechazó por horas inválidas */
@@ -549,7 +553,7 @@ async function guardarFilaHorario(row) {
   const dia = row.dataset.dia;
   const data = leerFilaHorario(row);
   if (!data.cerrado && !franjasValidas(data.franjas)) {
-    showToast("Revisa las horas: el fin debe ser mayor que el inicio. No se guardó.");
+    showToast("Revisa las horas: el fin no puede ser menor que el inicio. No se guardó.");
     return false;
   }
   colaGuardadoHorario = colaGuardadoHorario.catch(() => {}).then(() => api.updateScheduleDay(dia, data));
@@ -643,6 +647,206 @@ async function renderListaBloqueadas() {
       cargarCalendarioBloqueo();
     });
   });
+}
+
+/* ---- Horarios especiales por fecha (reemplazan al semanal solo ese día) ---- */
+
+const DIA_KEY_POR_INDICE = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+
+let espMes = new Date();
+espMes.setDate(1);
+let espSeleccion = null; // fechaISO del día que se está editando
+let espCache = [];
+
+function hoyLocalISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function fechaDesdeISO(fechaISO) {
+  const [y, m, d] = fechaISO.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** "09:00" -> "9:00 am", "15:30" -> "3:30 pm" */
+function horaBonita(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const ampm = h >= 12 ? "pm" : "am";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+function resumenFranjas(esp) {
+  if (esp.cerrado) return "Cerrado";
+  if (!esp.franjas.length) return "Sin horas";
+  return esp.franjas
+    .map((f) => (f.inicio === f.fin ? horaBonita(f.inicio) : `${horaBonita(f.inicio)} a ${horaBonita(f.fin)}`))
+    .join(" · ");
+}
+
+function initEspecialesTab() {
+  $("#esp-prev").addEventListener("click", () => {
+    espMes.setMonth(espMes.getMonth() - 1);
+    cargarEspeciales();
+  });
+  $("#esp-next").addEventListener("click", () => {
+    espMes.setMonth(espMes.getMonth() + 1);
+    cargarEspeciales();
+  });
+
+  const editor = $("#esp-editor");
+  editor.addEventListener("change", (e) => {
+    if (e.target.matches("[data-cerrado]")) {
+      e.target.closest(".schedule-day-row").classList.toggle("is-closed", e.target.checked);
+    }
+  });
+  editor.addEventListener("click", async (e) => {
+    const row = $(".schedule-day-row", editor);
+    if (e.target.closest("[data-add-slot]")) {
+      const addBtn = $("[data-add-slot]", editor);
+      const index = $all(".schedule-slot-row", row).length;
+      addBtn.insertAdjacentHTML("beforebegin", renderFranjaRow({ inicio: "09:00", fin: "12:00" }, index));
+    } else if (e.target.closest("[data-remove-slot]")) {
+      e.target.closest(".schedule-slot-row").remove();
+    } else if (e.target.closest("[data-esp-guardar]")) {
+      await guardarEspecial();
+    } else if (e.target.closest("[data-esp-quitar]")) {
+      await quitarEspecial(espSeleccion);
+    }
+  });
+
+  $("#esp-lista").addEventListener("click", async (e) => {
+    const quitar = e.target.closest("[data-esp-del]");
+    if (quitar) {
+      e.stopPropagation();
+      await quitarEspecial(quitar.dataset.espDel);
+      return;
+    }
+    const item = e.target.closest("[data-esp-fecha]");
+    if (item) seleccionarFechaEspecial(item.dataset.espFecha);
+  });
+}
+
+async function cargarEspeciales() {
+  espCache = await api.getSpecialSchedules();
+  const year = espMes.getFullYear();
+  const month = espMes.getMonth();
+  $("#esp-month-label").textContent = `${MESES_ES[month]} ${year}`;
+  pintarGrillaMes($("#esp-grid"), year, month, {
+    especiales: espCache.map((e) => e.fechaISO),
+    seleccionado: espSeleccion,
+    onDayClick: seleccionarFechaEspecial,
+  });
+  renderListaEspeciales();
+}
+
+function renderListaEspeciales() {
+  const lista = $("#esp-lista");
+  const empty = $("#esp-empty");
+  const proximos = espCache.filter((e) => e.fechaISO >= hoyLocalISO());
+  if (proximos.length === 0) {
+    lista.innerHTML = "";
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+  lista.innerHTML = proximos
+    .map(
+      (e) => `
+      <li class="esp-item" data-esp-fecha="${e.fechaISO}">
+        <span>
+          ${formatFechaLarga(fechaDesdeISO(e.fechaISO))}
+          <small>${resumenFranjas(e)}${e.nota ? ` · ${e.nota}` : ""}</small>
+        </span>
+        <button type="button" class="icon-btn icon-btn-danger" data-esp-del="${e.fechaISO}" title="Quitar horario especial">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </li>`
+    )
+    .join("");
+}
+
+async function seleccionarFechaEspecial(fechaISO) {
+  if (fechaISO < hoyLocalISO()) {
+    showToast("No puedes definir horarios en fechas pasadas.");
+    return;
+  }
+  espSeleccion = fechaISO;
+
+  const existente = espCache.find((e) => e.fechaISO === fechaISO);
+  let base = existente;
+  if (!base) {
+    // Punto de partida: el horario semanal de ese día de la semana.
+    const semanal = await api.getSchedule();
+    const delDia = semanal[DIA_KEY_POR_INDICE[fechaDesdeISO(fechaISO).getDay()]];
+    base = {
+      cerrado: delDia ? delDia.cerrado : false,
+      franjas: delDia?.franjas?.length ? delDia.franjas.map((f) => ({ ...f })) : [{ inicio: "09:00", fin: "12:00" }],
+      nota: "",
+    };
+  }
+
+  const editor = $("#esp-editor");
+  editor.hidden = false;
+  editor.dataset.fecha = fechaISO;
+  editor.innerHTML = `
+    <p class="field-label">${existente ? "Editar" : "Nuevo"} horario especial · ${formatFechaLarga(fechaDesdeISO(fechaISO))}</p>
+    <div class="schedule-day-row ${base.cerrado ? "is-closed" : ""}">
+      <label class="schedule-day-closed">
+        <input type="checkbox" data-cerrado ${base.cerrado ? "checked" : ""} />
+        Cerrado
+      </label>
+      <div class="schedule-slots" data-slots>
+        ${base.franjas.map((f, i) => renderFranjaRow(f, i)).join("")}
+        <button type="button" class="schedule-add-slot" data-add-slot>+ Agregar franja</button>
+      </div>
+    </div>
+    <p class="field-hint">Para un único turno (ej. solo 3:30 pm) pon la misma hora en inicio y fin.</p>
+    <input type="text" id="esp-nota" maxlength="120" placeholder="Nota (opcional)" value="${(base.nota || "").replace(/"/g, "&quot;")}" />
+    <div class="esp-actions">
+      <button type="button" class="btn btn-primary" data-esp-guardar>Guardar horario especial</button>
+      ${existente ? '<button type="button" class="btn btn-ghost" data-esp-quitar>Quitar (volver al horario normal)</button>' : ""}
+    </div>`;
+
+  cargarEspeciales();
+}
+
+async function guardarEspecial() {
+  const fechaISO = espSeleccion;
+  if (!fechaISO) return;
+  const data = leerFilaHorario($("#esp-editor .schedule-day-row"));
+  if (!data.cerrado && (data.franjas.length === 0 || !franjasValidas(data.franjas))) {
+    showToast("Revisa las horas: agrega al menos una franja y el fin no puede ser menor que el inicio.");
+    return;
+  }
+  try {
+    await api.saveSpecialSchedule({
+      fechaISO,
+      cerrado: data.cerrado,
+      franjas: data.cerrado ? [] : data.franjas,
+      nota: $("#esp-nota").value.trim(),
+    });
+    showToast("Horario especial guardado.");
+    await cargarEspeciales();
+    seleccionarFechaEspecial(fechaISO);
+  } catch (err) {
+    showToast("No se pudo guardar. ¿Ya creaste la tabla horarios_especiales en Supabase?");
+  }
+}
+
+async function quitarEspecial(fechaISO) {
+  if (!fechaISO) return;
+  try {
+    await api.deleteSpecialSchedule(fechaISO);
+    showToast("Horario especial quitado: esa fecha vuelve al horario normal.");
+    if (espSeleccion === fechaISO) {
+      espSeleccion = null;
+      $("#esp-editor").hidden = true;
+    }
+    cargarEspeciales();
+  } catch (err) {
+    showToast("No se pudo quitar el horario especial.");
+  }
 }
 
 /* ========================================================================

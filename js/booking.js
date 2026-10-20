@@ -15,6 +15,7 @@ const bookingState = {
 let calendarViewDate = new Date();
 let diasBloqueados = [];
 let horariosSemana = [];
+let horariosEspeciales = {}; // { "2026-10-21": fila } — horario puntual que reemplaza al semanal ese día
 let configCalendarioPromise = null;
 let renderSlotsRequestId = 0;
 
@@ -105,8 +106,10 @@ function leerFranjas(fila) {
  * Tolera filas duplicadas, `cerrado` como texto, claves alternas y errores
  * típicos de captura (ej. "06:00" queriendo decir 6:00 pm).
  */
-function generarSlotsParaDia(dayIndex) {
-  const filas = obtenerConfigsDia(dayIndex);
+function generarSlotsParaDia(dayIndex, fechaISO = null) {
+  // Si esa fecha tiene horario especial (tabla horarios_especiales), reemplaza al semanal.
+  const especial = fechaISO ? horariosEspeciales[fechaISO] : null;
+  const filas = especial ? [especial] : obtenerConfigsDia(dayIndex);
 
   // Sin configuración para ese día: domingo cerrado, lunes a sábado usa TIME_SLOTS de respaldo.
   if (filas.length === 0) {
@@ -144,8 +147,7 @@ function generarSlotsParaDia(dayIndex) {
       }
 
       if (ini === fin) {
-        // Franja de inicio = fin (ej. 09:00 a 09:00): solo hay un turno. Casi siempre es un error de captura en el panel.
-        console.warn(`[booking.js] ${fila.dia}: franja con inicio = fin (${rawIni}). Corrígela en el panel > Horarios.`);
+        // Franja de inicio = fin (ej. 03:30 pm a 03:30 pm): un único turno a esa hora.
         horas.add(ini);
         return;
       }
@@ -173,19 +175,28 @@ function generarSlotsParaDia(dayIndex) {
 async function cargarConfiguracionCalendario() {
   if (!window.supabaseClient) return;
   try {
-    const [bloqueadosRes, horariosRes] = await Promise.all([
+    const [bloqueadosRes, horariosRes, especialesRes] = await Promise.all([
       window.supabaseClient.from("dias_bloqueados").select("fecha_iso"),
       window.supabaseClient.from("horarios").select("*"),
+      window.supabaseClient.from("horarios_especiales").select("*"),
     ]);
 
     if (bloqueadosRes.error) console.error("[booking.js] Error leyendo dias_bloqueados:", bloqueadosRes.error);
     if (horariosRes.error) console.error("[booking.js] Error leyendo horarios:", horariosRes.error);
+    // Si la tabla horarios_especiales aún no existe, el sitio sigue con el horario semanal normal.
+    if (especialesRes.error) console.warn("[booking.js] horarios_especiales no disponible:", especialesRes.error.message);
 
     if (bloqueadosRes.data) {
       diasBloqueados = bloqueadosRes.data.map((d) => String(d.fecha_iso).trim());
     }
     if (horariosRes.data) {
       horariosSemana = horariosRes.data;
+    }
+    if (especialesRes.data) {
+      horariosEspeciales = {};
+      especialesRes.data.forEach((f) => {
+        horariosEspeciales[String(f.fecha_iso).trim().slice(0, 10)] = { ...f, dia: `especial ${f.fecha_iso}` };
+      });
     }
   } catch (err) {
     console.error("Error consultando configuración del calendario:", err);
@@ -479,7 +490,7 @@ function renderCalendar() {
     const fechaActualISO = `${year}-${mesIso}-${diaIso}`;
 
     const isPast = dateObj < today;
-    const slotsDelDia = generarSlotsParaDia(dateObj.getDay());
+    const slotsDelDia = generarSlotsParaDia(dateObj.getDay(), fechaActualISO);
     const isClosedDay = slotsDelDia.length === 0;
     const isBlocked = diasBloqueados.includes(fechaActualISO);
 
@@ -555,7 +566,7 @@ async function renderTimeSlots() {
 
   wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full animate-pulse">Consultando disponibilidad...</p>`;
 
-  const slotsDinamicos = generarSlotsParaDia(bookingState.date.getDay());
+  const slotsDinamicos = generarSlotsParaDia(bookingState.date.getDay(), fechaISO);
 
   if (slotsDinamicos.length === 0) {
     wrap.innerHTML = `<p class="text-sm text-[#C85F82] font-medium col-span-full">No hay horarios de atención disponibles para este día.</p>`;

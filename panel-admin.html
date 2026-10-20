@@ -198,6 +198,38 @@
         </div>
 
         <div class="panel-card">
+          <h2 class="panel-card-title">Horarios especiales por fecha</h2>
+          <p class="panel-card-subtitle">Cambia el horario de una fecha puntual (por ejemplo, solo esta semana). Ese día reemplaza al horario semanal; el resto de fechas sigue como lo dejaste arriba.</p>
+
+          <div class="blocked-layout">
+            <div class="calendar-card calendar-card-compact">
+              <div class="calendar-nav">
+                <button type="button" id="esp-prev" class="icon-btn" aria-label="Mes anterior">
+                  <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <p id="esp-month-label" class="calendar-month-label"></p>
+                <button type="button" id="esp-next" class="icon-btn" aria-label="Mes siguiente">
+                  <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+              <div class="calendar-grid" id="esp-grid"></div>
+              <p class="field-hint">Haz clic en una fecha para editar su horario. Las fechas en rosa ya tienen horario especial.</p>
+            </div>
+
+            <div>
+              <div id="esp-editor" class="esp-editor" hidden>
+                <!-- generado por panel-app.js -->
+              </div>
+              <p class="field-label" style="margin:1.25rem 0 .75rem">Fechas con horario especial</p>
+              <ul id="esp-lista" class="blocked-list">
+                <!-- generado por panel-app.js -->
+              </ul>
+              <p id="esp-empty" class="table-empty" hidden>No hay horarios especiales próximos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
           <h2 class="panel-card-title">Días bloqueados</h2>
           <p class="panel-card-subtitle">Feriados, vacaciones o cualquier fecha puntual sin atención, sin afectar el horario semanal.</p>
 

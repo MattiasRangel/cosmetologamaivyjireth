@@ -548,6 +548,7 @@ input:focus, .select-field:focus {
   line-height: 1.4;
 }
 .cal-day.is-selected .cal-day-count { background: var(--blanco); color: var(--rosa-intenso); }
+.cal-day.is-special { background: var(--rosa-suave, #fde8ef); border-color: var(--rosa-acento); font-weight: 600; }
 .cal-day.is-blocked { background: var(--estado-cancelado-bg); color: var(--estado-cancelado); text-decoration: line-through; }
 
 .calendar-day-detail {
@@ -603,6 +604,13 @@ input:focus, .select-field:focus {
 .schedule-add-slot:hover { text-decoration: underline; }
 .schedule-day-row.is-closed .schedule-slots { opacity: 0.4; pointer-events: none; }
 
+.esp-editor { border: 1px solid var(--borde); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.esp-editor[hidden] { display: none; }
+.esp-editor .schedule-day-row { padding: 0; border: 0; }
+.esp-editor .schedule-day-name { width: auto; }
+.esp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.esp-item { cursor: pointer; }
+.esp-item small { display: block; color: var(--gris-suave); margin-top: 2px; }
 .blocked-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
 .blocked-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .blocked-list li {
