@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Panel privado — Maivy Jireth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/css/panel-styles.css" />
+</head>
+<body>
+
+<div id="panel-view" class="panel-view">
+
+  <!-- ---------- Sidebar ---------- -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="sidebar-brand-mark" />
+      <div class="sidebar-brand-text">
+        <p class="sidebar-brand-name">Maivy Jireth</p>
+        <p class="sidebar-brand-sub">Panel privado</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <button type="button" class="nav-item is-active" data-tab="agenda">
+        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+        <span>Agenda</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="calendario">
+        <svg viewBox="0 0 24 24" class="nav-icon"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        <span>Calendario</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="servicios">
+        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+        <span>Servicios</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="horarios">
+        <svg viewBox="0 0 24 24" class="nav-icon"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span>Horarios</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="vip">
+        <svg viewBox="0 0 24 24" class="nav-icon"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+        <span>Tarjetas VIP</span>
+      </button>
+    </nav>
+
+    <button type="button" id="logout-btn" class="sidebar-logout">
+      <svg viewBox="0 0 24 24" class="nav-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      <span>Cerrar sesión</span>
+    </button>
+  </aside>
+
+  <!-- ---------- Contenido principal ---------- -->
+  <div class="panel-main">
+    <header class="panel-header">
+      <div class="panel-header-top">
+        <h1 id="panel-page-title" class="panel-page-title">Agenda</h1>
+        <p id="panel-page-date" class="panel-page-date"></p>
+      </div>
+
+      <div class="kpi-grid" id="kpi-grid" aria-live="polite">
+        <!-- Las 4 tarjetas KPI se generan desde panel-app.js -->
+        <div class="kpi-card kpi-skeleton"></div>
+        <div class="kpi-card kpi-skeleton"></div>
+        <div class="kpi-card kpi-skeleton"></div>
+        <div class="kpi-card kpi-skeleton"></div>
+      </div>
+    </header>
+
+    <main class="panel-content">
+
+      <!-- ==================== PESTAÑA 1: AGENDA ==================== -->
+      <section id="tab-agenda" class="tab-panel is-active">
+        <div class="toolbar">
+          <div class="filter-group" id="rango-filtros" role="group" aria-label="Filtrar por rango de fecha">
+            <button type="button" class="chip-filter is-active" data-rango="hoy">Hoy</button>
+            <button type="button" class="chip-filter" data-rango="mañana">Mañana</button>
+            <button type="button" class="chip-filter" data-rango="7dias">7 días</button>
+            <button type="button" class="chip-filter" data-rango="30dias">30 días</button>
+          </div>
+
+          <div class="toolbar-right">
+            <select id="filtro-estado" class="select-field" aria-label="Filtrar por estado">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="completado">Completado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+
+            <div class="search-field">
+              <svg viewBox="0 0 24 24" class="search-icon"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="search" id="buscar-agenda" placeholder="Buscar cliente o servicio…" />
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha / Hora</th>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th class="col-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="agenda-tbody">
+              <!-- filas generadas por panel-app.js -->
+            </tbody>
+          </table>
+          <p id="agenda-empty" class="table-empty" hidden>No hay citas que coincidan con estos filtros.</p>
+        </div>
+      </section>
+
+      <!-- ==================== PESTAÑA 2: CALENDARIO ==================== -->
+      <section id="tab-calendario" class="tab-panel">
+        <div class="calendar-layout">
+          <div class="calendar-card">
+            <div class="calendar-nav">
+              <button type="button" id="cal-prev" class="icon-btn" aria-label="Mes anterior">
+                <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <p id="cal-month-label" class="calendar-month-label"></p>
+              <button type="button" id="cal-next" class="icon-btn" aria-label="Mes siguiente">
+                <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+            <div class="calendar-grid" id="cal-grid"></div>
+          </div>
+
+          <div class="calendar-day-detail">
+            <p class="calendar-day-detail-title" id="cal-detail-title">Selecciona un día</p>
+            <div id="cal-detail-list" class="day-detail-list">
+              <p class="table-empty">Haz clic en un día del calendario para ver sus citas.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PESTAÑA 3: SERVICIOS ==================== -->
+      <section id="tab-servicios" class="tab-panel">
+        <div class="panel-card">
+          <h2 class="panel-card-title">Nuevo servicio</h2>
+          <form id="form-servicio" class="form-grid">
+            <label class="field">
+              <span class="field-label">Nombre</span>
+              <input type="text" id="serv-nombre" required placeholder="Ej. Limpieza Facial Profunda" />
+            </label>
+            <label class="field field-span-2">
+              <span class="field-label">Descripción</span>
+              <input type="text" id="serv-descripcion" required placeholder="Breve descripción para el cliente" />
+            </label>
+            <label class="field">
+              <span class="field-label">Duración (minutos)</span>
+              <input type="number" id="serv-duracion" required min="5" step="5" placeholder="60" />
+            </label>
+            <label class="field">
+              <span class="field-label">Precio (COP)</span>
+              <input type="number" id="serv-precio" required min="0" step="1000" placeholder="90000" />
+            </label>
+            <div class="field field-actions">
+              <button type="submit" class="btn btn-primary">Guardar servicio</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-card">
+          <h2 class="panel-card-title">Servicios existentes</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Duración</th>
+                  <th>Precio</th>
+                  <th>Activo</th>
+                </tr>
+              </thead>
+              <tbody id="servicios-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PESTAÑA 4: HORARIOS ==================== -->
+      <section id="tab-horarios" class="tab-panel">
+        <div class="panel-card">
+          <h2 class="panel-card-title">Disponibilidad semanal</h2>
+          <p class="panel-card-subtitle">Define las franjas en que se pueden agendar citas cada día, o márcalo como cerrado.</p>
+          <div id="horarios-semana" class="schedule-week">
+            <!-- 7 filas generadas por panel-app.js -->
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h2 class="panel-card-title">Horarios especiales por fecha</h2>
+          <p class="panel-card-subtitle">Cambia el horario de una fecha puntual (por ejemplo, solo esta semana). Ese día reemplaza al horario semanal; el resto de fechas sigue como lo dejaste arriba.</p>
+
+          <div class="blocked-layout">
+            <div class="calendar-card calendar-card-compact">
+              <div class="calendar-nav">
+                <button type="button" id="esp-prev" class="icon-btn" aria-label="Mes anterior">
+                  <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <p id="esp-month-label" class="calendar-month-label"></p>
+                <button type="button" id="esp-next" class="icon-btn" aria-label="Mes siguiente">
+                  <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+              <div class="calendar-grid" id="esp-grid"></div>
+              <p class="field-hint">Haz clic en una fecha para editar su horario. Las fechas en rosa ya tienen horario especial.</p>
+            </div>
+
+            <div>
+              <div id="esp-editor" class="esp-editor" hidden>
+                <!-- generado por panel-app.js -->
+              </div>
+              <p class="field-label" style="margin:1.25rem 0 .75rem">Fechas con horario especial</p>
+              <ul id="esp-lista" class="blocked-list">
+                <!-- generado por panel-app.js -->
+              </ul>
+              <p id="esp-empty" class="table-empty" hidden>No hay horarios especiales próximos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h2 class="panel-card-title">Días bloqueados</h2>
+          <p class="panel-card-subtitle">Feriados, vacaciones o cualquier fecha puntual sin atención, sin afectar el horario semanal.</p>
+
+          <div class="blocked-layout">
+            <div class="calendar-card calendar-card-compact">
+              <div class="calendar-nav">
+                <button type="button" id="bloq-prev" class="icon-btn" aria-label="Mes anterior">
+                  <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <p id="bloq-month-label" class="calendar-month-label"></p>
+                <button type="button" id="bloq-next" class="icon-btn" aria-label="Mes siguiente">
+                  <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+              <div class="calendar-grid" id="bloq-grid"></div>
+              <p class="field-hint">Haz clic en una fecha para bloquearla o desbloquearla.</p>
+            </div>
+
+            <div>
+              <p class="field-label" style="margin-bottom:.75rem">Fechas bloqueadas actualmente</p>
+              <ul id="bloqueadas-lista" class="blocked-list">
+                <!-- generado por panel-app.js -->
+              </ul>
+              <p id="bloqueadas-empty" class="table-empty" hidden>No hay fechas bloqueadas.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PESTAÑA 5: TARJETAS VIP ==================== -->
+      <section id="tab-vip" class="tab-panel">
+        <div class="panel-card">
+          <h2 class="panel-card-title">Asignar nueva tarjeta VIP</h2>
+          <p class="panel-card-subtitle">El código único se genera automáticamente al guardar.</p>
+          <form id="form-vip" class="form-grid">
+            <label class="field field-span-2">
+              <span class="field-label">Cliente</span>
+              <input type="text" id="vip-cliente" required placeholder="Nombre completo del cliente" />
+            </label>
+            <div class="field field-actions">
+              <button type="submit" class="btn btn-primary">Generar y asignar</button>
+            </div>
+          </form>
+          <p id="vip-created-msg" class="form-success" hidden></p>
+        </div>
+
+        <div class="panel-card">
+          <h2 class="panel-card-title">Tarjetas activas</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Creada</th>
+                  <th>Visitas</th>
+                  <th>Estado</th>
+                  <th class="col-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="vip-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== GESTIÓN DE TARJETA VIP (a pantalla completa) ==================== -->
+      <section id="tab-vip-gestion" class="tab-panel tab-panel-full">
+        <div class="hc-topbar">
+          <button type="button" id="vipg-volver" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            Volver a Tarjetas VIP
+          </button>
+          <p id="vipg-cliente-label" class="hc-cliente-label"></p>
+          <div class="vipg-topbar-actions">
+            <button type="button" id="vipg-copiar-codigo" class="btn btn-ghost">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="vipg-codigo-texto">MJVIP-00000</span>
+            </button>
+            <button type="button" id="vipg-toggle-estado" class="btn btn-ghost">Dar de baja</button>
+          </div>
+        </div>
+
+        <div class="vipg-workarea">
+          <!-- ---------- Vista previa de la tarjeta (delantera + trasera) ---------- -->
+          <div class="vipg-preview-pane">
+            <p class="vipg-preview-label">Delantera</p>
+            <div class="vipg-card-wrap">
+              <div class="vipg-card">
+                <span class="vipg-el vipg-cliente" id="vipg-front-nombre">Cliente</span>
+                <span class="vipg-el vipg-vip">Vip</span>
+                <div class="vipg-el vipg-logo"><img src="/imagenes/logocosmec.jpeg" alt="" /></div>
+                <div class="vipg-el vipg-chip"></div>
+                <svg viewBox="0 0 24 24" class="vipg-el vipg-contactless" fill="none" stroke="#e8739f" stroke-width="2" stroke-linecap="round">
+                  <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
+                  <path d="M6.5 12a5.5 5.5 0 0 1 11 0" opacity="0.7"/>
+                  <path d="M9 12a3 3 0 0 1 6 0"/>
+                </svg>
+                <p class="vipg-el vipg-number" id="vipg-front-numero"><span>****</span><span>****</span><span>****</span><span>****</span></p>
+                <p class="vipg-el vipg-valido">Válido hasta: <span id="vipg-front-valido">**/**/**</span></p>
+                <p class="vipg-el vipg-insta">Cosmetologa_maivyjireth</p>
+              </div>
+            </div>
+
+            <p class="vipg-preview-label">Trasera — toca un círculo para pegar o quitar el sticker de esa visita</p>
+            <div class="vipg-card-wrap">
+              <div class="vipg-card vipg-card-back">
+                <div class="vipg-logo-back"><img src="/imagenes/logocosmec.jpeg" alt="" /></div>
+                <p class="vipg-back-heading">Tu constancia, nuestra recompensa</p>
+                <div class="vipg-punch-grid" id="vipg-punch-grid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------- Panel de control ---------- -->
+          <div class="vipg-control-pane">
+            <div class="panel-card">
+              <h2 class="panel-card-title">Progreso de visitas</h2>
+              <p class="vipg-progress-texto" id="vipg-progress-texto">0 de 10 visitas</p>
+              <div class="vipg-progress-bar"><span id="vipg-progress-fill" style="width:0%"></span></div>
+              <p class="vipg-progress-hint" id="vipg-progress-hint"></p>
+
+              <div class="vipg-botones-visita">
+                <button type="button" id="vipg-quitar-visita" class="btn btn-ghost">− Quitar visita</button>
+                <button type="button" id="vipg-agregar-visita" class="btn btn-primary">+ Registrar visita de hoy</button>
+              </div>
+              <button type="button" id="vipg-canjear-ciclo" class="btn btn-primary vipg-btn-canjear" hidden>
+                🎁 Canjear obsequio y reiniciar ciclo
+              </button>
+            </div>
+
+            <div class="panel-card">
+              <h2 class="panel-card-title">Datos de la tarjeta</h2>
+              <dl class="vipg-datos-lista">
+                <div><dt>Código de acceso</dt><dd id="vipg-dato-codigo">—</dd></div>
+                <div><dt>Número de tarjeta</dt><dd id="vipg-dato-numero">—</dd></div>
+                <div><dt>Creada el</dt><dd id="vipg-dato-creada">—</dd></div>
+                <div><dt>Válida hasta</dt><dd id="vipg-dato-valida">—</dd></div>
+                <div><dt>Ciclos de 10 completados</dt><dd id="vipg-dato-ciclos">—</dd></div>
+              </dl>
+              <p class="vipg-hint-code">
+                Comparte el código de acceso con la clienta: lo usa en "Consultar mi
+                tarjeta" en la página pública para ver esta misma tarjeta.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== HISTORIA CLÍNICA (a pantalla completa) ==================== -->
+      <section id="tab-historia-clinica" class="tab-panel tab-panel-full">
+        <div class="hc-topbar">
+          <button type="button" id="hc-volver" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            Volver a la agenda
+          </button>
+          <p id="hc-cliente-label" class="hc-cliente-label"></p>
+          <button type="button" id="hc-generar-pdf" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Descargar PDF
+          </button>
+        </div>
+
+        <div class="hc-workarea">
+        <!-- ================= LADO A — FORMULARIO ================= -->
+        <div class="hc-form-pane">
+
+        <!-- ---------- Formulario FACIAL ---------- -->
+        <form id="form-historia-facial" class="hc-form" hidden>
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">1. Datos personales</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Nombre completo</span><input type="text" name="nombreCompleto" required /></label>
+              <label class="field"><span class="field-label">Fecha de nacimiento</span><input type="date" name="fechaNacimiento" /></label>
+              <label class="field"><span class="field-label">Edad</span><input type="number" name="edad" min="0" /></label>
+              <label class="field hc-span-2"><span class="field-label">Documento de identidad</span><input type="text" name="documento" /></label>
+              <label class="field hc-span-2"><span class="field-label">Dirección</span><input type="text" name="direccion" /></label>
+              <label class="field"><span class="field-label">Teléfono</span><input type="text" name="telefono" /></label>
+              <label class="field"><span class="field-label">WhatsApp</span><input type="text" name="whatsapp" /></label>
+              <label class="field hc-span-2"><span class="field-label">Correo electrónico</span><input type="email" name="correo" /></label>
+              <label class="field hc-span-2"><span class="field-label">Ocupación</span><input type="text" name="ocupacion" /></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">2. Motivo de consulta</legend>
+            <label class="field"><span class="field-label">¿Qué deseas tratar o mejorar en tu rostro?</span>
+              <textarea name="motivoConsulta" rows="2" maxlength="170" data-contador></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">3. Antecedentes personales</legend>
+            <div class="hc-antecedentes">
+              <div class="hc-antecedente-row" data-antecedente="condicionMedica">
+                <span>¿Presentas alguna condición médica?</span>
+                <label><input type="radio" name="condicionMedica" value="si" /> Sí</label>
+                <label><input type="radio" name="condicionMedica" value="no" /> No</label>
+                <input type="text" name="condicionMedicaCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="cirugias">
+                <span>¿Has tenido cirugías?</span>
+                <label><input type="radio" name="cirugias" value="si" /> Sí</label>
+                <label><input type="radio" name="cirugias" value="no" /> No</label>
+                <input type="text" name="cirugiasCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="alergias">
+                <span>¿Alergias conocidas?</span>
+                <label><input type="radio" name="alergias" value="si" /> Sí</label>
+                <label><input type="radio" name="alergias" value="no" /> No</label>
+                <input type="text" name="alergiasCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="medicacion">
+                <span>¿Usas alguna medicación actualmente?</span>
+                <label><input type="radio" name="medicacion" value="si" /> Sí</label>
+                <label><input type="radio" name="medicacion" value="no" /> No</label>
+                <input type="text" name="medicacionCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="dermatologico">
+                <span>¿Estás en tratamiento dermatológico?</span>
+                <label><input type="radio" name="dermatologico" value="si" /> Sí</label>
+                <label><input type="radio" name="dermatologico" value="no" /> No</label>
+                <input type="text" name="dermatologicoCual" placeholder="¿Cuál?" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">4. Evaluación facial</legend>
+            <div class="hc-grid hc-grid-2">
+              <div>
+                <p class="field-label">Tipo de piel (según observación)</p>
+                <div class="hc-check-group" data-group="tipoPiel">
+                  <label><input type="checkbox" value="Normal" /> Normal</label>
+                  <label><input type="checkbox" value="Seca" /> Seca</label>
+                  <label><input type="checkbox" value="Mixta" /> Mixta</label>
+                  <label><input type="checkbox" value="Grasa" /> Grasa</label>
+                  <label><input type="checkbox" value="Sensible" /> Sensible</label>
+                  <label><input type="checkbox" value="Deshidratada" /> Deshidratada</label>
+                </div>
+                <p class="field-label" style="margin-top:14px">Fototipo (Fitzpatrick)</p>
+                <div class="hc-check-group" data-group="fototipo">
+                  <label><input type="checkbox" value="I" /> I</label>
+                  <label><input type="checkbox" value="II" /> II</label>
+                  <label><input type="checkbox" value="III" /> III</label>
+                  <label><input type="checkbox" value="IV" /> IV</label>
+                  <label><input type="checkbox" value="V" /> V</label>
+                  <label><input type="checkbox" value="VI" /> VI</label>
+                </div>
+              </div>
+              <div>
+                <p class="field-label">Condiciones presentes</p>
+                <div class="hc-check-group hc-check-group-col" data-group="condiciones">
+                  <label><input type="checkbox" value="Acné" /> Acné</label>
+                  <label><input type="checkbox" value="Manchas" /> Manchas</label>
+                  <label><input type="checkbox" value="Líneas de expresión" /> Líneas de expresión</label>
+                  <label><input type="checkbox" value="Arrugas" /> Arrugas</label>
+                  <label><input type="checkbox" value="Poros dilatados" /> Poros dilatados</label>
+                  <label><input type="checkbox" value="Rosácea" /> Rosácea</label>
+                  <label><input type="checkbox" value="Deshidratación" /> Deshidratación</label>
+                  <label><input type="checkbox" value="Flacidez" /> Flacidez</label>
+                  <label><input type="checkbox" value="Ojeras" /> Ojeras</label>
+                  <label><input type="checkbox" value="Sensibilidad" /> Sensibilidad</label>
+                </div>
+                <p class="field-label" style="margin-top:14px">Grado de envejecimiento</p>
+                <div class="hc-check-group" data-group="envejecimiento">
+                  <label><input type="checkbox" value="Leve" /> Leve</label>
+                  <label><input type="checkbox" value="Moderado" /> Moderado</label>
+                  <label><input type="checkbox" value="Severo" /> Severo</label>
+                </div>
+              </div>
+            </div>
+            <label class="field" style="margin-top:16px"><span class="field-label">Observaciones</span><textarea name="observacionesEvaluacion" rows="2" maxlength="170" data-contador></textarea></label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">5. Análisis facial</legend>
+            <div class="hc-grid hc-grid-2">
+              <div>
+                <div class="hc-radio-scale" data-field="hidratacion"><span>Hidratación</span><label><input type="radio" name="hidratacion" value="Baja"/>Baja</label><label><input type="radio" name="hidratacion" value="Media"/>Media</label><label><input type="radio" name="hidratacion" value="Alta"/>Alta</label></div>
+                <div class="hc-radio-scale" data-field="seborregulacion"><span>Seborregulación</span><label><input type="radio" name="seborregulacion" value="Baja"/>Baja</label><label><input type="radio" name="seborregulacion" value="Media"/>Media</label><label><input type="radio" name="seborregulacion" value="Alta"/>Alta</label></div>
+                <div class="hc-radio-scale" data-field="sensibilidadPiel"><span>Sensibilidad</span><label><input type="radio" name="sensibilidadPiel" value="Baja"/>Baja</label><label><input type="radio" name="sensibilidadPiel" value="Media"/>Media</label><label><input type="radio" name="sensibilidadPiel" value="Alta"/>Alta</label></div>
+                <div class="hc-radio-scale" data-field="pigmentacion"><span>Pigmentación</span><label><input type="radio" name="pigmentacion" value="Baja"/>Baja</label><label><input type="radio" name="pigmentacion" value="Media"/>Media</label><label><input type="radio" name="pigmentacion" value="Alta"/>Alta</label></div>
+                <div class="hc-radio-scale" data-field="elasticidad"><span>Elasticidad</span><label><input type="radio" name="elasticidad" value="Baja"/>Baja</label><label><input type="radio" name="elasticidad" value="Media"/>Media</label><label><input type="radio" name="elasticidad" value="Alta"/>Alta</label></div>
+                <div class="hc-check-group" data-group="tipoPoros" style="margin-top:10px"><span class="hc-inline-label">Tipo de poros</span><label><input type="checkbox" value="Finos"/>Finos</label><label><input type="checkbox" value="Dilatados"/>Dilatados</label><label><input type="checkbox" value="Mixtos"/>Mixtos</label></div>
+                <div class="hc-check-group" data-group="texturaPiel"><span class="hc-inline-label">Textura</span><label><input type="checkbox" value="Lisa"/>Lisa</label><label><input type="checkbox" value="Irregular"/>Irregular</label></div>
+                <div class="hc-check-group" data-group="tonoPiel"><span class="hc-inline-label">Tono</span><label><input type="checkbox" value="Claro"/>Claro</label><label><input type="checkbox" value="Medio"/>Medio</label><label><input type="checkbox" value="Oscuro"/>Oscuro</label></div>
+              </div>
+              <div>
+                <p class="field-label">Características específicas</p>
+                <div class="hc-check-group hc-check-group-col" data-group="caracteristicas">
+                  <label><input type="checkbox" value="Deshidratación"/>Deshidratación</label>
+                  <label><input type="checkbox" value="Acné activo"/>Acné activo</label>
+                  <label><input type="checkbox" value="Manchas"/>Manchas</label>
+                  <label><input type="checkbox" value="Líneas de expresión"/>Líneas de expresión</label>
+                  <label><input type="checkbox" value="Arrugas"/>Arrugas</label>
+                  <label><input type="checkbox" value="Piel grasa"/>Piel grasa</label>
+                  <label><input type="checkbox" value="Piel seca"/>Piel seca</label>
+                  <label><input type="checkbox" value="Piel sensible"/>Piel sensible</label>
+                </div>
+                <label class="field" style="margin-top:8px"><span class="field-label">Otra característica</span><input type="text" name="otraCaracteristica" /></label>
+              </div>
+            </div>
+            <p class="field-label" style="margin-top:14px">Zonas a tratar</p>
+            <div class="hc-check-group" data-group="zonas">
+              <label><input type="checkbox" value="Frente"/>Frente</label>
+              <label><input type="checkbox" value="Entrecejo"/>Entrecejo</label>
+              <label><input type="checkbox" value="Ojos"/>Ojos</label>
+              <label><input type="checkbox" value="Pómulos"/>Pómulos</label>
+              <label><input type="checkbox" value="Mejillas"/>Mejillas</label>
+              <label><input type="checkbox" value="Labios"/>Labios</label>
+              <label><input type="checkbox" value="Mentón"/>Mentón</label>
+              <label><input type="checkbox" value="Cuello"/>Cuello</label>
+              <label><input type="checkbox" value="Escote"/>Escote</label>
+            </div>
+            <label class="field" style="margin-top:8px"><span class="field-label">Otra zona</span><input type="text" name="otraZona" /></label>
+            <label class="field" style="margin-top:8px"><span class="field-label">Observaciones</span><textarea name="observacionesAnalisis" rows="2" maxlength="170" data-contador></textarea></label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">6. Plan de tratamiento</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Diagnóstico</span><input type="text" name="diagnostico" maxlength="90" /></label>
+              <label class="field hc-span-2"><span class="field-label">Plan de tratamiento recomendado</span><textarea name="planTratamiento" rows="2" maxlength="170" data-contador></textarea></label>
+              <label class="field hc-span-2"><span class="field-label">Recomendaciones en casa</span><textarea name="recomendacionesCasa" rows="2" maxlength="170" data-contador></textarea></label>
+            </div>
+            <p class="field-label hc-edit-table-title">Sesiones y precios <span class="hc-edit-table-hint">(hasta 3 filas — la firma se pone a mano sobre el PDF)</span></p>
+            <table class="hc-edit-table" data-tabla="preciosFacial">
+              <thead><tr><th>Fecha</th><th>Sesiones</th><th>Precio</th><th>Tratamiento / procedimiento</th></tr></thead>
+              <tbody>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">7. Evolución y seguimiento</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Resultados esperados</span><input type="text" name="resultadosEsperados" maxlength="90" /></label>
+              <label class="field hc-span-2"><span class="field-label">Observaciones</span><textarea name="observacionesSeguimiento" rows="2" maxlength="170" data-contador></textarea></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">8. Consentimiento informado</legend>
+            <p class="hc-consent-note">
+              El texto legal del consentimiento ya está impreso en la plantilla. Aquí solo se
+              confirman el nombre y documento del paciente que se citan dentro de ese texto —
+              las firmas quedan en blanco para firmarse a mano sobre el PDF impreso.
+            </p>
+            <label class="field"><span class="field-label">Confirmo que el paciente entendió el tratamiento propuesto</span>
+              <label class="hc-simple-check"><input type="checkbox" name="consentimientoConfirmado" /> Sí, se explicó y el paciente lo entiende</label>
+            </label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">9. Control de sesiones</legend>
+            <p class="hc-consent-note">Este cuadro se va llenando en cada visita futura; la firma queda en blanco para firmarse a mano.</p>
+            <table class="hc-edit-table" data-tabla="sesionesFacial">
+              <thead><tr><th>Fecha</th><th>Sesión N°</th><th>Procedimiento realizado</th><th>Observaciones</th></tr></thead>
+              <tbody>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesion" maxlength="6" /></td><td><input type="text" data-col="procedimiento" maxlength="52" /></td><td><input type="text" data-col="observaciones" maxlength="52" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesion" maxlength="6" /></td><td><input type="text" data-col="procedimiento" maxlength="52" /></td><td><input type="text" data-col="observaciones" maxlength="52" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesion" maxlength="6" /></td><td><input type="text" data-col="procedimiento" maxlength="52" /></td><td><input type="text" data-col="observaciones" maxlength="52" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesion" maxlength="6" /></td><td><input type="text" data-col="procedimiento" maxlength="52" /></td><td><input type="text" data-col="observaciones" maxlength="52" /></td></tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">10. Notas adicionales</legend>
+            <label class="field"><span class="field-label">Notas</span><textarea name="notasAdicionales" rows="4" maxlength="320" data-contador></textarea></label>
+          </fieldset>
+        </form>
+
+        <!-- ---------- Formulario CORPORAL ---------- -->
+        <form id="form-historia-corporal" class="hc-form" hidden>
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">1. Datos personales</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Nombre completo</span><input type="text" name="nombreCompleto" required /></label>
+              <label class="field"><span class="field-label">Fecha de nacimiento</span><input type="date" name="fechaNacimiento" /></label>
+              <label class="field"><span class="field-label">Edad</span><input type="number" name="edad" min="0" /></label>
+              <label class="field hc-span-2"><span class="field-label">Documento de identidad</span><input type="text" name="documento" /></label>
+              <label class="field hc-span-2"><span class="field-label">Dirección</span><input type="text" name="direccion" /></label>
+              <label class="field"><span class="field-label">Teléfono</span><input type="text" name="telefono" /></label>
+              <label class="field"><span class="field-label">WhatsApp</span><input type="text" name="whatsapp" /></label>
+              <label class="field hc-span-2"><span class="field-label">Correo electrónico</span><input type="email" name="correo" /></label>
+              <label class="field hc-span-2"><span class="field-label">Ocupación</span><input type="text" name="ocupacion" /></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">2. Motivo de consulta</legend>
+            <label class="field"><span class="field-label">¿Qué deseas tratar o mejorar?</span><textarea name="motivoConsulta" rows="2" maxlength="170" data-contador></textarea></label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">3. Antecedentes personales</legend>
+            <div class="hc-antecedentes">
+              <div class="hc-antecedente-row" data-antecedente="condicionMedica">
+                <span>¿Presentas alguna condición médica?</span>
+                <label><input type="radio" name="condicionMedica" value="si" /> Sí</label>
+                <label><input type="radio" name="condicionMedica" value="no" /> No</label>
+                <input type="text" name="condicionMedicaCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="cirugias">
+                <span>¿Has tenido cirugías?</span>
+                <label><input type="radio" name="cirugias" value="si" /> Sí</label>
+                <label><input type="radio" name="cirugias" value="no" /> No</label>
+                <input type="text" name="cirugiasCual" placeholder="¿Cuál?" />
+              </div>
+              <div class="hc-antecedente-row" data-antecedente="alergias">
+                <span>¿Alergias conocidas?</span>
+                <label><input type="radio" name="alergias" value="si" /> Sí</label>
+                <label><input type="radio" name="alergias" value="no" /> No</label>
+                <input type="text" name="alergiasCual" placeholder="¿Cuál?" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">4. Evaluación corporal</legend>
+            <div class="hc-check-group" data-group="biotipo">
+              <span class="hc-inline-label">Tipo de biotipo corporal</span>
+              <label><input type="checkbox" value="Ectomorfo"/>Ectomorfo</label>
+              <label><input type="checkbox" value="Mesomorfo"/>Mesomorfo</label>
+              <label><input type="checkbox" value="Endomorfo"/>Endomorfo</label>
+            </div>
+            <p class="field-label" style="margin-top:12px">Silueta</p>
+            <div class="hc-check-group" data-group="silueta">
+              <label><input type="checkbox" value="Reloj de arena"/>Reloj de arena</label>
+              <label><input type="checkbox" value="Triángulo invertido"/>Triángulo invertido</label>
+              <label><input type="checkbox" value="Triángulo (pera)"/>Triángulo (pera)</label>
+              <label><input type="checkbox" value="Rectángulo"/>Rectángulo</label>
+              <label><input type="checkbox" value="Óvalo (manzana)"/>Óvalo (manzana)</label>
+            </div>
+            <div class="hc-grid hc-grid-3" style="margin-top:14px">
+              <label class="field"><span class="field-label">Peso (kg)</span><input type="number" name="peso" step="0.1" /></label>
+              <label class="field"><span class="field-label">Talla (cm)</span><input type="number" name="talla" step="0.1" /></label>
+              <label class="field"><span class="field-label">IMC</span><input type="text" name="imc" /></label>
+              <label class="field"><span class="field-label">% grasa estimado</span><input type="number" name="porcentajeGrasa" step="0.1" /></label>
+              <label class="field"><span class="field-label">% masa muscular</span><input type="number" name="masaMuscular" step="0.1" /></label>
+            </div>
+            <div class="hc-check-group" data-group="hidratacionCorporal" style="margin-top:12px"><span class="hc-inline-label">Estado de hidratación</span><label><input type="checkbox" value="Bajo"/>Bajo</label><label><input type="checkbox" value="Medio"/>Medio</label><label><input type="checkbox" value="Adecuado"/>Adecuado</label><label><input type="checkbox" value="Alto"/>Alto</label></div>
+            <div class="hc-check-group" data-group="flacidez"><span class="hc-inline-label">Flacidez</span><label><input type="checkbox" value="Leve"/>Leve</label><label><input type="checkbox" value="Moderada"/>Moderada</label><label><input type="checkbox" value="Severa"/>Severa</label></div>
+            <div class="hc-check-group" data-group="celulitis"><span class="hc-inline-label">Celulitis</span><label><input type="checkbox" value="Grado I"/>Grado I</label><label><input type="checkbox" value="Grado II"/>Grado II</label><label><input type="checkbox" value="Grado III"/>Grado III</label><label><input type="checkbox" value="No presenta"/>No presenta</label></div>
+            <div class="hc-antecedente-row" data-antecedente="retencionLiquidos"><span>Retención de líquidos</span><label><input type="radio" name="retencionLiquidos" value="si"/>Sí</label><label><input type="radio" name="retencionLiquidos" value="no"/>No</label><input type="text" name="retencionLiquidosZona" placeholder="Zona" /></div>
+            <div class="hc-antecedente-row" data-antecedente="estrias"><span>Estrías</span><label><input type="radio" name="estrias" value="si"/>Sí</label><label><input type="radio" name="estrias" value="no"/>No</label><input type="text" name="estriasZona" placeholder="Zona" /></div>
+            <label class="field" style="margin-top:8px"><span class="field-label">Observaciones</span><textarea name="observacionesEvaluacion" rows="2" maxlength="170" data-contador></textarea></label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">5. Hábitos y estilo de vida</legend>
+            <div class="hc-check-group" data-group="alimentacion"><span class="hc-inline-label">Alimentación</span><label><input type="checkbox" value="Saludable"/>Saludable</label><label><input type="checkbox" value="Regular"/>Regular</label><label><input type="checkbox" value="Poco saludable"/>Poco saludable</label></div>
+            <div class="hc-check-group" data-group="actividadFisica"><span class="hc-inline-label">Actividad física</span><label><input type="checkbox" value="Nunca"/>Nunca</label><label><input type="checkbox" value="Ocasional"/>Ocasional</label><label><input type="checkbox" value="Regular"/>Regular</label></div>
+            <div class="hc-check-group" data-group="consumoAgua"><span class="hc-inline-label">Consumo de agua</span><label><input type="checkbox" value="Bajo"/>Bajo</label><label><input type="checkbox" value="Medio"/>Medio</label><label><input type="checkbox" value="Alto"/>Alto</label></div>
+            <div class="hc-check-group" data-group="horasSueno"><span class="hc-inline-label">Horas de sueño</span><label><input type="checkbox" value="< 6 hrs"/>&lt; 6 hrs</label><label><input type="checkbox" value="6-8 hrs"/>6-8 hrs</label><label><input type="checkbox" value="> 8 hrs"/>&gt; 8 hrs</label></div>
+            <div class="hc-check-group" data-group="estres"><span class="hc-inline-label">Estrés</span><label><input type="checkbox" value="Bajo"/>Bajo</label><label><input type="checkbox" value="Medio"/>Medio</label><label><input type="checkbox" value="Alto"/>Alto</label></div>
+            <div class="hc-antecedente-row" data-antecedente="fuma"><span>Fuma</span><label><input type="radio" name="fuma" value="si"/>Sí</label><label><input type="radio" name="fuma" value="no"/>No</label></div>
+            <div class="hc-check-group" data-group="bebeAlcohol"><span class="hc-inline-label">Bebe alcohol</span><label><input type="checkbox" value="Sí"/>Sí</label><label><input type="checkbox" value="No"/>No</label><label><input type="checkbox" value="Ocasional"/>Ocasional</label></div>
+            <label class="field" style="margin-top:8px"><span class="field-label">Observaciones</span><textarea name="observacionesHabitos" rows="2" maxlength="170" data-contador></textarea></label>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">6. Objetivos del tratamiento</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Objetivo principal</span><input type="text" name="objetivoPrincipal" /></label>
+              <label class="field hc-span-2"><span class="field-label">Objetivos secundarios</span><textarea name="objetivosSecundarios" rows="2" maxlength="170" data-contador></textarea></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">7. Plan de tratamiento</legend>
+            <div class="hc-grid hc-grid-2">
+              <label class="field hc-span-2"><span class="field-label">Plan de tratamiento recomendado</span><textarea name="planTratamiento" rows="2" maxlength="170" data-contador></textarea></label>
+              <label class="field hc-span-2"><span class="field-label">Recomendaciones</span><textarea name="recomendaciones" rows="2" maxlength="170" data-contador></textarea></label>
+            </div>
+            <p class="field-label hc-edit-table-title">Sesiones y precios <span class="hc-edit-table-hint">(hasta 3 filas — la firma se pone a mano sobre el PDF)</span></p>
+            <table class="hc-edit-table" data-tabla="preciosCorporal">
+              <thead><tr><th>Fecha</th><th>Sesiones</th><th>Precio</th><th>Tratamiento</th></tr></thead>
+              <tbody>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+                <tr><td><input type="date" data-col="fecha" /></td><td><input type="text" data-col="sesiones" maxlength="8" /></td><td><input type="text" data-col="precio" maxlength="14" /></td><td><input type="text" data-col="tratamiento" maxlength="46" /></td></tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <fieldset class="hc-section">
+            <legend class="hc-section-title">8. Consentimiento informado</legend>
+            <p class="hc-consent-note">
+              El texto legal ya está impreso en la plantilla. Las firmas quedan en blanco para
+              firmarse a mano sobre el PDF impreso.
+            </p>
+            <label class="field"><span class="field-label">Confirmo que el paciente entendió el tratamiento propuesto</span>
+              <label class="hc-simple-check"><input type="checkbox" name="consentimientoConfirmado" /> Sí, se explicó y el paciente lo entiende</label>
+            </label>
+          </fieldset>
+        </form>
+
+        </div>
+        <!-- ================= /LADO A ================= -->
+
+        <!-- ================= LADO B — VISTA PREVIA (Plantilla A4) ================= -->
+        <div class="hc-preview-pane">
+          <div class="hc-preview-toolbar">
+            <span class="hc-preview-toolbar-label">Vista previa</span>
+            <span class="hc-preview-toolbar-hint">Así se verá el PDF — se actualiza mientras escribes</span>
+          </div>
+          <div class="hc-preview-scroll">
+            <div id="hc-preview-facial" class="hc-preview-doc" hidden></div>
+            <div id="hc-preview-corporal" class="hc-preview-doc" hidden></div>
+          </div>
+        </div>
+        <!-- ================= /LADO B ================= -->
+        </div>
+        <!-- ================= /hc-workarea ================= -->
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: elegir tipo de historia clínica (se abre desde el botón nuevo en Agenda) -->
+<div id="modal-tipo-historia" class="modal-overlay">
+  <div class="modal-card modal-card-sm" role="dialog" aria-modal="true" aria-labelledby="modal-tipo-historia-title">
+    <div class="modal-header">
+      <h3 id="modal-tipo-historia-title">Nueva historia clínica</h3>
+      <button type="button" class="icon-btn" id="modal-tipo-historia-close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="hc-modal-question">¿Qué tipo de historia clínica deseas crear?</p>
+    <div class="hc-tipo-opciones">
+      <button type="button" class="hc-tipo-btn" data-tipo="facial">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8 15c1 1.5 2.5 2 4 2s3-.5 4-2"/></svg>
+        Facial
+      </button>
+      <button type="button" class="hc-tipo-btn" data-tipo="corporal">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6M8 22l2.5-8M16 22l-2.5-8M7 12l5-2 5 2"/></svg>
+        Corporal
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-editar" class="modal-overlay">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-editar-title">
+    <div class="modal-header">
+      <h3 id="modal-editar-title">Editar cita</h3>
+      <button type="button" class="icon-btn" id="modal-editar-close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="form-editar-cita" class="form-grid">
+      <input type="hidden" id="editar-id" />
+      <label class="field">
+        <span class="field-label">Fecha</span>
+        <input type="date" id="editar-fecha" required />
+      </label>
+      <label class="field">
+        <span class="field-label">Hora</span>
+        <input type="time" id="editar-hora" required />
+      </label>
+      <label class="field field-span-2">
+        <span class="field-label">Cliente</span>
+        <input type="text" id="editar-cliente" required />
+      </label>
+      <label class="field field-span-2">
+        <span class="field-label">Contacto</span>
+        <input type="text" id="editar-contacto" required />
+      </label>
+      <label class="field field-span-2">
+        <span class="field-label">Servicio</span>
+        <select id="editar-servicio" class="select-field" required></select>
+      </label>
+      <label class="field field-span-2">
+        <span class="field-label">Estado</span>
+        <select id="editar-estado" class="select-field" required>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="completado">Completado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </label>
+      <div class="field field-actions field-span-2">
+        <button type="button" class="btn btn-ghost" id="modal-editar-cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Aviso pequeño de acción realizada (confirmar / cancelar / guardar / etc.) -->
+<div id="toast" class="toast" hidden></div>
+
+<!-- html2pdf.js: usado solo por panel-historia.js para exportar la Plantilla B (vista previa HTML) a PDF A4 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script type="module" src="/js/panel-app.js"></script>
+<script type="module" src="/js/panel-historia.js"></script>
+<script type="module" src="/js/panel-vip.js"></script>
+</body>
+</html>
