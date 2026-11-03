@@ -31,25 +31,21 @@ const SERVICES = [];
 
 const RITUAL_STEPS = [
   {
-    numero: "01",
     titulo: "Valoración de tu piel",
     texto:
       "Conversamos sobre tu piel, tu rutina y tus objetivos. Analizo su textura, tono y necesidades reales antes de sugerir cualquier tratamiento.",
   },
   {
-    numero: "02",
     titulo: "Ritual de preparación",
     texto:
       "Limpieza y calibración: preparo tu piel con productos profesionales para que reciba el tratamiento en las mejores condiciones.",
   },
   {
-    numero: "03",
     titulo: "Tratamiento personalizado",
     texto:
       "Aplico el protocolo diseñado para ti, con técnica y tiempos exactos —nunca una receta genérica igual para todas.",
   },
   {
-    numero: "04",
     titulo: "Cuidado post-tratamiento",
     texto:
       "Te acompaño después de la cita: rutina en casa, recomendaciones y seguimiento para sostener el resultado en el tiempo.",
@@ -84,6 +80,47 @@ const formatCOP = (valor) =>
     currency: "COP",
     maximumFractionDigits: 0,
   }).format(valor);
+
+/**
+ * Categorías en el orden en que se muestran: "faciales" primero y el resto
+ * según su `orden` en Supabase. La usan el catálogo (main.js) y el paso 1
+ * de la reserva (booking.js), para que ambos lean igual.
+ */
+const CATEGORIA_INICIAL = "faciales";
+function categoriasEnOrden() {
+  const primera = SERVICE_CATEGORIES.filter((c) => c.id === CATEGORIA_INICIAL);
+  return [...primera, ...SERVICE_CATEGORIES.filter((c) => c.id !== CATEGORIA_INICIAL)];
+}
+
+/** WhatsApp de Maivy: lo usan los estados de error como salida alternativa. */
+const WHATSAPP_MAIVY = "573122855055";
+
+/** Enlace wa.me con el mensaje ya codificado (nombres con "&", "#" o tildes no rompen la URL). */
+function enlaceWhatsApp(texto) {
+  return `https://wa.me/${WHATSAPP_MAIVY}?text=${encodeURIComponent(texto)}`;
+}
+
+/**
+ * Bloque de error en línea (reemplaza a los alert()): dice qué pasó, ofrece
+ * reintentar y deja WhatsApp como salida. `reintentar` es el id del botón
+ * que el llamador conecta; si se omite, no se pinta el botón.
+ */
+function htmlEstadoError({ titulo, texto, reintentar = null, compacto = false }) {
+  return `
+    <div class="estado-error ${compacto ? "is-compacto" : ""}" role="alert">
+      <i data-lucide="circle-alert" class="estado-error-icono"></i>
+      <div class="min-w-0">
+        <p class="estado-error-titulo">${titulo}</p>
+        <p class="estado-error-texto">${texto}</p>
+        <div class="estado-error-acciones">
+          ${reintentar ? `<button type="button" id="${reintentar}" class="estado-error-btn">Reintentar</button>` : ""}
+          <a href="${enlaceWhatsApp("Hola Maivy, quiero agendar una cita.")}" target="_blank" rel="noopener" class="estado-error-link">
+            Escríbeme por WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>`;
+}
 
 /* ------------------------------------------------------------------------
    Carga real desde Supabase (categorias_servicio + servicios)
@@ -121,11 +158,21 @@ function construirDuracionCorta(servicioRow) {
   return String(servicioRow.duracion);
 }
 
+/**
+ * Llena SERVICE_CATEGORIES y SERVICES. Devuelve true si cargó y false si
+ * falló; el fallo queda en `window.catalogoError` para que main.js y
+ * booking.js pinten su propio estado de error en lugar de un alert().
+ */
 async function cargarCatalogo() {
+  window.catalogoError = false;
+  SERVICE_CATEGORIES.length = 0;
+  SERVICES.length = 0;
+
   const supabase = window.supabaseClient;
   if (!supabase) {
     console.error("[data.js] window.supabaseClient no existe todavía — revisa el orden de tus <script>.");
-    return;
+    window.catalogoError = true;
+    return false;
   }
 
   try {
@@ -170,11 +217,21 @@ async function cargarCatalogo() {
       }
       SERVICES.push(servicio);
     });
+    return true;
   } catch (err) {
     console.error("[data.js] Error cargando el catálogo desde Supabase:", err);
-    alert("No se pudo cargar el catálogo de servicios. Por favor recarga la página en unos segundos.");
+    SERVICE_CATEGORIES.length = 0;
+    SERVICES.length = 0;
+    window.catalogoError = true;
+    return false;
   }
 }
+
+/** Reintento desde los estados de error: vuelve a pedir el catálogo y reemplaza la promesa. */
+window.recargarCatalogo = function () {
+  window.datosListos = cargarCatalogo();
+  return window.datosListos;
+};
 
 // main.js y booking.js deben hacer `await window.datosListos;` antes de
 // pintar cualquier cosa que dependa de SERVICE_CATEGORIES o SERVICES.

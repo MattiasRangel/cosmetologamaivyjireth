@@ -12,6 +12,7 @@
   --dorado: #ae2967;
   --dorado-light: #f5ccdf;
   --dorado-dark: #6b1940;
+  --dorado-hover: #8f1f53; /* hover del CTA: 8.4:1 con texto blanco */
   --gris: #2b2b2b;
   --gris-suave: #6b6464;
   --blanco: #ffffff;
@@ -120,12 +121,114 @@ textarea:focus-visible,
   }
 }
 
-/* Marco del retrato del hero */
+/* Datos de confianza bajo los botones del hero */
+.hero-datos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  font-size: 0.875rem;
+  color: #5c5555;
+}
+.hero-datos li,
+.hero-datos a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-datos svg {
+  color: var(--dorado);
+  flex-shrink: 0;
+}
+.hero-datos a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--dorado-light);
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.hero-datos a:hover {
+  color: var(--dorado-dark);
+  text-decoration-color: var(--dorado);
+}
+
+/* Foto de la cabina — misma familia visual que «Sobre mí»: marco redondeado,
+   contorno rosa desplazado detrás y etiqueta blanca que flota sobre la esquina. */
+.hero-foto {
+  --desfase: 14px;
+  position: relative;
+  width: calc(100% - var(--desfase));
+  max-width: 25rem;
+  margin: 6px auto 0;
+  translate: calc(var(--desfase) / -2) 0; /* centra foto + contorno como un solo bloque */
+}
+.hero-contorno {
+  position: absolute;
+  inset: var(--desfase) calc(var(--desfase) * -1) calc(var(--desfase) * -1) var(--desfase);
+  border: 1.5px solid var(--rosa-acento);
+  border-radius: 28px;
+  opacity: 0.8;
+}
 .hero-frame {
   position: relative;
-  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 28px 50px -18px rgba(43, 43, 43, 0.28);
+  aspect-ratio: 4 / 5;
+  border-radius: 28px;
+  box-shadow: 0 30px 55px -25px rgba(174, 41, 103, 0.45);
+}
+.hero-badge {
+  position: absolute;
+  left: -8px;
+  bottom: -20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--blanco);
+  border: 1px solid #f1dbe3;
+  border-radius: 18px;
+  padding: 12px 18px 12px 12px;
+  box-shadow: 0 18px 35px -15px rgba(43, 43, 43, 0.25);
+  animation: heroFlota 6s ease-in-out 1.2s infinite;
+}
+.hero-badge-icono {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rosa-base);
+  color: var(--rosa-acento-dark);
+}
+@keyframes heroFlota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@media (min-width: 640px) {
+  .hero-foto {
+    --desfase: 18px;
+    max-width: 26rem;
+  }
+  .hero-badge {
+    left: -32px;
+    bottom: -24px;
+  }
+}
+
+/* Títulos sin palabras sueltas al final (fuera de "Sobre mí", que se queda igual) */
+main > section:not(#sobre-mi) :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+main > section:not(#sobre-mi) p,
+footer p {
+  text-wrap: pretty;
 }
 
 /* =========================================================================
@@ -217,16 +320,21 @@ textarea:focus-visible,
 /* =========================================================================
    Botones de marca
    ========================================================================= */
+/* Fondo magenta (6.3:1 con blanco); el rosa claro de antes daba 2.6:1 y no pasaba AA. */
 .btn-primary {
-  background: var(--rosa-acento);
+  background: var(--dorado);
   color: var(--blanco);
   transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-  box-shadow: 0 10px 25px -10px rgba(232, 130, 166, 0.75);
+  box-shadow: 0 10px 24px -12px rgba(174, 41, 103, 0.6);
 }
 .btn-primary:hover {
-  background: var(--rosa-acento-dark);
+  background: var(--dorado-hover);
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px -10px rgba(232, 130, 166, 0.85);
+  box-shadow: 0 16px 28px -12px rgba(174, 41, 103, 0.65);
+}
+/* Sobre fondo oscuro la sombra de color se vuelve halo: ahí solo sombra neutra. */
+.bg-\[\#2B2B2B\] .btn-primary {
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
 }
 
 .btn-outline-gold {
@@ -254,16 +362,182 @@ textarea:focus-visible,
    Tarjetas de servicio (sombra suave para distinguirlas en celular y PC)
    ========================================================================= */
 .service-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: 20px;
   background: var(--blanco);
   border: 1px solid #f4e2e9;
-  box-shadow: 0 14px 32px -18px rgba(43, 43, 43, 0.15);
+  box-shadow: 0 10px 24px -20px rgba(43, 43, 43, 0.2);
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s ease, border-color 0.4s ease;
+    box-shadow 0.4s ease, border-color 0.4s ease, opacity 0.8s ease;
 }
 .service-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 45px -20px rgba(43, 43, 43, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 32px -22px rgba(107, 25, 64, 0.35);
   border-color: var(--dorado-light);
+}
+@media (min-width: 640px) {
+  .service-card {
+    padding: 20px 22px;
+  }
+}
+/* Fila de servicio (.sc). Celular/tablet: foto + nombre + precio · duración arriba,
+   "Ver detalles" y Agendar abajo; la descripción se abre al tocar. Desde 1024px la misma
+   marca se acomoda como tarjeta con la descripción siempre visible. */
+.sc {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "foto   titulo titulo"
+    "foto   precio precio"
+    "toggle toggle boton"
+    "det    det    det"
+    "var    var    var";
+  column-gap: 14px;
+  align-items: center;
+}
+.sc-foto {
+  grid-area: foto;
+  width: 56px;
+  height: 56px;
+  align-self: start;
+}
+.sc-titulo {
+  grid-area: titulo;
+  font-size: 1.0625rem;
+  align-self: end;
+}
+.sc-precio {
+  grid-area: precio;
+  align-self: start;
+  margin-top: 3px;
+  font-size: 0.875rem;
+}
+.sc-sep {
+  margin: 0 4px;
+  color: #c9b8bf;
+}
+.sc-duracion {
+  font-size: 0.8125rem;
+  color: var(--gris-suave);
+  white-space: nowrap;
+}
+.sc-toggle {
+  grid-area: toggle;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--dorado-dark);
+}
+.sc-toggle svg {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sc.is-abierto .sc-toggle svg {
+  transform: rotate(180deg);
+}
+.sc-boton {
+  grid-area: boton;
+  margin-top: 6px;
+}
+.sc-detalles {
+  grid-area: det;
+  display: none;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid #f6e6ec;
+}
+.sc.is-abierto .sc-detalles {
+  display: block;
+}
+.sc-variantes {
+  grid-area: var;
+  margin-top: 10px;
+}
+@media (min-width: 640px) {
+  .sc-titulo {
+    font-size: 1.125rem;
+  }
+}
+@media (min-width: 1024px) {
+  .sc {
+    grid-template-columns: 80px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "foto   titulo titulo"
+      "det    det    det"
+      "var    var    var"
+      "precio precio boton";
+    grid-template-rows: auto 1fr auto auto; /* el precio y Agendar quedan al pie aunque las tarjetas midan distinto */
+    column-gap: 16px;
+  }
+  .sc-foto {
+    width: 80px;
+    height: 80px;
+    align-self: center;
+  }
+  .sc-titulo {
+    font-size: 1.25rem;
+    align-self: center;
+  }
+  .sc-toggle {
+    display: none;
+  }
+  .sc-detalles {
+    display: block;
+    align-self: start;
+    border-top: 0;
+    padding-top: 14px;
+    margin-top: 0;
+  }
+  .sc-precio {
+    align-self: end;
+    margin-top: 18px;
+    font-size: 1rem;
+  }
+  .sc-sep {
+    display: none;
+  }
+  .sc-duracion {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.75rem;
+  }
+  .sc-boton {
+    align-self: end;
+    margin-top: 18px;
+  }
+}
+
+/* Pestañas de categoría */
+.servicios-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.service-tab {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1.5px solid #eadde2;
+  background: var(--blanco);
+  color: var(--gris);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.service-tab:hover {
+  border-color: var(--rosa-acento);
+}
+.service-tab[aria-pressed="true"] {
+  background: var(--dorado);
+  border-color: var(--dorado);
+  color: var(--blanco);
 }
 .service-card .service-img {
   transition: transform 0.6s ease;
@@ -273,149 +547,212 @@ textarea:focus-visible,
 }
 
 /* =========================================================================
-   El Ritual — "Hilo del Ritual"
+   El Ritual — lista compacta unida por un hilo. En celular el hilo baja por
+   la izquierda; en escritorio corre de lado a lado. Al entrar en pantalla
+   cada tramo se dibuja y cada nodo se llena, en orden (un solo momento).
    ========================================================================= */
 .ritual-thread-wrap {
   position: relative;
 }
-.ritual-thread-line {
-  position: absolute;
-  left: 50%;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 999px;
-  transform: translateX(-50%) scaleY(0);
-  transform-origin: top;
-  background: linear-gradient(180deg, var(--dorado), var(--rosa-acento), var(--dorado));
-  transition: transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 0;
+.ritual-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 28px;
 }
-.ritual-thread-line.is-drawn {
-  transform: translateX(-50%) scaleY(1);
+.ritual-step {
+  --nodo: 46px;
+  --hueco: 28px;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--nodo) 1fr;
+  gap: 18px;
+  align-items: start;
 }
-
-.ritual-node {
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.5s ease, background 0.5s ease, color 0.5s ease;
-  box-shadow: 0 0 0 6px rgba(174, 41, 103, 0.12);
-}
-.ritual-step.is-visible .ritual-node {
-  transform: scale(1.12);
-  background: var(--dorado);
-  color: var(--blanco);
-  box-shadow: 0 0 0 10px rgba(174, 41, 103, 0.22);
-}
-.ritual-node::after {
+/* Tramo del hilo hasta el paso siguiente */
+.ritual-step:not(:last-child)::before {
   content: "";
   position: absolute;
-  inset: -4px;
-  border-radius: 999px;
-  border: 1px solid var(--dorado);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.6s ease;
+  left: calc(var(--nodo) / 2 - 1px);
+  top: var(--nodo);
+  bottom: calc(var(--hueco) * -1);
+  width: 2px;
+  background: var(--rosa-acento);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--paso) * 220ms + 180ms);
 }
-.ritual-step.is-visible .ritual-node::after {
-  opacity: 1;
-  transform: scale(1.3);
+.ritual-node {
+  position: relative;
+  z-index: 1;
+  width: var(--nodo);
+  height: var(--nodo);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1rem;
+  font-variant-numeric: lining-nums; /* Playfair usa cifras antiguas por defecto */
+  background: var(--rosa-base);
+  color: var(--dorado);
+  border: 1.5px solid var(--dorado);
+  transition: background 0.5s ease, color 0.5s ease;
+  transition-delay: calc(var(--paso) * 220ms);
+}
+.ritual-cuerpo {
+  padding-top: 9px;
+  max-width: 34rem;
+}
+.ritual-lista.is-visible .ritual-step::before {
+  transform: scaleY(1);
+}
+.ritual-lista.is-visible .ritual-node {
+  background: var(--dorado);
+  color: var(--blanco);
+}
+@media (min-width: 1024px) {
+  .ritual-lista {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 36px;
+  }
+  .ritual-step {
+    --nodo: 52px;
+    --hueco: 36px;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .ritual-step:not(:last-child)::before {
+    left: calc(var(--nodo) + 12px);
+    right: calc(var(--hueco) * -1 + 12px);
+    top: calc(var(--nodo) / 2 - 1px);
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .ritual-lista.is-visible .ritual-step::before {
+    transform: scaleX(1);
+  }
+  .ritual-node {
+    font-size: 1.25rem;
+  }
+  .ritual-cuerpo {
+    padding-top: 0;
+  }
 }
 
 /* =========================================================================
-   Encuentra tu Tratamiento Ideal
+   Encuentra tu tratamiento ideal — filas de necesidad → tratamiento
    ========================================================================= */
-.tratamiento-grid {
+.necesidades {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #f1dbe3;
+}
+.necesidades > li {
+  border-bottom: 1px solid #f1dbe3;
+}
+.necesidad {
+  width: 100%;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 64px minmax(0, 1fr) 36px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 0;
+  text-align: left;
+  border-radius: 16px;
+  transition: background 0.25s ease, padding 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.necesidad-foto {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.necesidad-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rosa-base);
+  color: var(--dorado);
+}
+.necesidad-pregunta {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: var(--gris);
+  text-wrap: balance;
+}
+.necesidad-respuesta {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #5c5555;
+  text-wrap: pretty;
+}
+.necesidad-respuesta strong {
+  font-weight: 600;
+  color: var(--dorado-dark);
+}
+.necesidad-flecha {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--dorado-light);
+  color: var(--dorado);
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.necesidad:hover .necesidad-flecha,
+.necesidad:focus-visible .necesidad-flecha {
+  background: var(--dorado);
+  border-color: var(--dorado);
+  color: var(--blanco);
+  transform: translateX(3px);
+}
+.necesidad:focus-visible {
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .necesidad:hover {
+    background: var(--blanco);
+    padding-inline: 12px;
+  }
 }
 @media (min-width: 768px) {
-  .tratamiento-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .necesidad {
+    grid-template-columns: 84px minmax(0, 1fr) 40px;
+    gap: 22px;
+    padding: 20px 0;
   }
-}
-@media (min-width: 1024px) {
-  .tratamiento-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.75rem;
+  .necesidad-foto {
+    width: 84px;
+    height: 84px;
+    border-radius: 16px;
   }
-}
-
-.tratamiento-card {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--blanco);
-  border: 1px solid var(--rosa-base);
-  border-radius: 1rem;
-  box-shadow: 0 12px 28px -15px rgba(43, 43, 43, 0.2);
-  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s ease, border-color 0.4s ease;
-}
-.tratamiento-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 45px -20px rgba(43, 43, 43, 0.25);
-  border-color: var(--dorado-light);
-}
-
-.tratamiento-card-media {
-  overflow: hidden;
-}
-.tratamiento-card-img {
-  display: block;
-  width: 100%;
-  height: 14rem;
-  object-fit: cover;
-  transition: transform 0.6s ease;
-}
-.tratamiento-card:hover .tratamiento-card-img {
-  transform: scale(1.08);
-}
-
-.tratamiento-card-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 1.5rem;
-}
-.tratamiento-card-pregunta {
-  margin: 0 0 0.5rem;
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-.tratamiento-card-solucion {
-  margin: 0 0 1.5rem;
-  font-size: 0.875rem;
-  line-height: 1.625;
-  color: #4b5563;
-}
-
-.tratamiento-card-btn {
-  margin-top: auto;
-  width: 100%;
-  padding: 0.75rem 1.25rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--dorado);
-  color: var(--blanco);
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 10px 25px -10px rgba(174, 41, 103, 0.6);
-}
-.tratamiento-card-btn:hover {
-  background: #8f2054;
-  transform: translateY(-2px);
-  box-shadow: 0 16px 30px -10px rgba(174, 41, 103, 0.7);
-}
-.tratamiento-card-btn:focus-visible {
-  outline: 2px solid var(--dorado);
-  outline-offset: 2px;
+  .necesidad-pregunta {
+    font-size: 1.4rem;
+  }
+  .necesidad-respuesta {
+    font-size: 0.9375rem;
+  }
+  .necesidad-flecha {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* =========================================================================
@@ -711,16 +1048,19 @@ textarea:focus-visible,
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 600;
+  font-variant-numeric: lining-nums;
   border: 2px solid #e7d3da;
   color: var(--gris-suave);
   background: var(--blanco);
   transition: all 0.35s ease;
   flex-shrink: 0;
 }
+/* Paso actual: anillo magenta con número magenta (el blanco sobre rosa claro no se leía). */
 .step-dot.is-active {
-  border-color: var(--rosa-acento);
-  background: var(--rosa-acento);
-  color: var(--blanco);
+  border-color: var(--dorado);
+  background: var(--rosa-base-soft);
+  color: var(--dorado);
+  box-shadow: 0 0 0 4px var(--rosa-base);
 }
 .step-dot.is-complete {
   border-color: var(--dorado);
@@ -761,6 +1101,20 @@ textarea:focus-visible,
   transition: all 0.25s ease;
   cursor: pointer;
 }
+/* Paso 1: título de cada categoría dentro de la lista de tratamientos. */
+.booking-grupo {
+  padding-top: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gris-suave);
+}
+/* Las opciones del paso 1 son radios ocultos: el foco de teclado se dibuja en la tarjeta. */
+.service-choice:has(input:focus-visible) {
+  outline: 2px solid var(--dorado);
+  outline-offset: 2px;
+}
 .service-choice.is-selected {
   border-color: var(--rosa-acento) !important;
   background: var(--rosa-base-soft);
@@ -786,7 +1140,7 @@ textarea:focus-visible,
   background: var(--rosa-base);
 }
 .calendar-day.is-selected {
-  background: var(--rosa-acento);
+  background: var(--dorado); /* 6.3:1 con blanco; el rosa acento daba 2.5:1 */
   color: var(--blanco);
   font-weight: 600;
 }
@@ -809,19 +1163,98 @@ textarea:focus-visible,
   outline: none;
 }
 .input-field.is-invalid {
-  border-color: #d9534f;
+  border-color: #c0392b;
+}
+.input-field.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.12);
+}
+/* Mensaje bajo el campo: rojo oscuro (6.6:1 sobre blanco) para que se lea, no solo se vea. */
+.field-error {
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #a12a1f;
 }
 
 /* =========================================================================
-   Reseñas — formulario desplegable
+   Estados de error (reemplazan a los alert()): dicen qué pasó y qué hacer
    ========================================================================= */
-#review-form-wrap {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+.estado-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem;
+  border: 1px solid var(--dorado-light);
+  border-radius: 1rem;
+  background: var(--rosa-base-soft);
+  color: var(--dorado-dark);
+  text-align: left;
 }
-#review-form-wrap.is-open {
-  max-height: 900px;
+.estado-error.hidden {
+  display: none;
+}
+.estado-error.is-compacto,
+.estado-error.is-aviso {
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+}
+.estado-error-icono {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--dorado);
+}
+.estado-error-titulo {
+  font-family: var(--font-display, "Playfair Display", serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--gris, #2b2b2b);
+  margin-bottom: 0.25rem;
+}
+.estado-error-texto {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.estado-error-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.85rem;
+}
+.estado-error-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: var(--dorado);
+  color: var(--blanco, #fff);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+.estado-error-btn:hover {
+  background: var(--dorado-dark);
+}
+.estado-error-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.estado-error-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dorado-dark);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--dorado-light);
+}
+.estado-error-link:hover {
+  text-decoration-color: var(--dorado);
+}
+#booking-confirm:disabled {
+  opacity: 0.7;
+  cursor: progress;
+  transform: none;
 }
 
 /* =========================================================================
@@ -1063,14 +1496,6 @@ textarea:focus-visible,
   transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 .about-value:hover svg { transform: scale(1.12) rotate(-6deg); background: var(--dorado); color: #fff; }
-.about-stat {
-  text-align: center; padding: 18px 8px; border-radius: 18px; background: #fff; border: 1px solid #f1dbe3;
-  box-shadow: 0 10px 24px -16px rgba(174, 41, 103, 0.18);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.about-stat:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -18px rgba(174, 41, 103, 0.4); }
-.about-stat-num { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; color: var(--dorado); line-height: 1; }
-.about-stat-label { margin-top: 6px; font-size: 0.72rem; color: var(--gris-suave); line-height: 1.3; }
 @media (max-width: 640px) {
   .about-stage { max-width: 325px; }
   .about-badge--a { left: -6px; }
@@ -1094,3 +1519,207 @@ textarea:focus-visible,
 .variant-chip-name { font-size: 0.8rem; font-weight: 600; color: var(--gris); line-height: 1.2; }
 .variant-chip-info { font-size: 0.72rem; color: var(--gris-suave); }
 .variant-chip.is-active .variant-chip-info { color: var(--dorado); font-weight: 600; }
+/* =========================================================================
+   Barra móvil "Agendar + WhatsApp" (solo < 1024px). Fondo sólido, no vidrio:
+   tiene que leerse encima de fotos y de la sección oscura.
+   ========================================================================= */
+.barra-movil {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 45; /* bajo el header (50), el modal (100) y el lightbox (110) */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--blanco);
+  border-top: 1px solid #f1dbe3;
+  box-shadow: 0 -12px 28px -20px rgba(43, 43, 43, 0.35);
+  transform: translateY(110%);
+  visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.45s;
+}
+.barra-movil.is-visible {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+.barra-movil-agendar {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.barra-movil-agendar:hover {
+  transform: none; /* sin salto en táctil */
+}
+.barra-movil-wa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--dorado);
+  color: var(--dorado-dark);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.barra-movil-wa:active {
+  background: var(--rosa-base);
+}
+/* El SVG de WhatsApp se usa como máscara para pintarlo con el color del texto. */
+.icono-wa {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: url("../imagenes/whatsapp.svg") center / contain no-repeat;
+  mask: url("../imagenes/whatsapp.svg") center / contain no-repeat;
+}
+/* Tablet / celular horizontal: los botones no se estiran a todo el ancho. */
+@media (min-width: 640px) {
+  .barra-movil {
+    justify-content: center;
+  }
+  .barra-movil-agendar {
+    flex: 0 1 340px;
+  }
+}
+/* Pantallas bajas (celular acostado): barra más delgada para no comerse la vista. */
+@media (max-height: 480px) {
+  .barra-movil {
+    padding-top: 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+  .barra-movil-agendar,
+  .barra-movil-wa {
+    min-height: 44px;
+  }
+}
+/* Espacio al final de la página para que la barra no tape el footer. */
+@media (max-width: 1023.98px) {
+  body:has(#barra-movil) {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 1024px) {
+  .barra-movil {
+    display: none;
+  }
+}
+
+/* =========================================================================
+   Videos de TikTok — carril deslizable en celular, 4 columnas desde 640px.
+   Mientras el reproductor no carga se ve un fondo rosa con el logo, no una
+   caja negra.
+   ========================================================================= */
+.tiktok-carril {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 20px;
+  margin-inline: -20px;
+  padding: 4px 20px 12px;
+  scrollbar-width: none;
+}
+.tiktok-carril::-webkit-scrollbar {
+  display: none;
+}
+.tiktok-carril > .tiktok-frame {
+  flex: 0 0 62%;
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .tiktok-carril {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    overflow: visible;
+    margin-inline: 0;
+    padding: 0;
+  }
+}
+.tiktok-frame {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--rosa-base);
+  box-shadow: 0 16px 30px -22px rgba(43, 43, 43, 0.45);
+}
+.tiktok-frame-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.tiktok-frame-inner iframe {
+  z-index: 1;
+}
+.tiktok-espera {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tiktok-espera img {
+  opacity: 0.4;
+}
+
+/* =========================================================================
+   Cierre — fondo claro, firma de Maivy y las dos salidas (agendar / WhatsApp)
+   ========================================================================= */
+.cierre {
+  background: var(--blanco);
+}
+.cierre-firma {
+  font-family: var(--font-script);
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--dorado);
+  margin: 22px 0 30px;
+}
+@media (min-width: 768px) {
+  .cierre-firma {
+    font-size: 4rem;
+  }
+}
+
+/* =========================================================================
+   Tarjeta VIP en el inicio — la misma .vip-card de tarjeta-vip.html, pero sin
+   el marco rosa ni el borde interior de relieve. Se conserva la sombra suave
+   de abajo para que la tarjeta clara no se pierda sobre el fondo blanco.
+   ========================================================================= */
+.vip-card-enlace {
+  border-radius: 4cqw;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.vip-card-enlace:hover {
+  transform: translateY(-4px);
+}
+.vip-card-enlace:focus-visible {
+  outline-offset: 6px;
+  border-radius: 20px;
+}
+/* En tarjeta-vip.html la tarjeta bloquea el gesto táctil; aquí es un enlace y debe dejar desplazar la página. */
+.vip-card-enlace .vip-card-wrap {
+  touch-action: auto;
+  user-select: auto;
+  -webkit-user-select: auto;
+}
+/* Lucide ya no trae el ícono de Instagram: se pinta con imagenes/instagram.svg en el mismo rosa. */
+.vip-card-enlace .vc-insta i {
+  display: inline-block;
+  background: currentColor;
+  -webkit-mask: url("../imagenes/instagram.svg") center / contain no-repeat;
+  mask: url("../imagenes/instagram.svg") center / contain no-repeat;
+}
+.vip-card-enlace .vip-card {
+  border: 0;
+  box-shadow: 0 25px 45px -18px rgba(174, 41, 103, 0.4);
+}

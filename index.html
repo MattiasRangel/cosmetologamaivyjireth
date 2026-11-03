@@ -2,35 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<link rel="icon" type="image/jpeg" href="imagenes/logocosmec.jpeg" />
 <title>Maivy Jireth · Cosmetóloga — Tratamientos faciales y corporales personalizados</title>
 <meta name="description" content="Cosmetología profesional y personalizada: limpieza facial, dermaplaning, radiofrecuencia, drenaje linfático y maderoterapia. Agenda tu cita con Maivy Jireth." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="css/style.css" />
-
-<style>
-  .tratamiento-card-pregunta {
-    font-family: "Playfair Display", serif;
-    font-style: italic;
-    font-weight: 600;
-    font-size: 1.2rem;
-    line-height: 1.4;
-    letter-spacing: 0.01em;
-    color: #AE2967;
-    margin-bottom: 0.5rem;
-  }
-  .tratamiento-card-pregunta::before {
-    content: "";
-    display: block;
-    width: 32px;
-    height: 2px;
-    border-radius: 2px;
-    margin-bottom: 0.65rem;
-    background: linear-gradient(90deg, #AE2967, #E882A6);
-  }
-</style>
 
 <!-- Tailwind CSS (JIT vía CDN) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -73,7 +52,7 @@
       <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-11 h-11 rounded-full object-cover" />
       <span class="leading-tight">
         <span class="block font-display text-lg font-semibold tracking-wide">Maivy Jireth</span>
-        <span class="block text-[10px] uppercase tracking-[0.2em] text-[#a99]">Cosmetóloga</span>
+        <span class="block text-[11px] uppercase tracking-[0.2em] text-[#6b6464]">Cosmetóloga</span>
       </span>
     </a>
 
@@ -82,7 +61,7 @@
       <li><a href="#servicios" class="nav-link">Servicios</a></li>
       <li><a href="#sobre-mi" class="nav-link">Sobre mí</a></li>
       <li><a href="#ritual" class="nav-link">El Ritual</a></li>
-      <li><a href="#nuestro-contenido" class="nav-link">Nuestro contenido</a></li>
+      <li><a href="#nuestro-contenido" class="nav-link">Videos</a></li>
       <li><a href="#ubicacion" class="nav-link">Ubicación</a></li>
     </ul>
 
@@ -93,7 +72,7 @@
         Tarjeta VIP
       </a>
       <button type="button" class="js-open-booking btn-primary text-sm font-semibold px-5 py-2.5 rounded-full">
-        Agendar Cita
+        Agendar cita
       </button>
     </div>
 
@@ -111,14 +90,14 @@
       <li><a href="#servicios" class="block py-2.5">Servicios</a></li>
       <li><a href="#sobre-mi" class="block py-2.5">Sobre mí</a></li>
       <li><a href="#ritual" class="block py-2.5">El Ritual</a></li>
-      <li><a href="#nuestro-contenido" class="block py-2.5">Nuestro contenido</a></li>
+      <li><a href="#nuestro-contenido" class="block py-2.5">Videos</a></li>
       <li><a href="#ubicacion" class="block py-2.5">Ubicación</a></li>
       <li><a href="tarjeta-vip.html" class="btn-outline-gold text-center mt-2 rounded-full py-2.5 flex items-center justify-center gap-2">
         <i data-lucide="crown" class="w-4 h-4"></i> Tarjeta VIP
       </a></li>
       <li>
         <button type="button" class="js-open-booking btn-primary w-full rounded-full py-2.5 font-semibold mt-1 mb-4">
-          Agendar Cita
+          Agendar cita
         </button>
       </li>
     </ul>
@@ -130,75 +109,82 @@
 <!-- ======================================================================
      HERO
 ====================================================================== -->
-<section id="inicio" class="relative overflow-hidden pt-32 pb-20 sm:pt-36 sm:pb-24 md:pt-44 md:pb-32 bg-[#FDE8EF]">
-  <div class="ambient-glow w-72 h-72 bg-[#E882A6]/40 -top-10 -left-10"></div>
-  <div class="ambient-glow delay w-96 h-96 bg-[#AE2967]/25 top-1/3 -right-20"></div>
-
-  <div class="max-w-7xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+<section id="inicio" class="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24 md:pt-44 md:pb-28 bg-[#FDE8EF]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-16 items-center">
     <div>
-      <p class="eyebrow text-sm mb-4 md:mb-5 entrada entrada-1">Ritual de belleza consciente</p>
-      <h1 class="font-display text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.08] mb-5 md:mb-6 entrada entrada-2">
+      <h1 class="font-display text-[2.6rem] sm:text-5xl md:text-6xl xl:text-7xl font-semibold leading-[1.04] tracking-[-0.01em] mb-5 md:mb-7 entrada entrada-2">
         Tu piel tiene memoria.<br />
         <span class="italic text-[#C85F82]">Dale algo bueno.</span>
       </h1>
       <p class="text-base md:text-lg text-[#5c5555] max-w-xl leading-relaxed mb-8 md:mb-9 entrada entrada-3">
-        Tratamientos faciales y corporales diseñados a la medida de tu piel —no de un catálogo—.
-        Cuidado profesional, técnica certificada y un espacio pensado para que cada cita se sienta
-        como un verdadero ritual.
+        Diseño cada tratamiento facial y corporal a la medida de tu piel, no de un catálogo.
+        Técnica certificada, productos profesionales y un espacio tranquilo para que cada cita
+        se sienta como un ritual.
       </p>
-      <div class="flex flex-wrap gap-3.5 sm:gap-4 mb-9 md:mb-10 entrada entrada-4">
+      <div id="hero-ctas" class="flex flex-wrap gap-3.5 sm:gap-4 mb-9 md:mb-10 entrada entrada-4">
         <button type="button" class="js-open-booking btn-primary font-semibold px-7 py-3.5 rounded-full">
-          Reservar Cita
+          Agendar cita
         </button>
         <a href="#servicios" class="btn-ghost font-semibold px-7 py-3.5 rounded-full">
-          Ver Servicios
+          Ver servicios
         </a>
       </div>
-      <div class="flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-[#5c5555] entrada entrada-5">
-        <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4 text-[#AE2967]"></i>+500 rituales realizados</span>
-        <span class="flex items-center gap-2"><i data-lucide="heart-handshake" class="w-4 h-4 text-[#AE2967]"></i>100% personalizado</span>
-        <span class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-[#AE2967]"></i>Villa del Rosario, Colombia</span>
-      </div>
+      <ul class="hero-datos entrada entrada-5">
+        <li><i data-lucide="award" class="w-4 h-4"></i>Técnica certificada</li>
+        <li><a href="tarjeta-vip.html"><i data-lucide="crown" class="w-4 h-4"></i>Tarjeta VIP: 50% en tu 5.ª visita</a></li>
+        <li><i data-lucide="map-pin" class="w-4 h-4"></i>Villa del Rosario, Colombia</li>
+      </ul>
     </div>
 
-    <div class="relative entrada entrada-3">
-      <div class="hero-frame aspect-[4/4.6] max-w-sm mx-auto">
-        <img src="https://images.unsplash.com/photo-1761718209835-c8586b7dcac0?q=80&w=900&auto=format&fit=crop"
-             alt="Tratamiento facial profesional en cabina de cosmetología"
-             class="w-full h-full object-cover" />
+    <!-- Foto real de la cabina (vertical 9:16), en la misma familia visual que «Sobre mí»:
+         marco redondeado, contorno rosa desplazado y etiqueta blanca. El encuadre conserva
+         el letrero con su nombre, el espejo y la camilla. -->
+    <figure class="hero-foto entrada entrada-3">
+      <span class="hero-contorno" aria-hidden="true"></span>
+      <div class="hero-frame">
+        <img src="imagenes/espacio.jpeg" width="900" height="1600" fetchpriority="high"
+             alt="La cabina de Maivy Jireth: camilla rosada, espejo iluminado y su nombre en la pared"
+             class="w-full h-full object-cover object-[50%_30%]" />
       </div>
-      <div class="absolute -bottom-5 left-2 sm:-bottom-6 sm:-left-8 bg-white rounded-2xl shadow-xl px-5 py-4 flex items-center gap-3 entrada entrada-5">
-        <span class="w-11 h-11 rounded-full bg-[#FDE8EF] flex items-center justify-center flex-shrink-0">
-          <i data-lucide="award" class="w-5 h-5 text-[#C85F82]"></i>
+      <figcaption class="hero-badge">
+        <span class="hero-badge-icono" aria-hidden="true"><i data-lucide="house" class="w-5 h-5"></i></span>
+        <span class="leading-tight">
+          <span class="block font-display font-semibold text-sm">Este es mi espacio</span>
+          <span class="block text-xs text-[#6b6464] mt-0.5">Aquí te recibo en cada cita</span>
         </span>
-        <div class="leading-tight">
-          <p class="font-display font-semibold text-sm">Protocolos certificados</p>
-          <p class="text-xs text-[#6b6464]">Piel real, resultados reales</p>
-        </div>
-      </div>
-    </div>
+      </figcaption>
+    </figure>
   </div>
 </section>
 
 <!-- ======================================================================
-     SERVICIOS
+     SERVICIOS — justo después del hero: el catálogo es lo primero que busca la clienta.
+     En celular cada servicio es una fila corta; la descripción se abre con «Ver detalles».
 ====================================================================== -->
-<section id="servicios" class="py-20 md:py-32 bg-white">
-  <div class="max-w-7xl mx-auto px-5 md:px-8">
-    <div class="max-w-2xl mx-auto text-center mb-10 reveal">
-      <p class="eyebrow text-sm mb-4">Catálogo de tratamientos</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">Cada piel, un protocolo distinto</h2>
-      <p class="text-[#6b6464] leading-relaxed">
-        Explora los tratamientos y agenda directamente el que más se ajuste a lo que tu piel
-        necesita hoy.
-      </p>
+<section id="servicios" class="py-16 md:py-24 bg-[#fef4f8]">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
+    <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-16 lg:items-end mb-8 md:mb-10 reveal">
+      <h2 class="font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] mb-4 lg:mb-0">
+        Cada piel, un protocolo distinto
+      </h2>
+      <div class="max-w-md">
+        <p class="text-[#5c5555] leading-relaxed">
+          Elige tu tratamiento y agéndalo aquí mismo. Si tienes dudas, en la valoración te digo
+          cuál le conviene a tu piel.
+        </p>
+        <button type="button" onclick="openBookingModal('valoracion')"
+          class="inline-flex items-center gap-1.5 mt-2 py-1.5 text-sm font-semibold text-[#6b1940] underline underline-offset-4 decoration-[#f5ccdf] hover:decoration-[#AE2967]">
+          <i data-lucide="sparkles" class="w-4 h-4 text-[#AE2967]"></i>
+          No sé cuál elegir: quiero una valoración
+        </button>
+      </div>
     </div>
 
-    <div id="services-category-tabs" class="flex flex-wrap justify-center gap-2.5 sm:gap-3 mb-10 md:mb-12 reveal">
+    <div id="services-category-tabs" class="servicios-tabs mb-8 md:mb-10 reveal" role="group" aria-label="Categorías de tratamientos">
       <!-- Renderizado dinámicamente desde js/data.js (SERVICE_CATEGORIES) -->
     </div>
 
-    <div id="services-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
+    <div id="services-grid" class="grid lg:grid-cols-2 gap-3 md:gap-4">
       <!-- Renderizado dinámicamente desde js/data.js -->
     </div>
   </div>
@@ -251,13 +237,8 @@
         <li class="about-value"><i data-lucide="shield-check" class="w-4 h-4"></i> Técnica certificada, productos profesionales</li>
         <li class="about-value"><i data-lucide="heart" class="w-4 h-4"></i> Seguimiento después de cada cita</li>
       </ul>
-      <div class="about-stats grid grid-cols-3 gap-3 sm:gap-4 mb-9">
-        <div class="about-stat"><p class="about-stat-num">+<span data-count="500">0</span></p><p class="about-stat-label">Rituales realizados</p></div>
-        <div class="about-stat"><p class="about-stat-num"><span data-count="100">0</span>%</p><p class="about-stat-label">Personalizado</p></div>
-        <div class="about-stat"><p class="about-stat-num"><span data-count="4">0</span></p><p class="about-stat-label">Pasos en cada ritual</p></div>
-      </div>
       <div class="flex flex-wrap gap-4">
-        <button type="button" class="js-open-booking btn-primary font-semibold px-7 py-3.5 rounded-full">Agendar mi cita</button>
+        <button type="button" class="js-open-booking btn-primary font-semibold px-7 py-3.5 rounded-full">Agendar cita</button>
         <a href="#ritual" class="btn-ghost font-semibold px-7 py-3.5 rounded-full">Conocer el ritual</a>
       </div>
     </div>
@@ -267,155 +248,186 @@
 <!-- ======================================================================
      EL RITUAL
 ====================================================================== -->
-<section id="ritual" class="py-20 md:py-32 bg-[#FDE8EF]">
+<section id="ritual" class="py-16 md:py-24 bg-[#FDE8EF]">
   <div class="max-w-6xl mx-auto px-5 md:px-8">
-    <div class="max-w-2xl mx-auto text-center mb-16 md:mb-20 reveal">
-      <p class="eyebrow text-sm mb-4">La experiencia</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">El Ritual Maivy Jireth</h2>
-      <p class="text-[#6b6464] leading-relaxed">
-        Un mismo hilo conductor acompaña cada cita, desde la primera valoración hasta el
-        cuidado que continúa en tu casa.
+    <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-16 lg:items-end mb-10 md:mb-14 reveal">
+      <h2 class="font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] mb-4 lg:mb-0">
+        El Ritual <span class="italic text-[#C85F82]">Maivy Jireth</span>
+      </h2>
+      <p class="text-[#5c5555] leading-relaxed max-w-md">
+        Así es cada cita conmigo, desde la primera valoración hasta el cuidado que sigue
+        en tu casa.
       </p>
     </div>
 
+    <!-- Un hilo une los 4 pasos: vertical en celular, horizontal en escritorio (js/main.js lo dibuja al entrar en pantalla). -->
     <div class="ritual-thread-wrap">
-      <div id="ritual-thread-line" class="ritual-thread-line hidden md:block"></div>
-      <div id="ritual-steps" class="space-y-10 md:space-y-16 relative">
+      <ol id="ritual-steps" class="ritual-lista">
         <!-- Renderizado dinámicamente desde js/data.js -->
-      </div>
+      </ol>
     </div>
   </div>
 </section>
 
 <!-- ======================================================================
-     ENCUENTRA TU TRATAMIENTO IDEAL
+     TARJETA VIP — resumen breve; el detalle y la consulta viven en tarjeta-vip.html
 ====================================================================== -->
-<section id="tratamiento-ideal" class="py-20 md:py-32 bg-white">
-  <div class="max-w-7xl mx-auto px-5 md:px-8">
-    <div class="max-w-2xl mx-auto text-center mb-12 md:mb-14 reveal">
-      <p class="eyebrow text-sm mb-4">Según lo que necesitas</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">Encuentra tu Tratamiento Ideal</h2>
-      <p class="text-[#6b6464] leading-relaxed">
-        Cuéntanos qué buscas y te sugerimos el servicio que mejor se ajusta a ti.
+<section id="tarjeta-vip" class="py-16 md:py-24 bg-white">
+  <!-- Celular: título → tarjeta → texto (lo visual aparece antes). Escritorio: texto a la izquierda, tarjeta a la derecha. -->
+  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-[1fr_1.05fr] gap-x-16 gap-y-7 lg:gap-y-5 items-center">
+    <h2 class="reveal font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] lg:self-end">
+      Tu constancia también merece un ritual
+    </h2>
+    <div class="reveal lg:col-start-2 lg:row-start-1 lg:row-span-2" style="transition-delay:120ms">
+      <!-- Misma tarjeta de tarjeta-vip.html (mismo HTML y colores), sin el marco rosa:
+           ver .vip-card-enlace en css/style.css. Toda la tarjeta lleva a tarjeta-vip.html. -->
+      <a href="tarjeta-vip.html" class="vip-card-enlace block max-w-lg mx-auto" aria-label="Tarjeta Cliente VIP: ver cómo funciona">
+        <div class="vip-card-wrap">
+          <div class="vip-card">
+            <span class="vc-el vc-cliente">CLIENTE</span>
+            <span class="vc-el vc-vip font-script">Vip</span>
+            <img src="imagenes/logocosmec.jpeg" alt="" class="vc-el vc-logo rounded-full object-cover" />
+            <img src="imagenes/tarjeta-chip.png" alt="" class="vc-el vc-chip" />
+            <svg viewBox="0 0 24 24" class="vc-el vc-contactless" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
+              <path d="M6.5 12a5.5 5.5 0 0 1 11 0" opacity="0.7"/>
+              <path d="M9 12a3 3 0 0 1 6 0"/>
+            </svg>
+            <p class="vc-el vc-number"><span>****</span><span>****</span><span>****</span><span>****</span></p>
+            <p class="vc-el vc-valido">Válido hasta: **/**/**</p>
+            <p class="vc-el vc-insta"><i aria-hidden="true"></i>Cosmetologa_maivyjireth</p>
+            <div class="vc-el vc-dots">
+              <img src="imagenes/circulo-dorado.png" alt="" class="dot-gold" />
+              <img src="imagenes/circulo-rosa.png" alt="" class="dot-rose" />
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="reveal lg:self-start">
+      <p class="text-[#5c5555] leading-relaxed max-w-[34rem] mb-4">
+        Cada cita conmigo suma una visita a tu Tarjeta Cliente VIP. En la quinta tienes 50% de
+        descuento en un tratamiento; en la décima, un obsequio y un tratamiento gratis.
       </p>
-    </div>
-
-    <div class="tratamiento-grid">
-
-      <!-- Tarjeta 1 -->
-      <article class="tratamiento-card reveal">
-        <div class="tratamiento-card-media">
-          <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=900&auto=format&fit=crop"
-               alt="Masaje de relajación"
-               loading="lazy"
-               class="tratamiento-card-img" />
-        </div>
-        <div class="tratamiento-card-body">
-          <h3 class="tratamiento-card-pregunta">¿Estrés y tensión acumulada?</h3>
-          <p class="tratamiento-card-solucion">Libera la carga con un Masaje de Relajación.</p>
-          <button type="button" onclick="openBookingModal('masaje-relajante')"
-                  class="tratamiento-card-btn">
-            Reservar ahora
-          </button>
-        </div>
-      </article>
-
-      <!-- Tarjeta 2 -->
-      <article class="tratamiento-card reveal" style="transition-delay:80ms">
-        <div class="tratamiento-card-media">
-          <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=900&auto=format&fit=crop"
-               alt="Limpieza facial profunda"
-               loading="lazy"
-               class="tratamiento-card-img" />
-        </div>
-        <div class="tratamiento-card-body">
-          <h3 class="tratamiento-card-pregunta">¿Piel opaca y con impurezas?</h3>
-          <p class="tratamiento-card-solucion">Renueva tu rostro con una Limpieza Facial Profunda.</p>
-          <button type="button" onclick="openBookingModal('limpieza-profunda')"
-                  class="tratamiento-card-btn">
-            Reservar ahora
-          </button>
-        </div>
-      </article>
-
-      <!-- Tarjeta 3 -->
-      <article class="tratamiento-card reveal" style="transition-delay:160ms">
-        <div class="tratamiento-card-media">
-          <img src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=900&auto=format&fit=crop"
-               alt="Masaje reductor y moldeador"
-               loading="lazy"
-               class="tratamiento-card-img" />
-        </div>
-        <div class="tratamiento-card-body">
-          <h3 class="tratamiento-card-pregunta">¿Quieres moldear tu figura?</h3>
-          <p class="tratamiento-card-solucion">Reduce medidas con un Masaje Reductor / Moldeador.</p>
-          <button type="button" onclick="openBookingModal('masaje-reductor')"
-                  class="tratamiento-card-btn">
-            Reservar ahora
-          </button>
-        </div>
-      </article>
-
-      <!-- Tarjeta 4 -->
-      <article class="tratamiento-card reveal" style="transition-delay:240ms">
-        <div class="tratamiento-card-media">
-          <img src="imagenes/servicios/maquillaje.jpg"
-               alt="Maquillaje social"
-               loading="lazy"
-               class="tratamiento-card-img" />
-        </div>
-        <div class="tratamiento-card-body">
-          <h3 class="tratamiento-card-pregunta">¿Quieres lucir radiante en tu próximo evento?</h3>
-          <p class="tratamiento-card-solucion">Destaca tu belleza con nuestro Maquillaje Social.</p>
-          <button type="button" onclick="openBookingModal('maquillaje-social')"
-                  class="tratamiento-card-btn">
-            Reservar ahora
-          </button>
-        </div>
-      </article>
-
-    </div>
-  </div>
-</section>
-
-<!-- ======================================================================
-     NUESTRO CONTENIDO — videos de TikTok con carga diferida
-====================================================================== -->
-<section id="nuestro-contenido" class="py-20 md:py-32 bg-white">
-  <div class="max-w-5xl mx-auto px-5 md:px-8">
-    <div class="text-center mb-12 md:mb-14 reveal">
-      <p class="eyebrow text-sm mb-4">Síguenos</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold mb-4">Nuestro contenido</h2>
-      <p class="text-[#6b6464] leading-relaxed max-w-lg mx-auto">
-        Un vistazo a nuestro trabajo directo desde TikTok. Toca el ícono de sonido para activar el audio.
-      </p>
-    </div>
-
-    <div id="tiktok-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-5 max-w-4xl mx-auto">
-      <!-- Las 4 tarjetas se arman en js/main.js a partir de TIKTOK_VIDEOS (js/data.js) -->
-    </div>
-
-    <div class="text-center mt-12 reveal">
-      <a href="https://www.tiktok.com/@cosmetoloca_maivyjireth" target="_blank" rel="noopener noreferrer"
-        class="btn-outline-gold inline-flex items-center gap-2 font-semibold px-6 py-3 rounded-full">
-        <i data-lucide="music-2" class="w-4 h-4"></i>
-        Ver más en TikTok
+      <a href="tarjeta-vip.html#consultar" class="inline-flex items-center gap-1.5 py-1.5 text-sm font-semibold text-[#6b1940] underline underline-offset-4 decoration-[#f5ccdf] hover:decoration-[#AE2967]">
+        ¿Ya tienes tu tarjeta? Consulta tus visitas
       </a>
     </div>
   </div>
 </section>
 
 <!-- ======================================================================
+     ENCUENTRA TU TRATAMIENTO IDEAL — filas de necesidad → tratamiento. Cada fila
+     abre la reserva con ese servicio ya elegido.
+====================================================================== -->
+<section id="tratamiento-ideal" class="py-16 md:py-24 bg-[#fef4f8]">
+  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-[0.85fr_1.15fr] gap-8 lg:gap-16 items-start">
+    <div class="reveal lg:sticky lg:top-28">
+      <h2 class="font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] mb-4">
+        Encuentra tu tratamiento ideal
+      </h2>
+      <p class="text-[#5c5555] leading-relaxed max-w-md">
+        Cuéntame qué buscas y te sugiero el tratamiento que mejor se ajusta a ti.
+      </p>
+    </div>
+
+    <ul class="necesidades reveal">
+      <li>
+        <button type="button" onclick="openBookingModal('masaje-relajante')" class="necesidad">
+          <img src="imagenes/servicios/relajante.png" alt="" loading="lazy" class="necesidad-foto" />
+          <span class="necesidad-texto">
+            <span class="necesidad-pregunta">¿Estrés y tensión acumulada?</span>
+            <span class="necesidad-respuesta">Libera la carga con un <strong>Masaje de Relajación</strong>.</span>
+          </span>
+          <span class="necesidad-flecha" aria-hidden="true"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        </button>
+      </li>
+      <li>
+        <button type="button" onclick="openBookingModal('limpieza-profunda')" class="necesidad">
+          <img src="imagenes/servicios/limpieza-profunda.jpg" alt="" loading="lazy" class="necesidad-foto" />
+          <span class="necesidad-texto">
+            <span class="necesidad-pregunta">¿Piel opaca y con impurezas?</span>
+            <span class="necesidad-respuesta">Renueva tu rostro con una <strong>Limpieza Facial Profunda</strong>.</span>
+          </span>
+          <span class="necesidad-flecha" aria-hidden="true"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        </button>
+      </li>
+      <li>
+        <button type="button" onclick="openBookingModal('masaje-reductor')" class="necesidad">
+          <img src="imagenes/servicios/reductor.jpg" alt="" loading="lazy" class="necesidad-foto" />
+          <span class="necesidad-texto">
+            <span class="necesidad-pregunta">¿Quieres moldear tu figura?</span>
+            <span class="necesidad-respuesta">Reduce medidas con un <strong>Masaje Reductor</strong>.</span>
+          </span>
+          <span class="necesidad-flecha" aria-hidden="true"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        </button>
+      </li>
+      <li>
+        <button type="button" onclick="openBookingModal('maquillaje-social')" class="necesidad">
+          <img src="imagenes/servicios/maquillaje.jpg" alt="" loading="lazy" class="necesidad-foto" />
+          <span class="necesidad-texto">
+            <span class="necesidad-pregunta">¿Quieres lucir radiante en tu próximo evento?</span>
+            <span class="necesidad-respuesta">Destaca tu belleza con un <strong>Maquillaje Social</strong>.</span>
+          </span>
+          <span class="necesidad-flecha" aria-hidden="true"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        </button>
+      </li>
+      <li>
+        <button type="button" onclick="openBookingModal('valoracion')" class="necesidad is-valoracion">
+          <span class="necesidad-foto necesidad-icono" aria-hidden="true"><i data-lucide="sparkles" class="w-5 h-5"></i></span>
+          <span class="necesidad-texto">
+            <span class="necesidad-pregunta">¿No sabes cuál elegir?</span>
+            <span class="necesidad-respuesta">Agenda una <strong>valoración de piel</strong> y te digo cuál le conviene.</span>
+          </span>
+          <span class="necesidad-flecha" aria-hidden="true"><i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================================================================
+     NUESTRO CONTENIDO — videos de TikTok con carga diferida
+====================================================================== -->
+<section id="nuestro-contenido" class="py-16 md:py-24 bg-white">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-8 md:mb-10 reveal">
+      <div>
+        <h2 class="font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] mb-3">Mi trabajo en video</h2>
+        <p class="text-[#5c5555] leading-relaxed max-w-md">
+          Un vistazo a mis citas, directo desde mi TikTok. Toca el ícono de sonido para activar el audio.
+        </p>
+      </div>
+      <a href="https://www.tiktok.com/@cosmetologa_maivyjireth" target="_blank" rel="noopener noreferrer"
+        class="hidden sm:inline-flex btn-outline-gold items-center gap-2 font-semibold px-6 py-3 rounded-full flex-shrink-0">
+        <i data-lucide="music-2" class="w-4 h-4"></i>
+        Ver más en TikTok
+      </a>
+    </div>
+
+    <!-- En celular los videos se deslizan de lado (se ve el borde del siguiente); desde 640px van en 4 columnas. -->
+    <div id="tiktok-grid" class="tiktok-carril">
+      <!-- Las 4 tarjetas se arman en js/main.js a partir de TIKTOK_VIDEOS (js/data.js) -->
+    </div>
+
+    <a href="https://www.tiktok.com/@cosmetologa_maivyjireth" target="_blank" rel="noopener noreferrer"
+      class="sm:hidden btn-outline-gold flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-full mt-6">
+      <i data-lucide="music-2" class="w-4 h-4"></i>
+      Ver más en TikTok
+    </a>
+  </div>
+</section>
+
+<!-- ======================================================================
      UBICACIÓN
 ====================================================================== -->
-<section id="ubicacion" class="py-20 md:py-32 bg-[#FDE8EF]">
-  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-12 lg:gap-14 items-center">
+<section id="ubicacion" class="py-16 md:py-24 bg-[#FDE8EF]">
+  <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
     <div class="reveal">
-      <p class="eyebrow text-sm mb-4">Visítanos</p>
-      <h2 class="font-display text-3xl md:text-4xl font-semibold mb-5">Nuestra Ubicación</h2>
-      <p class="text-[#6b6464] leading-relaxed mb-8 max-w-lg">
-        Te esperamos en un espacio pensado para que cada visita se sienta tranquila desde
-        que cruzas la puerta.
+      <h2 class="font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] mb-4">Dónde atiendo</h2>
+      <p class="text-[#5c5555] leading-relaxed mb-8 max-w-lg">
+        Atiendo en mi propio espacio en Villa del Rosario, pensado para que cada visita se
+        sienta tranquila desde que cruzas la puerta.
       </p>
 
       <ul class="space-y-5 mb-9">
@@ -425,7 +437,7 @@
           </span>
           <div>
             <p class="font-display font-semibold">Dirección</p>
-            <p class="text-sm text-[#6b6464]">Conjunto cerrado la rayuela casa B15, Villa del Rosario, Norte de Santander</p>
+            <p class="text-sm text-[#6b6464]">Conjunto cerrado La Rayuela, casa B15, Villa del Rosario, Norte de Santander</p>
           </div>
         </li>
         <li class="flex items-start gap-4">
@@ -434,7 +446,10 @@
           </span>
           <div>
             <p class="font-display font-semibold">Horario de atención</p>
-            <p class="text-sm text-[#6b6464]">Lunes a sábado · 9:00 am – 6:00 pm</p>
+            <!-- js/booking.js lo reemplaza con el horario real de la tabla `horarios` (panel > Disponibilidad) -->
+            <ul id="horario-atencion" class="text-sm text-[#6b6464] space-y-0.5">
+              <li>Con cita previa; al agendar ves las horas libres de cada día.</li>
+            </ul>
           </div>
         </li>
         <li class="flex items-start gap-4">
@@ -442,22 +457,22 @@
             <i data-lucide="phone" class="w-5 h-5 text-[#AE2967]"></i>
           </span>
           <div>
-            <p class="font-display font-semibold">Reservas</p>
-            <p class="text-sm text-[#6b6464]">+57 312 285 5055</p>
+            <p class="font-display font-semibold">Teléfono y WhatsApp</p>
+            <a href="tel:+573122855055" class="inline-block py-1.5 text-sm text-[#6b6464] hover:text-[#AE2967] underline underline-offset-4 decoration-[#f5ccdf] hover:decoration-[#AE2967]">+57 312 285 5055</a>
           </div>
         </li>
       </ul>
 
       <a href="https://www.google.com/maps/search/?api=1&query=Conjunto+cerrado+la+rayuela%2C+Villa+del+Rosario%2C+Norte+de+Santander"
         target="_blank" rel="noopener"
-        class="btn-primary inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-full">
+        class="btn-outline-gold inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-full">
         <i data-lucide="navigation" class="w-4 h-4"></i>
         Cómo llegar
       </a>
     </div>
 
     <div class="reveal" style="transition-delay:150ms">
-      <div class="rounded-2xl overflow-hidden shadow-xl aspect-[4/4.2] sm:aspect-[4/3]">
+      <div class="rounded-[28px] overflow-hidden shadow-xl aspect-[4/3]">
         <iframe
           title="Ubicación de Maivy Jireth Cosmetóloga en el mapa"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d763.9262713951407!2d-72.47017427584264!3d7.823688892863439!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e664710530df583%3A0x4ae04ae0acf514f2!2sConjunto%20cerrado%20la%20rayuela!5e0!3m2!1ses-419!2sco!4v1786332676379!5m2!1ses-419!2sco"
@@ -471,17 +486,29 @@
 </section>
 
 <!-- ======================================================================
-     CTA FINAL
+     CIERRE — claro, firmado por Maivy, con las dos salidas: agendar o escribirle.
 ====================================================================== -->
-<section class="py-24 bg-[#2B2B2B]">
+<section id="cierre" class="cierre py-20 md:py-28">
   <div class="max-w-3xl mx-auto px-5 text-center reveal">
-    <p class="font-display italic text-lg text-[#AE2967] mb-3">¿Lista para empezar tu ritual?</p>
-    <h2 class="font-display text-3xl md:text-4xl font-semibold text-white mb-8">
-      Tu piel merece tiempo, técnica y presencia.
+    <h2 class="font-display text-[2.35rem] sm:text-5xl md:text-6xl font-semibold leading-[1.05] tracking-[-0.01em]">
+      ¿Lista para empezar <span class="italic text-[#C85F82]">tu ritual?</span>
     </h2>
-    <button type="button" class="js-open-booking btn-primary font-semibold px-8 py-4 rounded-full">
-      Agendar mi cita ahora
-    </button>
+    <p class="text-[#5c5555] text-base md:text-lg leading-relaxed mt-5 max-w-lg mx-auto">
+      Tu piel merece tiempo, técnica y presencia. Elige tu día y hora, o escríbeme si prefieres
+      que te oriente primero.
+    </p>
+    <p class="cierre-firma" aria-hidden="true">Maivy Jireth</p>
+    <div id="cierre-ctas" class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+      <button type="button" class="js-open-booking btn-primary font-semibold px-8 py-4 rounded-full">
+        Agendar cita
+      </button>
+      <a href="https://wa.me/573122855055?text=Hola%20Maivy%2C%20me%20gustar%C3%ADa%20agendar%20una%20cita."
+        target="_blank" rel="noopener"
+        class="btn-outline-gold inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 rounded-full">
+        <span class="icono-wa" aria-hidden="true"></span>
+        Escríbeme por WhatsApp
+      </a>
+    </div>
   </div>
 </section>
 
@@ -490,9 +517,10 @@
 <!-- ======================================================================
      FOOTER
 ====================================================================== -->
-<footer class="bg-white border-t border-[#f1dbe3] pt-16 pb-8">
-  <div class="max-w-7xl mx-auto px-5 md:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-    <div>
+<footer class="bg-white border-t border-[#f1dbe3] pt-12 md:pt-16 pb-8">
+  <!-- Celular: marca arriba, Navegación y Sígueme lado a lado, Contacto al final. Escritorio: 4 columnas. -->
+  <div class="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mb-10 md:mb-12">
+    <div class="col-span-2 lg:col-span-1">
       <a href="#inicio" class="flex items-center gap-3 mb-4">
         <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-10 h-10 rounded-full object-cover" />
         <span class="font-display font-semibold">Maivy Jireth</span>
@@ -505,27 +533,27 @@
 
     <div>
       <p class="font-display font-semibold mb-4">Navegación</p>
-      <ul class="space-y-2 text-sm text-[#6b6464]">
-        <li><a href="#servicios" class="hover:text-[#C85F82]">Servicios</a></li>
-        <li><a href="#sobre-mi" class="hover:text-[#C85F82]">Sobre mí</a></li>
-        <li><a href="#ritual" class="hover:text-[#C85F82]">El Ritual</a></li>
-        <li><a href="#nuestro-contenido" class="hover:text-[#C85F82]">Nuestro contenido</a></li>
-        <li><a href="#ubicacion" class="hover:text-[#C85F82]">Ubicación</a></li>
-        <li><a href="tarjeta-vip.html" class="hover:text-[#C85F82]">Tarjeta VIP</a></li>
+      <ul class="space-y-0.5 text-sm text-[#6b6464]">
+        <li><a href="#servicios" class="inline-block py-1 hover:text-[#AE2967]">Servicios</a></li>
+        <li><a href="#sobre-mi" class="inline-block py-1 hover:text-[#AE2967]">Sobre mí</a></li>
+        <li><a href="#ritual" class="inline-block py-1 hover:text-[#AE2967]">El Ritual</a></li>
+        <li><a href="#nuestro-contenido" class="inline-block py-1 hover:text-[#AE2967]">Videos</a></li>
+        <li><a href="#ubicacion" class="inline-block py-1 hover:text-[#AE2967]">Ubicación</a></li>
+        <li><a href="tarjeta-vip.html" class="inline-block py-1 hover:text-[#AE2967]">Tarjeta VIP</a></li>
       </ul>
     </div>
 
-    <div>
+    <div class="col-span-2 lg:col-span-1 order-last lg:order-none">
       <p class="font-display font-semibold mb-4">Contacto</p>
       <ul class="space-y-2 text-sm text-[#6b6464]">
-        <li class="flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-[#AE2967]"></i>+57 312 285 5055</li>
+        <li><a href="tel:+573122855055" class="flex items-center gap-2 py-1 hover:text-[#AE2967]"><i data-lucide="phone" class="w-4 h-4 text-[#AE2967]"></i>+57 312 285 5055</a></li>
         <li class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-[#AE2967]"></i>jirethcaballero1@gmail.com</li>
         <li class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-[#AE2967]"></i>Villa del Rosario, Norte de Santander</li>
       </ul>
     </div>
 
     <div>
-      <p class="font-display font-semibold mb-4">Síguenos</p>
+      <p class="font-display font-semibold mb-4">Sígueme</p>
       <div class="flex gap-3">
         <a href="https://www.instagram.com/cosmetologa_maivyjireth?stkn=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener" aria-label="Instagram" class="w-10 h-10 rounded-full bg-[#FDE8EF] flex items-center justify-center hover:bg-[#E882A6] transition-colors overflow-hidden">
           <img src="imagenes/instagram.svg" alt="" class="w-4 h-4" />
@@ -540,11 +568,22 @@
     </div>
   </div>
 
-  <div class="max-w-7xl mx-auto px-5 md:px-8 pt-6 border-t border-[#f1dbe3] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#a99]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 pt-6 border-t border-[#f1dbe3] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#776c6c]">
     <p>© <span id="current-year"></span> Maivy Jireth Cosmetóloga. Todos los derechos reservados.</p>
-    <p>Diseño elegante para el cuidado profesional de tu piel.</p>
   </div>
 </footer>
+
+<!-- ======================================================================
+     BARRA MÓVIL — Agendar + WhatsApp al alcance del pulgar (solo en celular/tablet).
+     Aparece cuando los botones del hero salen de pantalla (js/main.js → initBarraMovil).
+====================================================================== -->
+<div id="barra-movil" class="barra-movil">
+  <button type="button" class="js-open-booking btn-primary barra-movil-agendar">Agendar cita</button>
+  <a href="https://wa.me/573122855055?text=Hola%20Maivy%2C%20me%20gustar%C3%ADa%20agendar%20una%20cita."
+    target="_blank" rel="noopener" class="barra-movil-wa" aria-label="Escribir a Maivy por WhatsApp">
+    <span class="icono-wa" aria-hidden="true"></span>WhatsApp
+  </a>
+</div>
 
 <!-- ======================================================================
      LIGHTBOX — ver la foto completa (sin recortar) al tocarla
@@ -566,64 +605,80 @@
 <div id="booking-modal" hidden class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
   <div id="booking-overlay" class="absolute inset-0 bg-[#2B2B2B]/60 backdrop-blur-sm"></div>
 
-  <div class="booking-panel relative bg-white w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl max-h-[92vh] overflow-y-auto scale-95 opacity-0 sm:scale-100 sm:opacity-100 shadow-2xl">
+  <div class="booking-panel relative bg-white w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl max-h-[92vh] overflow-y-auto scale-95 opacity-0 sm:scale-100 sm:opacity-100 shadow-2xl focus:outline-none"
+    role="dialog" aria-modal="true" aria-labelledby="booking-title" tabindex="-1">
     <div class="sticky top-0 bg-white z-10 flex items-center justify-between px-6 md:px-8 pt-6 pb-4 border-b border-[#f1dbe3]">
       <div>
-        <p class="eyebrow text-xs">Reserva tu cita</p>
-        <h3 class="font-display text-xl font-semibold">Agenda con Maivy Jireth</h3>
+        <h3 id="booking-title" class="font-display text-xl font-semibold">Agenda tu cita</h3>
       </div>
-      <button id="booking-close" aria-label="Cerrar" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#FDE8EF]">
+      <button id="booking-close" type="button" aria-label="Cerrar la reserva" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#FDE8EF]">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
 
     <div id="step-indicator" class="flex items-center px-6 md:px-8 pt-6 pb-2"></div>
+    <p id="step-status" class="sr-only" aria-live="polite"></p>
+
+    <div id="booking-alert" role="alert" class="estado-error is-aviso hidden mx-6 md:mx-8 mt-4"></div>
 
     <div class="px-6 md:px-8 py-6">
       <!-- Paso 1: Servicio -->
       <div class="booking-step is-active" data-step="1">
-        <h4 class="font-display font-semibold text-lg mb-4">¿Qué tratamiento deseas agendar?</h4>
-        <div id="step-panel-1" class="space-y-3 max-h-[360px] overflow-y-auto pr-1"></div>
+        <h4 id="paso1-titulo" tabindex="-1" class="font-display font-semibold text-lg mb-4 focus:outline-none">¿Qué tratamiento deseas agendar?</h4>
+        <div id="step-panel-1" role="radiogroup" aria-labelledby="paso1-titulo" class="space-y-3"></div>
       </div>
 
       <!-- Paso 2: Fecha y hora -->
       <div class="booking-step" data-step="2">
         <div id="step-panel-2">
-          <h4 class="font-display font-semibold text-lg mb-4">Elige fecha y hora</h4>
+          <h4 tabindex="-1" class="font-display font-semibold text-lg mb-4 focus:outline-none">Elige fecha y hora</h4>
+          <!-- Desde 640px: calendario a la izquierda y horas a la derecha, para que las horas no queden bajo el pliegue. -->
+          <div class="sm:grid sm:grid-cols-[1.15fr_1fr] sm:gap-7 sm:items-start">
+          <div>
           <div class="flex items-center justify-between mb-3">
-            <button id="calendar-prev" aria-label="Mes anterior" class="w-8 h-8 rounded-full hover:bg-[#FDE8EF] flex items-center justify-center">
+            <button id="calendar-prev" type="button" aria-label="Mes anterior" class="w-8 h-8 rounded-full hover:bg-[#FDE8EF] flex items-center justify-center">
               <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
-            <p id="calendar-month-label" class="font-display font-semibold capitalize"></p>
-            <button id="calendar-next" aria-label="Mes siguiente" class="w-8 h-8 rounded-full hover:bg-[#FDE8EF] flex items-center justify-center">
+            <p id="calendar-month-label" class="font-display font-semibold capitalize" aria-live="polite"></p>
+            <button id="calendar-next" type="button" aria-label="Mes siguiente" class="w-8 h-8 rounded-full hover:bg-[#FDE8EF] flex items-center justify-center">
               <i data-lucide="chevron-right" class="w-4 h-4"></i>
             </button>
           </div>
-          <div id="calendar-grid" class="grid grid-cols-7 gap-1 mb-6"></div>
+          <div id="calendar-grid" role="group" aria-labelledby="calendar-month-label" class="grid grid-cols-7 gap-1 mb-6 sm:mb-0"></div>
+          </div>
 
-          <p class="text-sm font-medium mb-3">Horarios disponibles</p>
-          <div id="time-slots" class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+          <div>
+          <p id="horarios-titulo" class="text-sm font-medium mb-3 sm:mt-1.5 sm:mb-4">Horarios disponibles</p>
+          <div id="time-slots" role="group" aria-labelledby="horarios-titulo" class="grid grid-cols-3 sm:grid-cols-2 gap-2"></div>
+          </div>
+          </div>
         </div>
       </div>
 
       <!-- Paso 3: Datos del cliente -->
       <div class="booking-step" data-step="3">
-        <h4 class="font-display font-semibold text-lg mb-4">Tus datos de contacto</h4>
-        <form id="client-form" class="space-y-4">
+        <h4 tabindex="-1" class="font-display font-semibold text-lg mb-4 focus:outline-none">Tus datos de contacto</h4>
+        <form id="client-form" class="space-y-4" novalidate>
           <div>
             <label for="client-name" class="block text-sm font-medium mb-2">Nombre completo</label>
-            <input id="client-name" type="text" required placeholder="Ej. María Fernanda Pérez"
-              class="input-field w-full rounded-lg px-4 py-3 text-sm" />
+            <input id="client-name" type="text" required maxlength="80" autocomplete="name"
+              placeholder="Ej. María Fernanda Pérez" aria-describedby="client-name-error"
+              class="input-field w-full rounded-lg px-4 py-3 text-base sm:text-sm" />
+            <p id="client-name-error" class="field-error hidden"></p>
           </div>
           <div>
-            <label for="client-phone" class="block text-sm font-medium mb-2">Teléfono</label>
-            <input id="client-phone" type="tel" required placeholder="Ej. 300 123 4567"
-              class="input-field w-full rounded-lg px-4 py-3 text-sm" />
+            <label for="client-phone" class="block text-sm font-medium mb-2">Teléfono (WhatsApp)</label>
+            <input id="client-phone" type="tel" required maxlength="20" autocomplete="tel" inputmode="tel"
+              placeholder="Ej. 300 123 4567" aria-describedby="client-phone-error"
+              class="input-field w-full rounded-lg px-4 py-3 text-base sm:text-sm" />
+            <p id="client-phone-error" class="field-error hidden"></p>
           </div>
           <div>
-            <label for="client-email" class="block text-sm font-medium mb-2">Correo electrónico</label>
-            <input id="client-email" type="email" required placeholder="Ej. maria@correo.com"
-              class="input-field w-full rounded-lg px-4 py-3 text-sm" />
+            <label for="client-email" class="block text-sm font-medium mb-2">Correo electrónico <span class="font-normal text-[#6b6464]">(opcional)</span></label>
+            <input id="client-email" type="email" maxlength="120" autocomplete="email" inputmode="email"
+              placeholder="Ej. maria@correo.com" aria-describedby="client-email-error"
+              class="input-field w-full rounded-lg px-4 py-3 text-base sm:text-sm" />
+            <p id="client-email-error" class="field-error hidden"></p>
           </div>
         </form>
       </div>
@@ -631,22 +686,49 @@
       <!-- Paso 4: Confirmación -->
       <div class="booking-step" data-step="4">
         <div id="booking-summary-wrap">
-          <h4 class="font-display font-semibold text-lg mb-4">Confirma tu cita</h4>
+          <h4 tabindex="-1" class="font-display font-semibold text-lg mb-1 focus:outline-none">Revisa tu solicitud</h4>
+          <p class="text-sm text-[#6b6464] mb-4">Al enviarla tu horario queda apartado en mi agenda.</p>
           <div id="booking-summary" class="text-sm"></div>
         </div>
 
-        <div id="booking-success" class="hidden text-center py-6">
-          <div class="w-16 h-16 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-5">
-            <i data-lucide="check" class="w-8 h-8 text-[#C85F82]"></i>
+        <div id="booking-success" class="hidden py-2">
+          <div class="text-center mb-6">
+            <div class="w-14 h-14 rounded-full bg-[#FDE8EF] flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="calendar-check" class="w-6 h-6 text-[#AE2967]"></i>
+            </div>
+            <h4 id="booking-success-titulo" tabindex="-1" class="font-display text-2xl font-semibold mb-2 focus:outline-none">Tu horario quedó apartado</h4>
+            <!-- js/booking.js completa este texto con el teléfono que escribió la clienta. -->
+            <p id="booking-success-texto" class="text-sm text-[#6b6464] max-w-sm mx-auto leading-relaxed">
+              Ya está en mi agenda. Si me escribes por WhatsApp te confirmo más rápido; si no, yo te escribo.
+            </p>
           </div>
-          <h4 class="font-display text-xl font-semibold mb-2">¡Cita confirmada!</h4>
-          <p class="text-sm text-[#6b6464] max-w-sm mx-auto mb-6">
-            Te esperamos. Recibirás la confirmación por WhatsApp o correo electrónico con los
-            detalles de tu cita.
-          </p>
-          <button id="booking-finish" type="button" class="btn-primary font-semibold px-7 py-3 rounded-full">
-            Listo
-          </button>
+
+          <dl id="booking-success-resumen" class="text-sm bg-[#fef4f8] rounded-2xl px-5 py-2 mb-4"></dl>
+
+          <div class="flex items-start gap-3 text-sm mb-7 px-1">
+            <i data-lucide="map-pin" class="w-4 h-4 text-[#AE2967] flex-shrink-0 mt-0.5"></i>
+            <p class="text-[#6b6464] leading-relaxed">
+              Conjunto cerrado La Rayuela, casa B15, Villa del Rosario.
+              <a href="https://www.google.com/maps/search/?api=1&query=Conjunto+cerrado+la+rayuela%2C+Villa+del+Rosario%2C+Norte+de+Santander"
+                target="_blank" rel="noopener" class="font-semibold text-[#AE2967] underline underline-offset-4 decoration-[#f5ccdf] hover:decoration-[#AE2967] whitespace-nowrap">Cómo llegar</a>
+            </p>
+          </div>
+
+          <a id="booking-whatsapp" href="#" target="_blank" rel="noopener"
+            class="btn-primary flex items-center justify-center gap-2 w-full font-semibold px-7 py-3.5 rounded-full">
+            <span class="icono-wa" aria-hidden="true"></span>
+            Confirmar por WhatsApp
+          </a>
+          <div class="flex items-center justify-center gap-6 mt-4 text-sm">
+            <a id="booking-ics" href="#" download="cita-maivy-jireth.ics"
+              class="inline-flex items-center gap-1.5 font-medium text-[#6b1940] underline underline-offset-4 decoration-[#f5ccdf] hover:decoration-[#AE2967]">
+              <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+              Agregar a mi calendario
+            </a>
+            <button id="booking-finish" type="button" class="font-medium text-[#6b6464] hover:text-[#2B2B2B] py-2">
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -660,7 +742,7 @@
           Siguiente
         </button>
         <button id="booking-confirm" type="button" class="hidden btn-primary font-semibold px-7 py-2.5 rounded-full">
-          Confirmar Cita
+          Enviar solicitud
         </button>
       </div>
     </div>

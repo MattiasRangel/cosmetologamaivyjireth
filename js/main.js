@@ -1,7 +1,7 @@
 /**
  * main.js — comportamiento general de la landing:
- * navbar, menú móvil, scroll reveal, "Hilo del Ritual", render de
- * servicios y testimonios, formulario de reseñas.
+ * navbar, menú móvil, scroll reveal, "Hilo del Ritual", catálogo de
+ * servicios, videos de TikTok y barra móvil.
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initImageLightbox();
   initYear();
   initAutoOpenBooking();
+  initBarraMovil();
 
   // El Ritual y los videos de TikTok usan datos estáticos (RITUAL_STEPS y
   // TIKTOK_VIDEOS, en data.js) que NO dependen de Supabase, así que se
@@ -27,9 +28,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   // SERVICE_CATEGORIES y SERVICES sí los llena data.js con una consulta
   // real a Supabase; solo lo que depende de ellos espera esa promesa.
   await window.datosListos;
+  renderCatalogo();
+});
+
+/** Pinta pestañas + tarjetas, o el estado de error si Supabase no respondió. */
+function renderCatalogo() {
+  const grid = document.getElementById("services-grid");
+  if (window.catalogoError && grid) {
+    document.getElementById("services-category-tabs")?.replaceChildren();
+    grid.innerHTML = `<div class="col-span-full max-w-xl mx-auto w-full">${htmlEstadoError({
+      titulo: "No se pudieron cargar los tratamientos",
+      texto: "Puede ser la conexión. Vuelve a intentarlo o escríbeme y te cuento cuál te conviene.",
+      reintentar: "catalogo-reintentar",
+    })}</div>`;
+    if (window.lucide) lucide.createIcons();
+    const btn = document.getElementById("catalogo-reintentar");
+    btn?.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Cargando…";
+      await window.recargarCatalogo();
+      renderCatalogo();
+      // El paso 1 de la reserva depende del mismo catálogo.
+      window.renderStepOneServices?.();
+    });
+    return;
+  }
   renderServiceTabs();
   renderServices();
-});
+}
 
 /* ---------------------------------------------------------------------- */
 /* Navbar: cambia de fondo al hacer scroll                                */
@@ -64,9 +90,14 @@ function initMobileMenu() {
     iconClose: document.getElementById("icon-menu-close"),
   });
 
+  // Cerrado, el menú queda fuera del orden de tabulación y del lector de pantalla
+  // (antes solo se ocultaba con max-height y sus enlaces seguían recibiendo foco).
+  menu.inert = true;
+
   const closeMenu = () => {
     const { iconOpen, iconClose } = getIcons();
     menu.classList.remove("is-open");
+    menu.inert = true;
     iconOpen?.classList.remove("hidden");
     iconClose?.classList.add("hidden");
     btn.setAttribute("aria-expanded", "false");
@@ -75,6 +106,7 @@ function initMobileMenu() {
   btn.addEventListener("click", () => {
     const { iconOpen, iconClose } = getIcons();
     const isOpen = menu.classList.toggle("is-open");
+    menu.inert = !isOpen;
     iconOpen?.classList.toggle("hidden", isOpen);
     iconClose?.classList.toggle("hidden", !isOpen);
     btn.setAttribute("aria-expanded", String(isOpen));
@@ -121,19 +153,24 @@ function initScrollReveal() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Render de la grilla de servicios (a futuro: datos vía API)             */
+/* Catálogo compacto: pestañas por categoría (faciales primero) y filas    */
+/* con foto pequeña en vez de tarjetas altas.                              */
 /* ---------------------------------------------------------------------- */
-let categoriaActiva = "masajes";
+let categoriaActiva = null;
 
 function renderServiceTabs() {
   const tabs = document.getElementById("services-category-tabs");
   if (!tabs || typeof SERVICE_CATEGORIES === "undefined") return;
 
-  tabs.innerHTML = SERVICE_CATEGORIES.map(
+  const categorias = categoriasEnOrden();
+  if (!categoriaActiva || !categorias.some((c) => c.id === categoriaActiva)) {
+    categoriaActiva = categorias[0]?.id ?? null;
+  }
+
+  tabs.innerHTML = categorias.map(
     (cat) => `
-    <button type="button" data-categoria="${cat.id}"
-      class="service-tab px-5 py-2.5 rounded-full text-sm font-semibold border-2 transition-colors
-        ${cat.id === categoriaActiva ? "bg-[#AE2967] border-[#AE2967] text-white" : "border-[#eadde2] text-[#2B2B2B] hover:border-[#E882A6]"}">
+    <button type="button" data-categoria="${cat.id}" aria-pressed="${cat.id === categoriaActiva}"
+      class="service-tab">
       ${cat.nombre}
     </button>`
   ).join("");
@@ -143,9 +180,23 @@ function renderServiceTabs() {
       categoriaActiva = btn.dataset.categoria;
       renderServiceTabs();
       renderServices();
-      document.getElementById("servicios")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Solo se mueve la página si las pestañas quedaron arriba de la vista (antes saltaba siempre).
+      const top = tabs.getBoundingClientRect().top;
+      if (top < 0) tabs.scrollIntoView({ behavior: "smooth", block: "start" });
+      tabs.querySelector(`[data-categoria="${categoriaActiva}"]`)?.focus({ preventScroll: true });
     });
   });
+}
+
+/** Miniatura que abre la foto completa en el lightbox. */
+function miniaturaServicio(src, alt, clases) {
+  return `
+    <button type="button" class="js-ver-foto relative block overflow-hidden group/foto ${clases}" data-src="${src}" data-alt="${alt}" aria-label="Ver foto completa de ${alt}">
+      <img src="${src}" alt="" loading="lazy" class="w-full h-full object-cover" />
+      <span class="absolute inset-0 bg-black/0 group-hover/foto:bg-black/20 transition-colors flex items-center justify-center">
+        <i data-lucide="expand" class="w-4 h-4 text-white opacity-0 group-hover/foto:opacity-100 transition-opacity"></i>
+      </span>
+    </button>`;
 }
 
 function renderServices() {
@@ -155,65 +206,51 @@ function renderServices() {
   const serviciosFiltrados = SERVICES.filter((s) => s.categoria === categoriaActiva);
 
   grid.innerHTML = serviciosFiltrados.map((s, i) => {
-    // La mayoría de servicios tienen una sola foto; "Especiales" (y
-    // cualquier otro que en el futuro tenga varias) trae un arreglo
-    // `imagenes` y se pinta como una mini-galería de 2x2 en vez de una
-    // sola imagen — así se ven las 4 fotos, no solo la primera.
-    const fotoHtml = Array.isArray(s.imagenes)
-      ? `
-        <div class="grid grid-cols-2 grid-rows-2 h-64 gap-0.5">
-          ${s.imagenes
-            .map(
-              (src) => `
-            <button type="button" class="js-ver-foto relative overflow-hidden group/foto" data-src="${src}" data-alt="${s.nombre}" aria-label="Ver foto completa">
-              <img src="${src}" alt="${s.nombre}" loading="lazy" class="w-full h-full object-cover" />
-              <span class="absolute inset-0 bg-black/0 group-hover/foto:bg-black/20 transition-colors flex items-center justify-center">
-                <i data-lucide="expand" class="w-4 h-4 text-white opacity-0 group-hover/foto:opacity-100 transition-opacity"></i>
-              </span>
-            </button>`
-            )
-            .join("")}
-        </div>`
-      : `
-        <button type="button" class="js-ver-foto relative block w-full h-64 overflow-hidden group/foto" data-src="${s.imagen}" data-alt="${s.nombre}" aria-label="Ver foto completa">
-          <img src="${s.imagen}" alt="${s.nombre}" loading="lazy" class="w-full h-full object-cover" />
-          <span class="absolute inset-0 bg-black/0 group-hover/foto:bg-black/20 transition-colors flex items-center justify-center">
-            <i data-lucide="expand" class="w-6 h-6 text-white opacity-0 group-hover/foto:opacity-100 transition-opacity"></i>
-          </span>
-        </button>`;
+    // "Especiales" (o cualquier servicio con galería) muestra la primera foto
+    // como miniatura y el resto en una tira pequeña bajo la descripción.
+    const galeria = Array.isArray(s.imagenes) ? s.imagenes : null;
+    const fotoPrincipal = galeria ? galeria[0] : s.imagen;
+    const tira = galeria && galeria.length > 1
+      ? `<div class="flex gap-1.5 mt-3">${galeria.slice(1).map((src) => miniaturaServicio(src, s.nombre, "w-11 h-11 rounded-lg flex-shrink-0")).join("")}</div>`
+      : "";
 
+    // Una sola estructura: en celular es una fila corta (foto, nombre, precio · duración,
+    // "Ver detalles" y Agendar); desde 1024px la misma marca se acomoda como tarjeta con la
+    // descripción visible. Ver .sc en css/style.css.
+    const idDetalles = `detalles-${s.id}`;
     return `
-    <article class="service-card reveal rounded-2xl overflow-hidden flex flex-col" style="transition-delay:${i * 60}ms">
-      <div class="relative overflow-hidden">
-        ${fotoHtml}
-        <span class="absolute top-3 right-3 bg-white/90 text-[#2B2B2B] text-xs font-semibold px-3 py-1 rounded-full shadow pointer-events-none">
-          <span data-duracion-de="${s.id}">${s.variantes ? s.variantes[0].duracion + " min" : s.duracionTexto}</span>
-        </span>
-      </div>
-      <div class="p-6 flex flex-col flex-1">
-        <h3 class="font-display text-xl font-semibold mb-2">${s.nombre}</h3>
-        <p class="text-sm text-[#6b6464] leading-relaxed flex-1">${s.descripcion}</p>
-        <p class="text-xs text-[#a99] mt-3 flex items-center gap-1.5">
+    <article class="service-card sc reveal" style="transition-delay:${Math.min(i, 6) * 50}ms">
+      ${miniaturaServicio(fotoPrincipal, s.nombre, "sc-foto rounded-xl flex-shrink-0")}
+      <h3 class="sc-titulo font-display font-semibold leading-snug">${s.nombre}</h3>
+      <p class="sc-precio leading-tight">
+        <span data-precio-de="${s.id}" class="font-display font-semibold text-[#AE2967]">${s.variantes ? formatCOP(s.variantes[0].precio) : s.precioTexto}</span>
+        <span class="sc-sep" aria-hidden="true">·</span>
+        <span data-duracion-de="${s.id}" class="sc-duracion">${s.variantes ? s.variantes[0].duracion + " min" : s.duracionTexto}</span>
+      </p>
+      <button type="button" class="sc-toggle" aria-expanded="false" aria-controls="${idDetalles}">
+        Ver detalles<i data-lucide="chevron-down" class="w-4 h-4"></i>
+      </button>
+      <div id="${idDetalles}" class="sc-detalles">
+        <p class="text-xs text-[#6b6464] flex items-center gap-1.5">
           <i data-lucide="map-pin" class="w-3.5 h-3.5 flex-shrink-0"></i>
           ${s.zona}
         </p>
-        ${s.variantes ? `
-        <div class="variant-picker mt-4" role="radiogroup" aria-label="Elige una opción" data-picker="${s.id}">
-          ${s.variantes.map((v, k) => `
-          <button type="button" role="radio" aria-checked="${k === 0}" data-variante="${v.id}"
-            class="variant-chip ${k === 0 ? "is-active" : ""}">
-            <span class="variant-chip-name">${v.nombre}</span>
-            <span class="variant-chip-info">${v.duracion} min · ${formatCOP(v.precio)}</span>
-          </button>`).join("")}
-        </div>` : ""}
-        <div class="flex items-center justify-between mt-5 pt-5 border-t border-[#f1dbe3] gap-3">
-          <span data-precio-de="${s.id}" class="font-display text-base font-semibold text-[#C85F82] leading-tight">${s.variantes ? formatCOP(s.variantes[0].precio) : s.precioTexto}</span>
-          <button type="button" data-service="${s.id}" data-variante="${s.variantes ? s.variantes[0].id : ""}"
-            class="js-agendar-servicio btn-primary text-sm font-medium px-4 py-2 rounded-full flex-shrink-0">
-            Agendar
-          </button>
-        </div>
+        <p class="text-sm text-[#5c5555] leading-relaxed mt-2">${s.descripcion}</p>
+        ${tira}
       </div>
+      ${s.variantes ? `
+      <div class="sc-variantes variant-picker" role="radiogroup" aria-label="Elige una opción" data-picker="${s.id}">
+        ${s.variantes.map((v, k) => `
+        <button type="button" role="radio" aria-checked="${k === 0}" data-variante="${v.id}"
+          class="variant-chip ${k === 0 ? "is-active" : ""}">
+          <span class="variant-chip-name">${v.nombre}</span>
+          <span class="variant-chip-info">${v.duracion} min · ${formatCOP(v.precio)}</span>
+        </button>`).join("")}
+      </div>` : ""}
+      <button type="button" data-service="${s.id}" data-variante="${s.variantes ? s.variantes[0].id : ""}"
+        class="sc-boton js-agendar-servicio btn-outline-gold text-sm font-semibold px-5 py-2.5 rounded-full">
+        Agendar
+      </button>
     </article>`;
   }).join("");
 
@@ -243,6 +280,16 @@ function renderServices() {
         card.querySelector("[data-duracion-de]").textContent = `${v.duracion} min`;
         card.querySelector(".js-agendar-servicio").dataset.variante = v.id;
       });
+    });
+  });
+
+  // "Ver detalles" (solo se ve en celular/tablet): abre la descripción de ese servicio.
+  grid.querySelectorAll(".sc-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const abierto = btn.getAttribute("aria-expanded") !== "true";
+      btn.setAttribute("aria-expanded", String(abierto));
+      btn.closest("article").classList.toggle("is-abierto", abierto);
+      btn.firstChild.textContent = abierto ? "Ocultar detalles" : "Ver detalles";
     });
   });
 
@@ -284,58 +331,50 @@ function initImageLightbox() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Render de los pasos de "El Ritual" (línea de tiempo alternada)         */
+/* Render de los pasos de "El Ritual": lista compacta unida por un hilo     */
+/* (vertical en celular, horizontal en escritorio).                        */
 /* ---------------------------------------------------------------------- */
 function renderRitual() {
   const wrap = document.getElementById("ritual-steps");
   if (!wrap || typeof RITUAL_STEPS === "undefined") return;
 
-  wrap.innerHTML = RITUAL_STEPS.map((step, i) => {
-    const isEven = i % 2 === 0;
-    const card = `
-      <div class="bg-white rounded-2xl p-6 md:p-7 shadow-sm border border-[#f1dbe3] ${
-        isEven ? "md:text-right" : ""
-      }">
-        <span class="font-display text-3xl text-[#AE2967]">${step.numero}</span>
-        <h3 class="font-display text-xl font-semibold mt-1 mb-2">${step.titulo}</h3>
-        <p class="text-sm text-[#6b6464] leading-relaxed">${step.texto}</p>
-      </div>`;
-
-    return `
-    <div class="ritual-step reveal relative grid md:grid-cols-[1fr_64px_1fr] gap-3 md:gap-8 items-center">
-      ${isEven ? card : '<div class="hidden md:block"></div>'}
-      <div class="relative z-10 flex justify-center order-first md:order-none">
-        <div class="ritual-node w-14 h-14 rounded-full bg-white border-2 border-[#AE2967] flex items-center justify-center font-display font-semibold relative">
-          ${i + 1}
-        </div>
+  // El número sí informa: es el orden real de la cita.
+  wrap.innerHTML = RITUAL_STEPS.map((step, i) => `
+    <li class="ritual-step" style="--paso:${i}">
+      <span class="ritual-node" aria-hidden="true">${i + 1}</span>
+      <div class="ritual-cuerpo">
+        <h3 class="font-display text-xl md:text-[1.35rem] font-semibold leading-snug mb-1.5">${step.titulo}</h3>
+        <p class="text-sm md:text-[0.9375rem] text-[#5c5555] leading-relaxed">${step.texto}</p>
       </div>
-      ${!isEven ? card : '<div class="hidden md:block"></div>'}
-    </div>`;
-  }).join("");
-
-  initScrollReveal();
+    </li>`
+  ).join("");
 }
 
 /* ---------------------------------------------------------------------- */
 /* "Hilo del Ritual" — la línea dorada se dibuja al hacer scroll          */
 /* ---------------------------------------------------------------------- */
 function initRitualThread() {
+  const lista = document.getElementById("ritual-steps");
   const line = document.getElementById("ritual-thread-line");
-  const steps = document.querySelectorAll(".ritual-step");
-  if (!steps.length) return;
+  if (!lista || !lista.children.length) return;
 
+  const dibujar = () => {
+    lista.classList.add("is-visible");
+    line?.classList.add("is-drawn");
+  };
+  if (!("IntersectionObserver" in window)) return dibujar();
+
+  // Un solo momento: al entrar la lista se dibuja el hilo y los nodos se llenan en orden.
   const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          line?.classList.add("is-drawn");
-        }
-      });
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        dibujar();
+        observer.disconnect();
+      }
     },
-    { threshold: 0.4 }
+    { threshold: 0.25 }
   );
-  steps.forEach((s) => observer.observe(s));
+  observer.observe(lista);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -379,10 +418,9 @@ function renderTikTokVideos() {
   if (!grid || typeof TIKTOK_VIDEOS === "undefined") return;
 
   grid.innerHTML = TIKTOK_VIDEOS.map((video, i) => `
-      <div class="tiktok-frame reveal relative aspect-[9/16] rounded-2xl overflow-hidden shadow-sm"
-        style="transition-delay:${i * 80}ms; padding:3px; background:linear-gradient(135deg,#25F4EE 0%,#FE2C55 100%);">
-        <div class="tiktok-frame-inner relative w-full h-full rounded-[13px] overflow-hidden bg-black"
-          data-video-id="${video.id}">
+      <div class="tiktok-frame reveal" style="transition-delay:${i * 80}ms">
+        <div class="tiktok-frame-inner" data-video-id="${video.id}">
+          <span class="tiktok-espera" aria-hidden="true"><img src="imagenes/tiktok.svg" alt="" class="w-6 h-6" /></span>
           <button type="button" class="tiktok-mute-btn absolute bottom-3 right-3 w-8 h-8 rounded-full
             bg-black/60 hover:bg-black/80 ring-1 ring-white/40 backdrop-blur-sm flex items-center justify-center transition-colors z-10"
             data-muted="true" aria-label="Activar sonido">
@@ -451,7 +489,7 @@ function montarIframeTikTok(contenedor) {
 function initTikTokMuteButtons() {
   document.querySelectorAll(".tiktok-mute-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const iframe = btn.previousElementSibling;
+      const iframe = btn.parentElement.querySelector("iframe");
       if (!iframe?.contentWindow) return;
       const estaSilenciado = btn.dataset.muted === "true";
       iframe.contentWindow.postMessage(
@@ -486,39 +524,33 @@ function initAutoOpenBooking() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Sobre mí: contadores animados + parallax suave con el mouse            */
+/* Barra móvil "Agendar + WhatsApp": aparece cuando los botones del hero   */
+/* salen de pantalla y se esconde frente al cierre, que ya trae los mismos */
+/* dos botones, para no repetirlos mientras todavía se ven.               */
+/* ---------------------------------------------------------------------- */
+function initBarraMovil() {
+  const barra = document.getElementById("barra-movil");
+  const zonas = ["hero-ctas", "cierre-ctas"].map((id) => document.getElementById(id)).filter(Boolean);
+  if (!barra) return;
+  if (!zonas.length || !("IntersectionObserver" in window)) {
+    barra.classList.add("is-visible");
+    return;
+  }
+  const enPantalla = new Set();
+  const obs = new IntersectionObserver((entradas) => {
+    entradas.forEach((e) => (e.isIntersecting ? enPantalla.add(e.target) : enPantalla.delete(e.target)));
+    barra.classList.toggle("is-visible", enPantalla.size === 0);
+  });
+  zonas.forEach((z) => obs.observe(z));
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sobre mí: parallax suave con el mouse                                  */
 /* ---------------------------------------------------------------------- */
 function initAbout() {
   const section = document.getElementById("sobre-mi");
   if (!section) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  const counters = section.querySelectorAll("[data-count]");
-  const run = (el) => {
-    const target = Number(el.dataset.count);
-    if (reduce) { el.textContent = target; return; }
-    const t0 = performance.now();
-    const dur = 1600;
-    const tick = (now) => {
-      const p = Math.min((now - t0) / dur, 1);
-      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
-
-  const stats = section.querySelector(".about-stats");
-  if ("IntersectionObserver" in window && stats) {
-    const io = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        counters.forEach(run);
-        io.disconnect();
-      }
-    }, { threshold: 0.4 });
-    io.observe(stats);
-  } else {
-    counters.forEach(run);
-  }
 
   const stage = section.querySelector(".about-stage");
   if (!stage || reduce || !window.matchMedia("(hover: hover)").matches) return;

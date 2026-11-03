@@ -17,7 +17,12 @@ let diasBloqueados = [];
 let horariosSemana = [];
 let horariosEspeciales = {}; // { "2026-10-21": fila } — horario puntual que reemplaza al semanal ese día
 let configCalendarioPromise = null;
+let configCalendarioError = false; // true si horarios/días bloqueados no cargaron: no se ofrece ningún horario
 let renderSlotsRequestId = 0;
+let icsUrlActual = null;
+
+// Margen mínimo entre "ahora" y el primer turno que se puede pedir hoy.
+const ANTICIPACION_MIN = 60;
 
 const DIAS_CLAVE = [
   "domingo",
@@ -102,6 +107,28 @@ function leerFranjas(fila) {
 }
 
 /**
+ * Lee una franja { inicio, fin } (o claves alternas) y la pasa a horas decimales.
+ * Corrige turnos de tarde capturados sin am/pm (ej. "02:00" a "06:00").
+ * Devuelve null si la franja no se puede leer.
+ */
+function normalizarFranja(franja) {
+  if (!franja) return null;
+  const pIni = parsearHora(franja.inicio ?? franja.desde ?? franja.apertura ?? franja.start);
+  const pFin = parsearHora(franja.fin ?? franja.hasta ?? franja.cierre ?? franja.end);
+  if (!pIni || !pFin) return null;
+
+  let ini = pIni.hora;
+  let fin = pFin.hora;
+  if (!pIni.conMeridiano && ini >= 1 && ini < 6) ini += 12;
+  if (!pFin.conMeridiano && fin < ini) {
+    // "12:00 am" (00:00) como cierre: si abre en la mañana casi seguro quiso decir mediodía.
+    if (fin === 0) fin = ini < 12 ? 12 : 24;
+    else if (fin + 12 > ini && fin < 12) fin += 12;
+  }
+  return { ini, fin };
+}
+
+/**
  * Extrae la lista de horarios ("09:00 am", etc.) para un día de la semana (0..6).
  * Tolera filas duplicadas, `cerrado` como texto, claves alternas y errores
  * típicos de captura (ej. "06:00" queriendo decir 6:00 pm).
@@ -126,25 +153,12 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
   filasAbiertas.forEach((fila) => {
     leerFranjas(fila).forEach((franja) => {
       if (!franja) return;
-      const rawIni = franja.inicio ?? franja.desde ?? franja.apertura ?? franja.start;
-      const rawFin = franja.fin ?? franja.hasta ?? franja.cierre ?? franja.end;
-      const pIni = parsearHora(rawIni);
-      const pFin = parsearHora(rawFin);
-      if (!pIni || !pFin) {
+      const rango = normalizarFranja(franja);
+      if (!rango) {
         console.warn("[booking.js] Franja ilegible en horarios:", fila.dia, franja);
         return;
       }
-
-      let ini = pIni.hora;
-      let fin = pFin.hora;
-
-      // Turno de tarde capturado sin am/pm (ej. "02:00" a "06:00"): se pasa a 24h.
-      if (!pIni.conMeridiano && ini >= 1 && ini < 6) ini += 12;
-      if (!pFin.conMeridiano && fin < ini) {
-        // "12:00 am" (00:00) como cierre: si abre en la mañana casi seguro quiso decir mediodía.
-        if (fin === 0) fin = ini < 12 ? 12 : 24;
-        else if (fin + 12 > ini && fin < 12) fin += 12;
-      }
+      const { ini, fin } = rango;
 
       if (ini === fin) {
         // Franja de inicio = fin (ej. 03:30 pm a 03:30 pm): un único turno a esa hora.
@@ -202,7 +216,9 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
     .sort((a, b) => a - b)
     .map((m) => formatearHora12(m / 60));
 
-  if (slots.length === 0) {
+  // Franjas vacías = día cerrado a propósito desde el panel; solo se avisa si había franjas y no salió ninguna hora.
+  const teniaFranjas = filasAbiertas.some((f) => leerFranjas(f).length > 0);
+  if (slots.length === 0 && teniaFranjas) {
     console.warn(
       `[booking.js] Día "${DIAS_CLAVE[dayIndex]}" abierto pero sin horas generadas. Revisa franjas en tabla horarios:`,
       filasAbiertas
@@ -211,9 +227,39 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
   return slots;
 }
 
+/** "2026-11-02" para una fecha local (sin pasar por UTC). */
+function fechaISOLocal(fecha) {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, "0");
+  const d = String(fecha.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** ¿El turno "02:30 pm" del día `fecha` ya pasó (o empieza antes del margen de anticipación)? */
+function turnoYaPaso(fecha, horaTexto, ahora = new Date()) {
+  const p = parsearHora(horaTexto);
+  if (!p) return false;
+  const inicio = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  inicio.setMinutes(Math.round(p.hora * 60));
+  return inicio.getTime() < ahora.getTime() + ANTICIPACION_MIN * 60 * 1000;
+}
+
+/** Turnos que de verdad se pueden pedir ese día: los configurados menos los que ya pasaron. */
+function slotsReservables(fecha) {
+  if (configCalendarioError) return [];
+  const ahora = new Date();
+  return generarSlotsParaDia(fecha.getDay(), fechaISOLocal(fecha)).filter(
+    (t) => !turnoYaPaso(fecha, t, ahora)
+  );
+}
+
 /** Carga días bloqueados y horarios semanales desde Supabase. */
 async function cargarConfiguracionCalendario() {
-  if (!window.supabaseClient) return;
+  configCalendarioError = false;
+  if (!window.supabaseClient) {
+    configCalendarioError = true;
+    return;
+  }
   try {
     const [bloqueadosRes, horariosRes, especialesRes] = await Promise.all([
       window.supabaseClient.from("dias_bloqueados").select("fecha_iso"),
@@ -221,8 +267,16 @@ async function cargarConfiguracionCalendario() {
       window.supabaseClient.from("horarios_especiales").select("*"),
     ]);
 
-    if (bloqueadosRes.error) console.error("[booking.js] Error leyendo dias_bloqueados:", bloqueadosRes.error);
-    if (horariosRes.error) console.error("[booking.js] Error leyendo horarios:", horariosRes.error);
+    // Sin horarios o sin días bloqueados no se puede saber qué está libre: mejor no ofrecer nada
+    // que ofrecer el horario de respaldo y aceptar citas en días cerrados.
+    if (bloqueadosRes.error) {
+      console.error("[booking.js] Error leyendo dias_bloqueados:", bloqueadosRes.error);
+      configCalendarioError = true;
+    }
+    if (horariosRes.error) {
+      console.error("[booking.js] Error leyendo horarios:", horariosRes.error);
+      configCalendarioError = true;
+    }
     // Si la tabla horarios_especiales aún no existe, el sitio sigue con el horario semanal normal.
     if (especialesRes.error) console.warn("[booking.js] horarios_especiales no disponible:", especialesRes.error.message);
 
@@ -240,7 +294,57 @@ async function cargarConfiguracionCalendario() {
     }
   } catch (err) {
     console.error("Error consultando configuración del calendario:", err);
+    configCalendarioError = true;
   }
+  renderHorarioAtencion();
+}
+
+/* ---------------------------------------------------------------------- */
+/* Horario de atención (sección Ubicación) — sale de la tabla `horarios`   */
+/* ---------------------------------------------------------------------- */
+const NOMBRES_DIA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+/** 8 -> "8:00 am", 14.5 -> "2:30 pm" (para leer, sin el cero inicial). */
+function horaLegible(horaDecimal) {
+  // Espacio duro: "2:30 pm" nunca se parte en dos líneas.
+  return formatearHora12(horaDecimal).replace(/^0/, "").replace(" ", " ");
+}
+
+/** "Lunes, martes y jueves" */
+function unirDias(nombres) {
+  if (nombres.length === 1) return nombres[0];
+  const resto = nombres.slice(1).map((n) => n.toLowerCase());
+  return `${nombres[0]}${resto.length > 1 ? ", " + resto.slice(0, -1).join(", ") : ""} y ${resto[resto.length - 1]}`;
+}
+
+/**
+ * Resume el horario semanal agrupando los días con las mismas franjas,
+ * en orden de lunes a domingo. Si la tabla no cargó, deja el texto del HTML.
+ */
+function renderHorarioAtencion() {
+  const lista = document.getElementById("horario-atencion");
+  if (!lista || configCalendarioError || !horariosSemana.length) return;
+
+  const grupos = new Map(); // "8-18|..." -> { dias: [], texto }
+  [1, 2, 3, 4, 5, 6, 0].forEach((i) => {
+    const filas = obtenerConfigsDia(i).filter((f) => !esVerdadero(f.cerrado));
+    const rangos = filas
+      .flatMap((f) => leerFranjas(f).map(normalizarFranja))
+      .filter(Boolean)
+      .sort((a, b) => a.ini - b.ini);
+    if (!rangos.length) return; // cerrado: no se lista
+    const clave = rangos.map((r) => `${r.ini}-${r.fin}`).join("|");
+    const texto = rangos
+      .map((r) => (r.ini === r.fin ? horaLegible(r.ini) : `${horaLegible(r.ini)} – ${horaLegible(r.fin)}`))
+      .join(" y ");
+    if (!grupos.has(clave)) grupos.set(clave, { dias: [], texto });
+    grupos.get(clave).dias.push(NOMBRES_DIA[i]);
+  });
+
+  if (!grupos.size) return;
+  lista.innerHTML = Array.from(grupos.values())
+    .map((g) => `<li><span class="text-[#2B2B2B]">${unirDias(g.dias)}</span> · ${g.texto}</li>`)
+    .join("");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -264,7 +368,28 @@ function bindOpenTriggers() {
   });
 }
 
+/**
+ * "Quiero una valoración": para quien no sabe qué tratamiento elegir. No existe en
+ * la tabla `servicios`, así que la cita se guarda sin servicio_id ni precio
+ * (Maivy confirma el valor por WhatsApp) y aparta 30 minutos.
+ */
+const VALORACION = {
+  id: "valoracion",
+  nombre: "Valoración de piel",
+  detalle: "Si no sabes cuál elegir, empezamos por aquí",
+  duracion: 30,
+  precio: null,
+};
+
+/** Precio para mostrar; null = "a confirmar" (la valoración). */
+function precioLegible(precio) {
+  return precio == null ? "Precio a confirmar" : formatCOP(precio);
+}
+
 function resolverSeleccion() {
+  if (bookingState.serviceId === VALORACION.id) {
+    return { id: null, imagen: null, nombre: VALORACION.nombre, duracion: VALORACION.duracion, precio: null, esValoracion: true };
+  }
   const s = SERVICES.find((x) => x.id === bookingState.serviceId);
   if (!s) return null;
   const v = s.variantes?.find((x) => x.id === bookingState.varianteId);
@@ -283,6 +408,7 @@ function opcionesReserva() {
     s.variantes?.length
       ? s.variantes.map((v) => ({
           key: `${s.id}::${v.id}`,
+          categoria: s.categoria,
           servicioId: s.id,
           varianteId: v.id,
           imagen: s.imagen,
@@ -293,6 +419,7 @@ function opcionesReserva() {
       : [
           {
             key: s.id,
+            categoria: s.categoria,
             servicioId: s.id,
             varianteId: null,
             imagen: s.imagen,
@@ -304,24 +431,98 @@ function opcionesReserva() {
   );
 }
 
+/**
+ * Preselecciona un servicio (y su variante) si existe en el catálogo.
+ * Un servicio con variantes llamado sin variante (ej. las tarjetas de
+ * "Encuentra tu tratamiento ideal") toma la primera, igual que la tarjeta
+ * del catálogo muestra la primera opción activa por defecto.
+ */
+function preseleccionarServicio(serviceId, varianteId) {
+  if (serviceId === VALORACION.id) {
+    bookingState.serviceId = VALORACION.id;
+    bookingState.varianteId = null;
+    return;
+  }
+  const svc = SERVICES.find((x) => x.id === serviceId);
+  if (!svc) return;
+  bookingState.serviceId = svc.id;
+  if (svc.variantes?.length) {
+    const v = svc.variantes.find((x) => x.id === varianteId) ?? svc.variantes[0];
+    bookingState.varianteId = v.id;
+  } else {
+    bookingState.varianteId = null;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Diálogo accesible: fondo inerte, foco atrapado y devuelto al cerrar     */
+/* ---------------------------------------------------------------------- */
+let focoAntesDelModal = null;
+
+const SELECTOR_ENFOCABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Elementos con los que se puede interactuar dentro del panel (visibles). */
+function enfocablesDelModal() {
+  const panel = document.querySelector("#booking-modal .booking-panel");
+  if (!panel) return [];
+  return [...panel.querySelectorAll(SELECTOR_ENFOCABLE)].filter(
+    (el) => el.offsetParent !== null || el === document.activeElement
+  );
+}
+
+/** Todo lo que no es el modal queda inerte (ni clic, ni Tab, ni lector de pantalla). */
+function fondoInerte(activo) {
+  const modal = document.getElementById("booking-modal");
+  [...document.body.children].forEach((el) => {
+    if (el === modal || el.tagName === "SCRIPT") return;
+    el.inert = activo;
+  });
+}
+
+/** Tab y Shift+Tab dan la vuelta dentro del panel en vez de salir a la página. */
+function atraparFoco(e) {
+  const modal = document.getElementById("booking-modal");
+  if (e.key !== "Tab" || !modal || modal.hidden) return;
+  const items = enfocablesDelModal();
+  if (!items.length) return;
+  const primero = items[0];
+  const ultimo = items[items.length - 1];
+  const panel = modal.querySelector(".booking-panel");
+  if (e.shiftKey && (document.activeElement === primero || document.activeElement === panel)) {
+    e.preventDefault();
+    ultimo.focus();
+  } else if (!e.shiftKey && document.activeElement === ultimo) {
+    e.preventDefault();
+    primero.focus();
+  }
+}
+
 window.openBookingModal = async function (serviceId = null, varianteId = null) {
   resetBookingState();
-  if (serviceId) {
-    const svc = typeof SERVICES !== "undefined" ? SERVICES.find((x) => x.id === serviceId) : null;
-    if (!(svc?.variantes?.length && !varianteId)) {
-      bookingState.serviceId = serviceId;
-      bookingState.varianteId = varianteId;
-    }
-  }
 
   const modal = document.getElementById("booking-modal");
+  if (modal.hidden) focoAntesDelModal = document.activeElement;
   modal.hidden = false;
   document.body.style.overflow = "hidden";
+  fondoInerte(true);
+  const panel = modal.querySelector(".booking-panel");
   requestAnimationFrame(() => {
-    modal.querySelector(".booking-panel").classList.add("scale-100", "opacity-100");
+    panel.classList.add("scale-100", "opacity-100");
   });
+  // El foco entra al diálogo (el lector anuncia su título) sin saltos de scroll.
+  panel.focus({ preventScroll: true });
 
-  goToStep(1);
+  goToStep(1, { enfocar: false });
+
+  // Si la clienta toca "Reservar" antes de que llegue el catálogo, se espera aquí
+  // en vez de perder la preselección.
+  if (!SERVICES.length && !window.catalogoError) {
+    const panel = document.getElementById("step-panel-1");
+    if (panel) panel.innerHTML = `<p class="text-sm text-[#6b6464] italic animate-pulse">Cargando tratamientos…</p>`;
+    await window.datosListos;
+  }
+  if (serviceId) preseleccionarServicio(serviceId, varianteId);
   renderStepOneServices();
 
   configCalendarioPromise = cargarConfiguracionCalendario();
@@ -333,8 +534,15 @@ window.openBookingModal = async function (serviceId = null, varianteId = null) {
 
 function closeBookingModal() {
   const modal = document.getElementById("booking-modal");
+  if (modal.hidden) return;
   modal.querySelector(".booking-panel").classList.remove("scale-100", "opacity-100");
   document.body.style.overflow = "";
+  fondoInerte(false);
+  // El foco vuelve al botón que abrió la reserva.
+  if (focoAntesDelModal && document.contains(focoAntesDelModal)) {
+    focoAntesDelModal.focus({ preventScroll: true });
+  }
+  focoAntesDelModal = null;
   setTimeout(() => (modal.hidden = true), 200);
 }
 
@@ -343,7 +551,9 @@ function bindModalControls() {
   document.getElementById("booking-overlay")?.addEventListener("click", closeBookingModal);
   document.addEventListener("keydown", (e) => {
     const modal = document.getElementById("booking-modal");
-    if (e.key === "Escape" && modal && !modal.hidden) closeBookingModal();
+    if (!modal || modal.hidden) return;
+    if (e.key === "Escape") closeBookingModal();
+    else atraparFoco(e);
   });
 
   document.getElementById("booking-next")?.addEventListener("click", handleNext);
@@ -362,8 +572,14 @@ function resetBookingState() {
   bookingState.time = null;
   bookingState.cliente = { nombre: "", telefono: "", email: "" };
   calendarViewDate = new Date();
+  if (icsUrlActual) {
+    URL.revokeObjectURL(icsUrlActual);
+    icsUrlActual = null;
+  }
 
   document.getElementById("client-form")?.reset();
+  ["client-name", "client-phone", "client-email"].forEach((id) => marcarCampo(id, null));
+  mostrarAviso(null);
   document.getElementById("booking-success")?.classList.add("hidden");
   document.getElementById("booking-summary-wrap")?.classList.remove("hidden");
   document.getElementById("booking-footer")?.classList.remove("hidden");
@@ -377,6 +593,8 @@ const STEP_LABELS = ["Servicio", "Fecha y hora", "Tus datos", "Confirmación"];
 function buildStepIndicator() {
   const wrap = document.getElementById("step-indicator");
   if (!wrap) return;
+  // Los círculos son visuales; el lector recibe "Paso 2 de 4: Fecha y hora" desde #step-status.
+  wrap.setAttribute("aria-hidden", "true");
   wrap.innerHTML = STEP_LABELS.map(
     (label, i) => `
     <div class="flex items-center ${i < STEP_LABELS.length - 1 ? "flex-1" : ""}">
@@ -400,14 +618,47 @@ function updateStepIndicator() {
     const step = Number(line.dataset.line);
     line.classList.toggle("is-complete", step < bookingState.step);
   });
+  const estado = document.getElementById("step-status");
+  if (estado) {
+    estado.textContent =
+      bookingState.step > STEP_LABELS.length
+        ? "Tu horario quedó apartado"
+        : `Paso ${bookingState.step} de ${STEP_LABELS.length}: ${STEP_LABELS[bookingState.step - 1]}`;
+  }
 }
 
-async function goToStep(step) {
+/**
+ * Aviso en línea del modal (reemplaza a los alert()). `html` puede traer un
+ * enlace; null lo oculta. Se limpia solo al cambiar de paso.
+ */
+function mostrarAviso(html) {
+  const el = document.getElementById("booking-alert");
+  if (!el) return;
+  if (!html) {
+    el.classList.add("hidden");
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = `<i data-lucide="circle-alert" class="estado-error-icono"></i><p class="estado-error-texto">${html}</p>`;
+  el.classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
+  el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+async function goToStep(step, { aviso = null, enfocar = true } = {}) {
+  mostrarAviso(aviso);
   bookingState.step = step;
   document.querySelectorAll(".booking-step").forEach((el) => {
     el.classList.toggle("is-active", Number(el.dataset.step) === step);
   });
   updateStepIndicator();
+  // Sin scroll anidado, el paso 1 es largo: cada paso nuevo empieza arriba del panel.
+  const panel = document.querySelector("#booking-modal .booking-panel");
+  if (panel) panel.scrollTop = 0;
+  // Al cambiar de paso el foco va al título del paso nuevo; si no, quedaría en un botón oculto.
+  if (enfocar) {
+    document.querySelector(`.booking-step[data-step="${step}"] h4`)?.focus({ preventScroll: true });
+  }
 
   document.getElementById("booking-back").classList.toggle("invisible", step === 1);
   document.getElementById("booking-next").classList.toggle("hidden", step === 4);
@@ -422,12 +673,21 @@ async function goToStep(step) {
 }
 
 function handleNext() {
-  if (bookingState.step === 1 && !bookingState.serviceId) {
+  if (bookingState.step === 1 && !resolverSeleccion()) {
     shake("#step-panel-1");
+    mostrarAviso("Elige un tratamiento para continuar.");
     return;
   }
   if (bookingState.step === 2 && (!bookingState.date || !bookingState.time)) {
     shake("#step-panel-2");
+    mostrarAviso(bookingState.date ? "Elige una hora para continuar." : "Elige una fecha y una hora para continuar.");
+    return;
+  }
+  if (bookingState.step === 2 && turnoYaPaso(bookingState.date, bookingState.time)) {
+    bookingState.time = null;
+    renderCalendar();
+    renderTimeSlots();
+    mostrarAviso("Esa hora ya pasó mientras elegías. Escoge otra.");
     return;
   }
   if (bookingState.step === 3 && !validateClientForm()) {
@@ -461,36 +721,96 @@ function renderStepOneServices() {
   const wrap = document.getElementById("step-panel-1");
   if (!wrap || typeof SERVICES === "undefined") return;
 
+  if (window.catalogoError || !SERVICES.length) {
+    wrap.innerHTML = htmlEstadoError({
+      titulo: "No se pudieron cargar los tratamientos",
+      texto: "Vuelve a intentarlo o escríbeme y agendamos por WhatsApp.",
+      reintentar: "paso1-reintentar",
+      compacto: true,
+    });
+    if (window.lucide) lucide.createIcons();
+    const btn = document.getElementById("paso1-reintentar");
+    btn?.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Cargando…";
+      await window.recargarCatalogo();
+      renderStepOneServices();
+      window.renderCatalogo?.();
+    });
+    return;
+  }
+
   const keyActual = bookingState.varianteId
     ? `${bookingState.serviceId}::${bookingState.varianteId}`
     : bookingState.serviceId;
 
-  wrap.innerHTML = opcionesReserva()
-    .map(
-      (o) => `
-    <label class="service-choice flex items-center gap-4 border-2 border-[#eadde2] rounded-xl p-3 sm:p-4 ${
+  // Radios reales (mismo name): Tab entra al grupo y las flechas cambian de opción.
+  // En celular el precio baja junto a la duración para que el nombre use todo el ancho.
+  const opcion = (o, visual) => `
+    <label class="service-choice flex items-center gap-3 min-[360px]:gap-4 border-2 border-[#eadde2] rounded-xl p-3 sm:p-4 ${
       keyActual === o.key ? "is-selected" : ""
     }" data-service-choice="${o.key}">
-      <img src="${o.imagen}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
-      <div class="flex-1 min-w-0">
-        <p class="font-display font-semibold truncate">${o.nombre}</p>
-        <p class="text-xs text-[#6b6464]">${o.duracion} min</p>
-      </div>
-      <span class="font-display font-semibold text-[#C85F82] whitespace-nowrap">${formatCOP(o.precio)}</span>
-    </label>`
-    )
-    .join("");
+      <input type="radio" name="booking-servicio" value="${o.key}" class="sr-only"
+        ${keyActual === o.key ? "checked" : ""} />
+      ${visual}
+      <span class="flex-1 min-w-0">
+        <span class="block font-display font-semibold leading-snug">${o.nombre}</span>
+        ${o.detalle ? `<span class="block text-xs text-[#6b6464] mt-0.5">${o.detalle}</span>` : ""}
+        <span class="flex items-baseline flex-wrap gap-x-2 mt-1 text-xs text-[#6b6464]">
+          <span>${o.duracion} min</span>
+          <span class="sm:hidden font-display text-sm font-semibold text-[#AE2967]">${precioLegible(o.precio)}</span>
+        </span>
+      </span>
+      <span class="hidden sm:block font-display font-semibold text-[#AE2967] whitespace-nowrap">${precioLegible(o.precio)}</span>
+    </label>`;
+  const foto = (src) =>
+    `<img src="${src}" alt="" class="w-12 h-12 min-[360px]:w-16 min-[360px]:h-16 rounded-lg object-cover flex-shrink-0" />`;
+  const iconoValoracion = `
+    <span class="w-12 h-12 min-[360px]:w-16 min-[360px]:h-16 rounded-lg bg-[#FDE8EF] flex items-center justify-center flex-shrink-0">
+      <i data-lucide="sparkles" class="w-6 h-6 text-[#AE2967]"></i>
+    </span>`;
 
-  wrap.querySelectorAll("[data-service-choice]").forEach((card) => {
-    card.addEventListener("click", () => {
-      const [sid, vid] = card.dataset.serviceChoice.split("::");
+  // Agrupado por categoría, en el mismo orden que el catálogo (faciales primero).
+  const opciones = opcionesReserva();
+  const categorias = categoriasEnOrden();
+  const conocidas = new Set(categorias.map((c) => c.id));
+  const grupos = [
+    ...categorias.map((c) => ({ titulo: c.nombre, items: opciones.filter((o) => o.categoria === c.id) })),
+    { titulo: "Otros", items: opciones.filter((o) => !conocidas.has(o.categoria)) },
+  ].filter((g) => g.items.length);
+
+  wrap.innerHTML =
+    opcion({ key: VALORACION.id, ...VALORACION }, iconoValoracion) +
+    grupos
+      .map(
+        (g) => `
+    <p class="booking-grupo">${g.titulo}</p>
+    ${g.items.map((o) => opcion(o, foto(o.imagen))).join("")}`
+      )
+      .join("");
+  if (window.lucide) lucide.createIcons();
+
+  wrap.querySelectorAll('input[name="booking-servicio"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      const [sid, vid] = radio.value.split("::");
       bookingState.serviceId = sid;
       bookingState.varianteId = vid || null;
+      mostrarAviso(null);
       wrap.querySelectorAll(".service-choice").forEach((c) =>
-        c.classList.toggle("is-selected", c === card)
+        c.classList.toggle("is-selected", c.contains(radio))
       );
     });
   });
+
+  // Con 20+ opciones la preseleccionada puede quedar fuera de vista: el panel (único scroll
+  // del modal) la trae al centro.
+  const elegida = wrap.querySelector(".service-choice.is-selected");
+  const panel = wrap.closest(".booking-panel");
+  if (elegida && panel) {
+    const r = elegida.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    panel.scrollTop += r.top - p.top - (p.height - r.height) / 2;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -530,8 +850,8 @@ function renderCalendar() {
     const fechaActualISO = `${year}-${mesIso}-${diaIso}`;
 
     const isPast = dateObj < today;
-    const slotsDelDia = generarSlotsParaDia(dateObj.getDay(), fechaActualISO);
-    const isClosedDay = slotsDelDia.length === 0;
+    // Hoy queda deshabilitado en cuanto no le quedan turnos futuros.
+    const isClosedDay = isPast || slotsReservables(dateObj).length === 0;
     const isBlocked = diasBloqueados.includes(fechaActualISO);
 
     const isDisabled = isPast || isClosedDay || isBlocked;
@@ -539,10 +859,12 @@ function renderCalendar() {
     const isSelected =
       bookingState.date && dateObj.toDateString() === bookingState.date.toDateString();
 
+    const etiqueta = `${fechaLegible(dateObj)}${isToday ? ", hoy" : ""}${isDisabled ? ", sin horarios" : ""}`;
     cells += `<div class="calendar-day ${isDisabled ? "is-disabled" : ""} ${
       isToday ? "is-today" : ""
     } ${isSelected ? "is-selected" : ""}"
-      data-day="${day}" ${isDisabled ? "" : 'role="button" tabindex="0"'}>
+      data-day="${day}" aria-label="${etiqueta}"
+      ${isDisabled ? 'aria-disabled="true"' : `role="button" tabindex="0" aria-pressed="${Boolean(isSelected)}"`}>
       ${day}
     </div>`;
   }
@@ -553,7 +875,10 @@ function renderCalendar() {
     const selectDay = () => {
       bookingState.date = new Date(year, month, Number(cell.dataset.day));
       bookingState.time = null; // Reinicia la hora al cambiar de día
+      mostrarAviso(null);
       renderCalendar();
+      // El repintado destruye la celda enfocada: el foco vuelve al día elegido.
+      grid.querySelector(".calendar-day.is-selected")?.focus({ preventScroll: true });
       renderTimeSlots();
     };
     cell.addEventListener("click", selectDay);
@@ -587,6 +912,30 @@ async function renderTimeSlots() {
   const wrap = document.getElementById("time-slots");
   if (!wrap) return;
 
+  const pintarError = (texto) => {
+    wrap.innerHTML = `<div class="col-span-full">${htmlEstadoError({
+      titulo: "No se pudo verificar la disponibilidad",
+      texto,
+      reintentar: "horarios-reintentar",
+      compacto: true,
+    })}</div>`;
+    if (window.lucide) lucide.createIcons();
+    const btn = document.getElementById("horarios-reintentar");
+    btn?.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Consultando…";
+      configCalendarioPromise = cargarConfiguracionCalendario();
+      await configCalendarioPromise;
+      renderCalendar();
+      renderTimeSlots();
+    });
+  };
+
+  if (configCalendarioError) {
+    pintarError("Para no ofrecerte una hora que no existe, prefiero no mostrarte horarios. Reintenta o escríbeme por WhatsApp.");
+    return;
+  }
+
   if (!bookingState.date) {
     wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full">Elige primero una fecha disponible.</p>`;
     return;
@@ -599,21 +948,19 @@ async function renderTimeSlots() {
   }
   if (currentRequestId !== renderSlotsRequestId) return;
 
-  const year = bookingState.date.getFullYear();
-  const month = String(bookingState.date.getMonth() + 1).padStart(2, "0");
-  const day = String(bookingState.date.getDate()).padStart(2, "0");
-  const fechaISO = `${year}-${month}-${day}`;
+  const fechaISO = fechaISOLocal(bookingState.date);
 
-  wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full animate-pulse">Consultando disponibilidad...</p>`;
+  wrap.innerHTML = `<p class="text-sm text-[#6b6464] italic col-span-full animate-pulse">Consultando disponibilidad…</p>`;
 
-  const slotsDinamicos = generarSlotsParaDia(bookingState.date.getDay(), fechaISO);
+  const slotsDinamicos = slotsReservables(bookingState.date);
 
   if (slotsDinamicos.length === 0) {
-    wrap.innerHTML = `<p class="text-sm text-[#C85F82] font-medium col-span-full">No hay horarios de atención disponibles para este día.</p>`;
+    wrap.innerHTML = `<p class="text-sm text-[#6b6464] col-span-full">Ya no quedan horarios para este día. Elige otra fecha.</p>`;
     return;
   }
 
-  let horasOcupadas = [];
+  // Si la consulta de citas falla, NO se asume que todo está libre.
+  let horasOcupadas = null;
   try {
     const { data, error } = await window.supabaseClient
       .from("citas")
@@ -623,8 +970,8 @@ async function renderTimeSlots() {
 
     if (error) {
       console.error("[booking.js] Error al consultar horas ocupadas:", error);
-    } else if (data) {
-      horasOcupadas = data.map((c) => normalizarHoraCita(c.hora));
+    } else {
+      horasOcupadas = (data ?? []).map((c) => normalizarHoraCita(c.hora));
     }
   } catch (err) {
     console.error("[booking.js] Error al consultar horas ocupadas:", err);
@@ -633,11 +980,17 @@ async function renderTimeSlots() {
   // Si el usuario cambió de día mientras respondía Supabase, ignoramos esta respuesta vieja
   if (currentRequestId !== renderSlotsRequestId) return;
 
+  if (horasOcupadas === null) {
+    pintarError("No pude confirmar qué horas siguen libres ese día. Reintenta o escríbeme por WhatsApp.");
+    return;
+  }
+
   wrap.innerHTML = slotsDinamicos
     .map((t) => {
       const estaOcupado = horasOcupadas.includes(normalizarHoraCita(t));
       return `
       <button type="button" data-time="${t}" ${estaOcupado ? "disabled" : ""}
+        aria-pressed="${bookingState.time === t}"
         class="time-slot border-2 border-[#eadde2] rounded-lg py-2 text-sm font-medium transition-all ${
           estaOcupado
             ? "opacity-35 bg-gray-100 cursor-not-allowed line-through text-gray-400 border-gray-200"
@@ -651,9 +1004,11 @@ async function renderTimeSlots() {
   wrap.querySelectorAll(".time-slot:not([disabled])").forEach((btn) => {
     btn.addEventListener("click", () => {
       bookingState.time = btn.dataset.time;
-      wrap.querySelectorAll(".time-slot").forEach((b) =>
-        b.classList.toggle("is-selected", b === btn)
-      );
+      mostrarAviso(null);
+      wrap.querySelectorAll(".time-slot").forEach((b) => {
+        b.classList.toggle("is-selected", b === btn);
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
     });
   });
 }
@@ -669,34 +1024,57 @@ document.addEventListener("DOMContentLoaded", () => {
 function bindClientForm() {
   const form = document.getElementById("client-form");
   if (!form) return;
-  form.addEventListener("input", () => {
+  form.addEventListener("input", (e) => {
+    // El mensaje de error se va en cuanto la clienta corrige ese campo.
+    if (e.target?.classList.contains("is-invalid")) marcarCampo(e.target.id, null);
     bookingState.cliente.nombre = document.getElementById("client-name").value.trim();
     bookingState.cliente.telefono = document.getElementById("client-phone").value.trim();
     bookingState.cliente.email = document.getElementById("client-email").value.trim();
   });
 }
 
+/** Marca (o limpia, con mensaje null) un campo del paso 3 con su mensaje debajo. */
+function marcarCampo(id, mensaje) {
+  const el = document.getElementById(id);
+  const err = document.getElementById(`${id}-error`);
+  if (!el) return;
+  el.classList.toggle("is-invalid", Boolean(mensaje));
+  el.setAttribute("aria-invalid", mensaje ? "true" : "false");
+  if (err) {
+    err.textContent = mensaje ?? "";
+    err.classList.toggle("hidden", !mensaje);
+  }
+}
+
+/** Acepta "300 123 4567", "300-123-4567", "(300) 123.4567", "+57 300…": cuenta solo los dígitos. */
+function telefonoValido(valor) {
+  const limpio = valor.trim();
+  if (!/^\+?[\d\s().-]+$/.test(limpio)) return false;
+  const digitos = limpio.replace(/\D/g, "").length;
+  return digitos >= 7 && digitos <= 15;
+}
+
 function validateClientForm() {
   const nameEl = document.getElementById("client-name");
   const phoneEl = document.getElementById("client-phone");
   const emailEl = document.getElementById("client-email");
-  let valid = true;
 
-  [nameEl, phoneEl, emailEl].forEach((el) => el.classList.remove("is-invalid"));
+  const errores = {
+    "client-name": nameEl.value.trim() ? null : "Escribe tu nombre para saber a quién esperar.",
+    "client-phone": telefonoValido(phoneEl.value)
+      ? null
+      : "Escribe un teléfono de 7 a 15 dígitos, por ejemplo 300 123 4567.",
+    // Opcional: solo se revisa el formato si la clienta escribió algo.
+    "client-email": !emailEl.value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())
+      ? null
+      : "Revisa el correo; debe verse como maria@correo.com. Si prefieres, déjalo vacío.",
+  };
+  Object.entries(errores).forEach(([id, msg]) => marcarCampo(id, msg));
 
-  if (!nameEl.value.trim()) {
-    nameEl.classList.add("is-invalid");
-    valid = false;
-  }
-  const phoneOk = /^[0-9+\s]{7,15}$/.test(phoneEl.value.trim());
-  if (!phoneOk) {
-    phoneEl.classList.add("is-invalid");
-    valid = false;
-  }
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim());
-  if (!emailOk) {
-    emailEl.classList.add("is-invalid");
-    valid = false;
+  const valid = Object.values(errores).every((m) => !m);
+  if (!valid) {
+    const primero = Object.keys(errores).find((id) => errores[id]);
+    document.getElementById(primero)?.focus();
   }
 
   if (valid) {
@@ -712,26 +1090,27 @@ function validateClientForm() {
 /* ---------------------------------------------------------------------- */
 /* Paso 4 — Resumen y confirmación                                        */
 /* ---------------------------------------------------------------------- */
+/** "Lunes, 2 de noviembre" (solo la primera letra en mayúscula; `capitalize` ponía "De"). */
+function fechaLegible(fecha) {
+  if (!fecha) return "—";
+  const texto = fecha.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
 function renderSummary() {
   const wrap = document.getElementById("booking-summary");
   if (!wrap) return;
   const service = resolverSeleccion();
-  const fecha = bookingState.date
-    ? bookingState.date.toLocaleDateString("es-CO", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      })
-    : "—";
+  const fecha = fechaLegible(bookingState.date);
 
   wrap.innerHTML = `
     <div class="flex justify-between py-2 border-b border-[#f1dbe3]">
-      <span class="text-[#6b6464]">Servicio</span>
+      <span class="text-[#6b6464]">Tratamiento</span>
       <span class="font-semibold text-right">${service?.nombre ?? "—"}</span>
     </div>
     <div class="flex justify-between py-2 border-b border-[#f1dbe3]">
       <span class="text-[#6b6464]">Fecha</span>
-      <span class="font-semibold capitalize text-right">${fecha}</span>
+      <span class="font-semibold text-right">${fecha}</span>
     </div>
     <div class="flex justify-between py-2 border-b border-[#f1dbe3]">
       <span class="text-[#6b6464]">Hora</span>
@@ -739,51 +1118,166 @@ function renderSummary() {
     </div>
     <div class="flex justify-between py-2 border-b border-[#f1dbe3]">
       <span class="text-[#6b6464]">Cliente</span>
-      <span class="font-semibold text-right">${bookingState.cliente.nombre}</span>
+      <span class="font-semibold text-right">${escaparHTML(bookingState.cliente.nombre)}</span>
     </div>
-    <div class="flex justify-between py-2 border-b border-[#f1dbe3]">
+    <div class="flex justify-between py-2${bookingState.cliente.email ? " border-b border-[#f1dbe3]" : ""}">
       <span class="text-[#6b6464]">Teléfono</span>
-      <span class="font-semibold text-right">${bookingState.cliente.telefono}</span>
-    </div>
-    <div class="flex justify-between py-2">
-      <span class="text-[#6b6464]">Email</span>
-      <span class="font-semibold text-right break-all">${bookingState.cliente.email}</span>
-    </div>
+      <span class="font-semibold text-right">${escaparHTML(bookingState.cliente.telefono)}</span>
+    </div>${bookingState.cliente.email ? `
+    <div class="flex justify-between gap-4 py-2">
+      <span class="text-[#6b6464]">Correo</span>
+      <span class="font-semibold text-right break-all">${escaparHTML(bookingState.cliente.email)}</span>
+    </div>` : ""}
     <div class="flex justify-between pt-4 mt-2 border-t-2 border-[#AE2967]">
       <span class="font-display font-semibold">Total</span>
-      <span class="font-display font-semibold text-[#C85F82]">${formatCOP(
-        service?.precio ?? 0
-      )}</span>
+      <span class="font-display font-semibold text-[#AE2967] text-right">${
+        service?.esValoracion ? "Te confirmo el valor por WhatsApp" : formatCOP(service?.precio ?? 0)
+      }</span>
     </div>
   `;
 }
 
+/** Escapa texto escrito por la clienta antes de meterlo en innerHTML. */
+function escaparHTML(texto) {
+  return String(texto ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+/** Escapa texto para un campo de .ics (RFC 5545: \ , ; y saltos de línea). */
+function escaparICS(texto) {
+  return String(texto ?? "").replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r?\n/g, "\\n");
+}
+
+const DIRECCION_ESTUDIO = "Conjunto cerrado La Rayuela, casa B15, Villa del Rosario, Norte de Santander";
+
+/** Texto del WhatsApp que la clienta le envía a Maivy con los datos de su solicitud. */
+function mensajeSolicitud(servicio) {
+  return [
+    "¡Hola Maivy! Acabo de solicitar una cita desde la página ✨",
+    "",
+    `👤 *Cliente:* ${bookingState.cliente.nombre}`,
+    `📱 *Teléfono:* ${bookingState.cliente.telefono}`,
+    ...(bookingState.cliente.email ? [`✉️ *Correo:* ${bookingState.cliente.email}`] : []),
+    `💆‍♀️ *Servicio:* ${servicio.nombre}`,
+    `📅 *Fecha:* ${fechaLegible(bookingState.date)}`,
+    `⏰ *Hora:* ${bookingState.time}`,
+    "",
+    "¿Me la confirmas?",
+  ].join("\n");
+}
+
+/** Archivo .ics de la cita como URL de blob (para el botón "Agregar a mi calendario"). */
+function crearArchivoCalendario(servicio, duracionMin) {
+  const p = parsearHora(bookingState.time);
+  const inicio = new Date(bookingState.date);
+  inicio.setHours(0, 0, 0, 0);
+  inicio.setMinutes(Math.round((p?.hora ?? 9) * 60));
+  const fin = new Date(inicio.getTime() + duracionMin * 60 * 1000);
+
+  const local = (d) =>
+    `${fechaISOLocal(d).replace(/-/g, "")}T${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}00`;
+  const sello = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Maivy Jireth Cosmetologa//Reservas//ES",
+    "BEGIN:VEVENT",
+    `UID:${Date.now()}-${Math.random().toString(36).slice(2)}@maivyjireth`,
+    `DTSTAMP:${sello}`,
+    `SUMMARY:${escaparICS(`Cita: ${servicio.nombre} - Maivy Jireth`)}`,
+    `DESCRIPTION:${escaparICS(`Solicitud de cita con Maivy Jireth Cosmetóloga.\nServicio: ${servicio.nombre}\nMaivy te confirma por WhatsApp.`)}`,
+    `LOCATION:${escaparICS(DIRECCION_ESTUDIO)}`,
+    `DTSTART:${local(inicio)}`,
+    `DTEND:${local(fin)}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  if (icsUrlActual) URL.revokeObjectURL(icsUrlActual);
+  icsUrlActual = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+  return icsUrlActual;
+}
+
+/** Pantalla final: resumen, dirección y el botón de WhatsApp que la clienta toca ella misma. */
+function mostrarSolicitudEnviada(servicio, duracionMin) {
+  const resumen = document.getElementById("booking-success-resumen");
+  if (resumen) {
+    resumen.innerHTML = [
+      ["Tratamiento", servicio.nombre],
+      ["Fecha", fechaLegible(bookingState.date)],
+      ["Hora", bookingState.time],
+      ["Duración", `${servicio.duracion} min`],
+      ...(servicio.esValoracion ? [["Valor", "Te lo confirmo por WhatsApp"]] : []),
+    ]
+      .map(
+        ([k, v]) => `
+        <div class="flex justify-between gap-4 py-2 border-b border-[#f1dbe3] last:border-0">
+          <dt class="text-[#6b6464]">${k}</dt>
+          <dd class="font-semibold text-right">${escaparHTML(v)}</dd>
+        </div>`
+      )
+      .join("");
+  }
+
+  // La cita ya quedó guardada: WhatsApp solo acelera la confirmación. Si la clienta no escribe,
+  // Maivy la ve en el panel y la contacta al teléfono que dejó.
+  const texto = document.getElementById("booking-success-texto");
+  if (texto) {
+    texto.textContent = `Ya está en mi agenda. Si me escribes por WhatsApp te confirmo más rápido; si no, yo te escribo al ${bookingState.cliente.telefono.replace(/ /g, " ")}.`;
+  }
+
+  const wa = document.getElementById("booking-whatsapp");
+  if (wa) wa.href = enlaceWhatsApp(mensajeSolicitud(servicio));
+  const ics = document.getElementById("booking-ics");
+  if (ics) ics.href = crearArchivoCalendario(servicio, duracionMin);
+
+  document.getElementById("booking-summary-wrap").classList.add("hidden");
+  document.getElementById("booking-footer").classList.add("hidden");
+  document.getElementById("booking-success").classList.remove("hidden");
+  // Los cuatro pasos quedan con su ✓.
+  bookingState.step = STEP_LABELS.length + 1;
+  updateStepIndicator();
+  if (window.lucide) lucide.createIcons();
+  document.querySelector("#booking-modal .booking-panel")?.scrollTo({ top: 0 });
+  wa?.focus({ preventScroll: true });
+}
+
 async function confirmBooking() {
   if (!validateClientForm()) {
-    goToStep(3);
+    // Primero se muestra el paso 3 y luego se valida otra vez para enfocar el campo con error.
+    await goToStep(3, { enfocar: false });
+    validateClientForm();
     return;
   }
 
   const servicio = resolverSeleccion();
-  if (!servicio || !bookingState.date || !bookingState.time) {
-    alert("Falta información de la reserva. Por favor revisa los pasos anteriores.");
+  if (!servicio) {
+    goToStep(1, { aviso: "Falta elegir el tratamiento." });
+    return;
+  }
+  if (!bookingState.date || !bookingState.time) {
+    goToStep(2, { aviso: "Falta elegir la fecha y la hora." });
+    return;
+  }
+  if (turnoYaPaso(bookingState.date, bookingState.time)) {
+    bookingState.time = null;
+    goToStep(2, { aviso: "Esa hora ya no se puede reservar porque está muy cerca o ya pasó. Elige otra." });
     return;
   }
 
   const confirmBtn = document.getElementById("booking-confirm");
+  const textoBoton = confirmBtn.textContent;
   confirmBtn.disabled = true;
+  confirmBtn.textContent = "Enviando…";
+
+  const duracionMin = parseInt(String(servicio.duracion).split(" ")[0], 10) || 60;
 
   try {
     const supabase = window.supabaseClient;
-    const year = bookingState.date.getFullYear();
-    const month = String(bookingState.date.getMonth() + 1).padStart(2, "0");
-    const day = String(bookingState.date.getDate()).padStart(2, "0");
-    const fechaISO = `${year}-${month}-${day}`;
-
-    const duracionMin = parseInt(String(servicio.duracion).split(" ")[0], 10) || 60;
+    if (!supabase) throw new Error("Supabase no está disponible");
 
     const { error } = await supabase.from("citas").insert({
-      fecha_iso: fechaISO,
+      fecha_iso: fechaISOLocal(bookingState.date),
       hora: bookingState.time,
       cliente: bookingState.cliente.nombre,
       contacto: bookingState.cliente.telefono,
@@ -797,71 +1291,25 @@ async function confirmBooking() {
 
     if (error) {
       if (error.code === "23505") {
-        alert("Ese horario ya fue reservado. Por favor elige otra fecha u hora.");
-        goToStep(2);
+        // Otra persona tomó el turno entre que se pintó la lista y se envió: se vuelve a consultar.
+        bookingState.time = null;
+        goToStep(2, { aviso: "Alguien acaba de tomar ese horario. Elige otra hora; tus datos siguen guardados." });
         return;
       }
       throw error;
     }
 
-    document.getElementById("booking-summary-wrap").classList.add("hidden");
-    document.getElementById("booking-footer").classList.add("hidden");
-    document.getElementById("booking-success").classList.remove("hidden");
-
-    let [timeStr, modifier] = bookingState.time.split(" ");
-    let [hours, minutes] = timeStr.split(":").map(Number);
-    if (modifier && modifier.toLowerCase() === "pm" && hours < 12) hours += 12;
-    if (modifier && modifier.toLowerCase() === "am" && hours === 12) hours = 0;
-
-    const horaInicioFmt = `${String(hours).padStart(2, "0")}${String(minutes).padStart(2, "0")}00`;
-    const totalMinutos = hours * 60 + minutes + (duracionMin || 60);
-    const finHours = Math.floor(totalMinutos / 60) % 24;
-    const finMinutes = totalMinutos % 60;
-    const horaFinFmt = `${String(finHours).padStart(2, "0")}${String(finMinutes).padStart(2, "0")}00`;
-
-    const icsFechaStr = `${year}${month}${day}`;
-    const icsContent = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "BEGIN:VEVENT",
-      `SUMMARY:Cita: ${servicio.nombre} - Maivy Jireth`,
-      `DESCRIPTION:Cita agendada con Maivy Jireth Cosmetóloga.\\nServicio: ${servicio.nombre}`,
-      `LOCATION:Villa del Rosario, Norte de Santander`,
-      `DTSTART:${icsFechaStr}T${horaInicioFmt}`,
-      `DTEND:${icsFechaStr}T${horaFinFmt}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const icsUrl = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = icsUrl;
-    link.download = "cita-maivy-jireth.ics";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    const fechaWA = bookingState.date.toLocaleDateString("es-CO");
-    const numeroAdmin = "573122855055";
-    const mensaje =
-      `¡Hola Maivy! Acabo de agendar una cita. ✨%0A%0A` +
-      `👤 *Cliente:* ${bookingState.cliente.nombre}%0A` +
-      `📱 *Teléfono:* ${bookingState.cliente.telefono}%0A` +
-      `✉️ *Correo:* ${bookingState.cliente.email}%0A` +
-      `💆‍♀️ *Servicio:* ${servicio.nombre}%0A` +
-      `📅 *Fecha:* ${fechaWA}%0A` +
-      `⏰ *Hora:* ${bookingState.time}`;
-
-    setTimeout(() => {
-      window.open(`https://wa.me/${numeroAdmin}?text=${mensaje}`, "_blank");
-    }, 600);
+    mostrarSolicitudEnviada(servicio, duracionMin);
   } catch (err) {
     console.error("[booking.js] Error al guardar la cita en Supabase:", err);
-    alert("No se pudo confirmar tu cita. Intenta de nuevo o contáctanos directamente.");
+    // Los datos siguen en el formulario; el enlace lleva la solicitud ya escrita por si la página no responde.
+    mostrarAviso(
+      `No se pudo enviar tu solicitud. Revisa tu conexión e inténtalo de nuevo, o
+       <a href="${enlaceWhatsApp(mensajeSolicitud(servicio))}" target="_blank" rel="noopener" class="estado-error-link">envíamela por WhatsApp</a>.`
+    );
   } finally {
     confirmBtn.disabled = false;
+    confirmBtn.textContent = textoBoton;
   }
 }
 
