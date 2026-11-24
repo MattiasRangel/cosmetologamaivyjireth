@@ -153,7 +153,24 @@ function initVoltear() {
       : `Haz clic en la tarjeta para ver ${lado}`;
   };
 
+  // Safari en iPhone no siempre respeta backface-visibility (sobre todo con capas animadas
+  // dentro de la cara) y mostraba el frente en espejo encima del reverso. Por eso se oculta
+  // a mano la cara que queda de espaldas: el frente mira a la clienta cuando
+  // cos(rx)·cos(ry) > 0 (componente z de su normal tras rotateX(rx) rotateY(ry)).
+  const caraFrente = inner.querySelector(".mv-face--front");
+  const caraReverso = inner.querySelector(".mv-face--back");
+  let frenteVisible = null;
+  const mostrarCaraCorrecta = () => {
+    const rad = Math.PI / 180;
+    const visible = Math.cos(actual.rx * rad) * Math.cos(actual.ry * rad) >= 0;
+    if (visible === frenteVisible) return; // solo se toca el DOM cuando cambia de cara
+    frenteVisible = visible;
+    if (caraFrente) caraFrente.style.visibility = visible ? "visible" : "hidden";
+    if (caraReverso) caraReverso.style.visibility = visible ? "hidden" : "visible";
+  };
+
   const pintar = () => {
+    mostrarCaraCorrecta();
     inner.style.transform =
       `rotateX(${actual.rx.toFixed(2)}deg) rotateY(${actual.ry.toFixed(2)}deg) scale(${actual.s.toFixed(4)})`;
     const tx = ((actual.gx - 0.5) * 100).toFixed(1);

@@ -1360,6 +1360,10 @@ footer p {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+/* Safari aplica backface-visibility solo si la cara tiene su propio transform 3D. */
+.mv-face--front {
+  transform: rotateY(0deg);
+}
 .mv-face--back {
   transform: rotateY(180deg);
 }
