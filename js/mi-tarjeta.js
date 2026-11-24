@@ -57,7 +57,14 @@ function pintarTarjeta(tarjeta) {
   // Encabezado + delantera
   const primerNombre = (tarjeta.cliente || "").trim().split(/\s+/)[0] || "";
   $("#tarjeta-nombre").textContent = primerNombre || tarjeta.cliente || "";
-  $("#front-nombre").textContent = tarjeta.cliente || "";
+  const nombreFrente = $("#front-nombre");
+  nombreFrente.textContent = tarjeta.cliente || "";
+  // Nombres largos van en letra más pequeña para no meterse debajo del logo.
+  const largoNombre = (tarjeta.cliente || "").length;
+  if (largoNombre > 16) nombreFrente.dataset.largo = "muy";
+  else if (largoNombre > 11) nombreFrente.dataset.largo = "si";
+  else delete nombreFrente.dataset.largo;
+  nombreFrente.title = tarjeta.cliente || "";
   const grupos = (tarjeta.numeroTarjeta || "").split(" ");
   $all("#front-numero span").forEach((span, i) => (span.textContent = grupos[i] || "****"));
   $("#front-valido").textContent = formatearFechaSlash(tarjeta.validaHasta);
@@ -82,186 +89,226 @@ function pintarTarjeta(tarjeta) {
   if (window.lucide) lucide.createIcons();
 }
 
+/**
+ * Volteo y giro 3D de la tarjeta.
+ *
+ * Celular: giro libre. La tarjeta sigue el dedo en todas direcciones (vueltas completas a
+ * los lados y hacia arriba o abajo). Al soltarla conserva el impulso, frena sola y se
+ * acomoda derecha mostrando el frente o el reverso.
+ * Escritorio: se inclina siguiendo el mouse y el clic la voltea.
+ *
+ * Rendimiento: un solo bucle de requestAnimationFrame escribe únicamente `transform` en la
+ * tarjeta y en el reflejo de luz; son capas que la tarjeta gráfica mueve sin repintarlas.
+ */
 function initVoltear() {
   const wrap = $("#mv-flip-wrap");
+  const inner = $("#mv-flip-inner");
   const boton = $("#btn-voltear");
   const textoBoton = $("#btn-voltear-texto");
 
-  if (!wrap) return;
+  if (!wrap || !inner) return;
 
   const esMovil = window.matchMedia("(pointer: coarse)").matches;
-  const MAX_TILT = 16; // Inclinación vertical/mouse en grados
-  let baseFlipY = 0;   // Múltiplos de 180° (0 = frente, ±180 = reverso)
-  let dragAngleY = 0;  // Ángulo adicional mientras arrastras el dedo
-  let startX = 0;
-  let startY = 0;
-  let isDragging = false;
-  let lastTouchTime = 0;
-  let rafId = null;
+  const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const MAX_TILT = 14;        // inclinación con el mouse, en grados
+  const GRADOS_POR_ANCHO = 240; // deslizar el ancho completo de la tarjeta gira 240°
+  const IMPULSO_MS = 260;     // cuánto "sigue de largo" al soltar, según la velocidad
+  const MAX_EXTRA = 540;      // tope de giro extra por impulso (1,5 vueltas)
 
-  const estaVolteada = () => Math.abs(Math.round(baseFlipY / 180)) % 2 === 1;
+  // Un reflejo de luz por cara; se mueve con transform, nunca cambia su pintura.
+  const brillos = [".vip-card", ".mv-card-back"].map((sel) => {
+    const cara = inner.querySelector(sel);
+    if (!cara) return null;
+    const brillo = document.createElement("span");
+    brillo.className = "mv-brillo";
+    brillo.setAttribute("aria-hidden", "true");
+    cara.appendChild(brillo);
+    return brillo;
+  }).filter(Boolean);
+
+  // Ángulos absolutos. baseY es la cara elegida (múltiplo de 180); rx en reposo es múltiplo de 360.
+  let baseY = 0;
+  const objetivo = { rx: 0, ry: 0, s: 1, gx: 0.3, gy: 0.25 };
+  const actual = { ...objetivo };
+  let suavizado = 0.12; // fracción por cuadro a 60 fps; más alto = más pegado
+  let rafId = null;
+  let ultimoT = 0;
+  let rect = null;
+  let lastTouchTime = 0;
+
+  // Estado del arrastre táctil
+  let arrastrando = false;
+  let inicio = { x: 0, y: 0, rx: 0, ry: 0 };
+  let previo = { x: 0, y: 0, t: 0 };
+  let vel = { x: 0, y: 0 }; // grados por milisegundo, suavizada
+  let sentidoY = 1;          // -1 si la tarjeta está de cabeza: así el giro sigue al dedo
+
+  const muestraReverso = () => Math.abs(Math.round(baseY / 180)) % 2 === 1;
 
   const actualizarTextoBoton = () => {
     if (!textoBoton) return;
-    if (esMovil) {
-      textoBoton.textContent = estaVolteada()
-        ? "Desliza la tarjeta con tu dedo para ver el frente"
-        : "Desliza la tarjeta con tu dedo para ver el reverso";
-    } else {
-      textoBoton.textContent = estaVolteada()
-        ? "Haz clic en la tarjeta para ver el frente"
-        : "Haz clic en la tarjeta para ver el reverso";
-    }
+    const lado = muestraReverso() ? "el frente" : "el reverso";
+    textoBoton.textContent = esMovil
+      ? `Gira la tarjeta con tu dedo para ver ${lado}`
+      : `Haz clic en la tarjeta para ver ${lado}`;
   };
 
-  const aplicarVolteoBase = (nuevoAngulo) => {
-    baseFlipY = nuevoAngulo;
-    wrap.classList.toggle("is-flipped", estaVolteada());
-    wrap.style.setProperty("--flip-y", `${baseFlipY}deg`);
+  const pintar = () => {
+    inner.style.transform =
+      `rotateX(${actual.rx.toFixed(2)}deg) rotateY(${actual.ry.toFixed(2)}deg) scale(${actual.s.toFixed(4)})`;
+    const tx = ((actual.gx - 0.5) * 100).toFixed(1);
+    const ty = ((actual.gy - 0.5) * 100).toFixed(1);
+    brillos.forEach((b) => (b.style.transform = `translate3d(${tx}%, ${ty}%, 0)`));
+  };
+
+  // Al quedar quieta, reduce los ángulos a su equivalente pequeño (mismo aspecto, números chicos).
+  const normalizar = () => {
+    const vueltasX = Math.round(actual.rx / 360) * 360;
+    actual.rx -= vueltasX; objetivo.rx -= vueltasX;
+    const vueltasY = Math.floor(baseY / 360) * 360;
+    baseY -= vueltasY; actual.ry -= vueltasY; objetivo.ry -= vueltasY;
+  };
+
+  const paso = (t) => {
+    const dt = ultimoT ? Math.min(64, t - ultimoT) : 16.7;
+    ultimoT = t;
+    const f = sinMovimiento ? 1 : 1 - Math.pow(1 - suavizado, dt / 16.7);
+    let quieto = true;
+    for (const k of ["rx", "ry", "s", "gx", "gy"]) {
+      const d = objetivo[k] - actual[k];
+      if (Math.abs(d) > 0.02) { actual[k] += d * f; quieto = false; } else actual[k] = objetivo[k];
+    }
+    pintar();
+    if (quieto && !arrastrando) {
+      normalizar();
+      pintar();
+      rafId = null; ultimoT = 0;
+      return;
+    }
+    rafId = requestAnimationFrame(paso);
+  };
+
+  const animar = () => { if (!rafId) rafId = requestAnimationFrame(paso); };
+
+  const elegirCara = (nuevaBaseY) => {
+    baseY = nuevaBaseY;
+    wrap.classList.toggle("is-flipped", muestraReverso());
     actualizarTextoBoton();
   };
 
-  const resetearInclinacion = () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    wrap.classList.remove("is-dragging");
-    wrap.style.setProperty("--rx", "0deg");
-    wrap.style.setProperty("--ry", "0deg");
-    wrap.style.setProperty("--px", "0");
-    wrap.style.setProperty("--py", "0");
-    wrap.style.setProperty("--gx", "35%");
-    wrap.style.setProperty("--gy", "25%");
-    wrap.style.setProperty("--scale", "1");
-    wrap.style.setProperty("--glare-op", "0.35");
+  const reposoEscritorio = () => {
+    Object.assign(objetivo, { rx: Math.round(objetivo.rx / 360) * 360, ry: baseY, s: 1, gx: 0.3, gy: 0.25 });
+    wrap.classList.remove("is-activa");
+    suavizado = 0.12;
+    animar();
+  };
+
+  const voltear = (delta) => {
+    elegirCara(baseY + delta);
+    objetivo.ry = baseY;
+    suavizado = 0.12;
+    animar();
   };
 
   actualizarTextoBoton();
+  pintar();
 
   // =====================================================================
-  // MÓVIL: Arrastrar con el dedo en 3D para inclinar y girar 180°
+  // CELULAR: giro libre con impulso
   // =====================================================================
-  wrap.addEventListener(
-    "touchstart",
-    (e) => {
-      if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-      dragAngleY = 0;
-      isDragging = true;
-      wrap.classList.add("is-dragging");
-    },
-    { passive: true }
-  );
+  wrap.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    rect = wrap.getBoundingClientRect(); // se mide una vez por toque
+    arrastrando = true;
+    // Atrapa la tarjeta donde está, aunque todavía vaya girando.
+    objetivo.rx = actual.rx; objetivo.ry = actual.ry;
+    inicio = { x: t.clientX, y: t.clientY, rx: actual.rx, ry: actual.ry };
+    sentidoY = Math.cos((actual.rx * Math.PI) / 180) < 0 ? -1 : 1;
+    previo = { x: t.clientX, y: t.clientY, t: e.timeStamp };
+    vel = { x: 0, y: 0 };
+    objetivo.s = 1.04;
+    suavizado = 0.55; // pegado al dedo
+    wrap.classList.add("is-activa");
+    animar();
+  }, { passive: true });
 
-  wrap.addEventListener(
-    "touchmove",
-    (e) => {
-      if (!isDragging || e.touches.length !== 1) return;
-      if (e.cancelable) e.preventDefault();
+  wrap.addEventListener("touchmove", (e) => {
+    if (!arrastrando || e.touches.length !== 1 || !rect) return;
+    if (e.cancelable) e.preventDefault();
+    const t = e.touches[0];
+    const k = GRADOS_POR_ANCHO / rect.width;
+    objetivo.ry = inicio.ry + (t.clientX - inicio.x) * k * sentidoY;
+    objetivo.rx = inicio.rx - (t.clientY - inicio.y) * k;
+    objetivo.gx = Math.min(Math.max((t.clientX - rect.left) / rect.width, 0), 1);
+    objetivo.gy = Math.min(Math.max((t.clientY - rect.top) / rect.height, 0), 1);
 
-      const touch = e.touches[0];
-      const rect = wrap.getBoundingClientRect();
+    // Velocidad (grados/ms) suavizada, para el impulso al soltar.
+    const dt = Math.max(1, e.timeStamp - previo.t);
+    const vx = ((t.clientX - previo.x) * k * sentidoY) / dt;
+    const vy = (-(t.clientY - previo.y) * k) / dt;
+    vel.x = vel.x * 0.6 + vx * 0.4;
+    vel.y = vel.y * 0.6 + vy * 0.4;
+    previo = { x: t.clientX, y: t.clientY, t: e.timeStamp };
+    animar();
+  }, { passive: false });
 
-      const deltaX = touch.clientX - startX;
-      const deltaY = touch.clientY - startY;
-
-      // Deslizar el 75% del ancho de la tarjeta equivale a un giro completo de 180°
-      const rawAngleY = (deltaX / (rect.width * 0.75)) * 180;
-      dragAngleY = Math.max(-180, Math.min(180, rawAngleY));
-
-      // Inclinación vertical 3D según el movimiento vertical del dedo
-      const py = Math.max(-1, Math.min(1, deltaY / (rect.height * 0.6)));
-      const rx = (-py * MAX_TILT).toFixed(2);
-
-      // Sombra y grosor 3D dinámicos según el ángulo de giro
-      const px = Math.sin((dragAngleY * Math.PI) / 180);
-
-      // Posición del reflejo de luz (glare) siguiendo al dedo
-      const xRel = Math.min(Math.max(touch.clientX - rect.left, 0), rect.width);
-      const yRel = Math.min(Math.max(touch.clientY - rect.top, 0), rect.height);
-      const gx = ((xRel / rect.width) * 100).toFixed(1);
-      const gy = ((yRel / rect.height) * 100).toFixed(1);
-
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        wrap.style.setProperty("--rx", `${rx}deg`);
-        wrap.style.setProperty("--ry", `${dragAngleY.toFixed(2)}deg`);
-        wrap.style.setProperty("--px", px.toFixed(3));
-        wrap.style.setProperty("--py", py.toFixed(3));
-        wrap.style.setProperty("--gx", `${gx}%`);
-        wrap.style.setProperty("--gy", `${gy}%`);
-        wrap.style.setProperty("--scale", "1.03");
-        wrap.style.setProperty("--glare-op", "0.8");
-      });
-    },
-    { passive: false }
-  );
-
-  const finalizarToque = () => {
-    if (!isDragging) return;
-    isDragging = false;
+  const soltar = (e) => {
+    if (!arrastrando) return;
+    arrastrando = false;
     lastTouchTime = Date.now();
-
-    // Si deslizó más de 45° hacia la derecha o izquierda, completa el giro 3D
-    if (dragAngleY > 45) {
-      aplicarVolteoBase(baseFlipY + 180);
-    } else if (dragAngleY < -45) {
-      aplicarVolteoBase(baseFlipY - 180);
-    }
-
-    dragAngleY = 0;
-    resetearInclinacion();
+    // Si el dedo se quedó quieto antes de soltar, no hay impulso.
+    const quietoAntes = e && e.timeStamp - previo.t > 90;
+    const vx = quietoAntes ? 0 : vel.x;
+    const vy = quietoAntes ? 0 : vel.y;
+    const tope = (v) => Math.max(-MAX_EXTRA, Math.min(MAX_EXTRA, v * IMPULSO_MS));
+    // A dónde llegaría con ese impulso; ahí se elige la cara (frente o reverso) y se endereza.
+    const destinoY = actual.ry + tope(vx);
+    const destinoX = actual.rx + tope(vy);
+    elegirCara(Math.round(destinoY / 180) * 180);
+    objetivo.ry = baseY;
+    objetivo.rx = Math.round(destinoX / 360) * 360;
+    objetivo.s = 1;
+    objetivo.gx = 0.3; objetivo.gy = 0.25;
+    suavizado = 0.085; // sale rápido y frena suave: se siente como impulso
+    wrap.classList.remove("is-activa");
+    animar();
   };
-
-  wrap.addEventListener("touchend", finalizarToque);
-  wrap.addEventListener("touchcancel", () => {
-    isDragging = false;
-    dragAngleY = 0;
-    resetearInclinacion();
-  });
+  wrap.addEventListener("touchend", soltar);
+  wrap.addEventListener("touchcancel", soltar);
 
   // =====================================================================
-  // ESCRITORIO: Inclinación 3D con el mouse y clic para voltear
+  // ESCRITORIO: inclinación con el mouse y clic para voltear
   // =====================================================================
+  wrap.addEventListener("mouseenter", () => { rect = wrap.getBoundingClientRect(); });
   wrap.addEventListener("mousemove", (e) => {
     if (Date.now() - lastTouchTime < 600) return;
-    const rect = wrap.getBoundingClientRect();
-    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
-    const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
-
-    const px = (x / rect.width - 0.5) * 2;
-    const py = (y / rect.height - 0.5) * 2;
-    const rx = (-py * MAX_TILT).toFixed(2);
-    const ry = (px * MAX_TILT).toFixed(2);
-    const gx = ((x / rect.width) * 100).toFixed(1);
-    const gy = ((y / rect.height) * 100).toFixed(1);
-
-    wrap.classList.add("is-dragging");
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      wrap.style.setProperty("--rx", `${rx}deg`);
-      wrap.style.setProperty("--ry", `${ry}deg`);
-      wrap.style.setProperty("--px", px.toFixed(3));
-      wrap.style.setProperty("--py", py.toFixed(3));
-      wrap.style.setProperty("--gx", `${gx}%`);
-      wrap.style.setProperty("--gy", `${gy}%`);
-      wrap.style.setProperty("--scale", "1.03");
-      wrap.style.setProperty("--glare-op", "0.75");
-    });
+    if (!rect) rect = wrap.getBoundingClientRect();
+    const x = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    const y = Math.min(Math.max((e.clientY - rect.top) / rect.height, 0), 1);
+    objetivo.rx = -(y - 0.5) * 2 * MAX_TILT;
+    objetivo.ry = baseY + (x - 0.5) * 2 * MAX_TILT;
+    objetivo.s = 1.03;
+    objetivo.gx = x;
+    objetivo.gy = y;
+    suavizado = 0.18;
+    wrap.classList.add("is-activa");
+    animar();
   });
+  wrap.addEventListener("mouseleave", () => { rect = null; reposoEscritorio(); });
+  window.addEventListener("resize", () => { rect = null; }, { passive: true });
+  window.addEventListener("scroll", () => { rect = null; }, { passive: true });
 
-  wrap.addEventListener("mouseleave", resetearInclinacion);
-
-  // En escritorio el clic voltea; en celular se ignora el toque simple en la tarjeta
+  // En escritorio el clic voltea; en celular el toque simple no hace nada (se gira arrastrando).
   wrap.addEventListener("click", () => {
     if (Date.now() - lastTouchTime < 600) return;
-    aplicarVolteoBase(baseFlipY + 180);
+    voltear(180);
   });
 
   if (boton) {
     boton.addEventListener("click", (e) => {
       e.stopPropagation();
-      aplicarVolteoBase(baseFlipY + 180);
+      voltear(180);
     });
   }
 }

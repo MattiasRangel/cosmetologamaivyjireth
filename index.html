@@ -53,12 +53,9 @@
 <header id="navbar" class="fixed top-0 inset-x-0 z-50">
   <nav class="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
     <!-- Logo (sin bordes adicionales) -->
-    <a href="#inicio" class="flex items-center gap-3 group">
-      <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-11 h-11 rounded-full object-cover" />
-      <span class="leading-tight">
-        <span class="block font-display text-lg font-semibold tracking-wide">Maivy Jireth</span>
-        <span class="block text-[11px] uppercase tracking-[0.2em] text-[#6b6464]">Cosmetóloga</span>
-      </span>
+    <!-- Logo dorado (sacado de video_navidad/Publicado de navidad.pptx); ya trae el nombre y "Cosmetóloga". -->
+    <a href="#inicio" class="flex items-center group" aria-label="Maivy Jireth Cosmetóloga, ir al inicio">
+      <img src="imagenes/logo-mj.png" width="480" height="306" alt="Maivy Jireth Cosmetóloga" class="h-12 md:h-14 w-auto" />
     </a>
 
     <!-- Nav desktop -->
@@ -291,7 +288,7 @@
           <div class="vip-card">
             <span class="vc-el vc-cliente">CLIENTE</span>
             <span class="vc-el vc-vip font-script">Vip</span>
-            <img src="imagenes/logocosmec.jpeg" alt="" class="vc-el vc-logo rounded-full object-cover" />
+            <img src="imagenes/logo-mj.png" alt="" class="vc-el vc-logo vc-logo--mj" />
             <img src="imagenes/tarjeta-chip.png" alt="" class="vc-el vc-chip" />
             <svg viewBox="0 0 24 24" class="vc-el vc-contactless" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
               <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
@@ -526,9 +523,8 @@
   <!-- Celular: marca arriba, Navegación y Sígueme lado a lado, Contacto al final. Escritorio: 4 columnas. -->
   <div class="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mb-10 md:mb-12">
     <div class="col-span-2 lg:col-span-1">
-      <a href="#inicio" class="flex items-center gap-3 mb-4">
-        <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-10 h-10 rounded-full object-cover" />
-        <span class="font-display font-semibold">Maivy Jireth</span>
+      <a href="#inicio" class="inline-flex mb-4" aria-label="Maivy Jireth Cosmetóloga, ir al inicio">
+        <img src="imagenes/logo-mj.png" width="480" height="306" alt="Maivy Jireth Cosmetóloga" loading="lazy" class="h-20 w-auto" />
       </a>
       <p class="text-sm text-[#6b6464] leading-relaxed">
         Cosmetología profesional y personalizada en Villa del Rosario, Colombia. Cada piel merece su

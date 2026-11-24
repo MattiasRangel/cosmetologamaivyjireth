@@ -40,9 +40,9 @@
 ====================================================================== -->
 <header class="border-b border-[#f1dbe3]">
   <div class="max-w-4xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
-    <a href="index.html" class="flex items-center gap-3">
-      <img src="imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="w-10 h-10 rounded-full object-cover" />
-      <span class="font-display font-semibold">Maivy Jireth</span>
+    <!-- Logo dorado (el mismo del inicio); ya trae el nombre y "Cosmetóloga". -->
+    <a href="index.html" class="flex items-center" aria-label="Maivy Jireth Cosmetóloga, ir al inicio">
+      <img src="imagenes/logo-mj.png" width="480" height="306" alt="Maivy Jireth Cosmetóloga" class="h-12 md:h-14 w-auto" />
     </a>
     <a href="index.html" class="text-sm font-medium text-[#C85F82] flex items-center gap-1">
       <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al inicio
@@ -76,7 +76,7 @@
   <!-- ---------- Estado: tarjeta encontrada ---------- -->
   <div id="estado-tarjeta" class="hidden">
     <div class="text-center mb-10">
-      <p class="eyebrow text-sm mb-3">Tarjeta Cliente VIP</p>
+      <p class="eyebrow eyebrow--compacta text-sm mb-3">Tarjeta Cliente VIP</p>
       <h1 class="font-display text-3xl md:text-4xl font-semibold">
         Hola, <span id="tarjeta-nombre" class="text-[#C85F82]">—</span>
       </h1>
@@ -90,7 +90,7 @@
             <div class="vip-card">
               <span class="vc-el vc-cliente" id="front-nombre">Cliente</span>
               <span class="vc-el vc-vip font-script">Vip</span>
-              <img src="imagenes/logocosmec.jpeg" alt="" class="vc-el vc-logo rounded-full object-cover" />
+              <img src="imagenes/logo-mj.png" alt="" class="vc-el vc-logo vc-logo--mj" />
               <img src="imagenes/tarjeta-chip.png" alt="" class="vc-el vc-chip" />
               <svg viewBox="0 0 24 24" class="vc-el vc-contactless" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M4 12a8 8 0 0 1 16 0" opacity="0.4"/>
@@ -99,7 +99,7 @@
               </svg>
               <p class="vc-el vc-number" id="front-numero"><span>****</span><span>****</span><span>****</span><span>****</span></p>
               <p class="vc-el vc-valido">Válido hasta: <span id="front-valido">**/**/**</span></p>
-              <p class="vc-el vc-insta"><i data-lucide="instagram"></i>Cosmetologa_maivyjireth</p>
+              <p class="vc-el vc-insta"><i aria-hidden="true"></i>Cosmetologa_maivyjireth</p>
               <div class="vc-el vc-dots">
                 <img src="imagenes/circulo-dorado.png" alt="" class="dot-gold" />
                 <img src="imagenes/circulo-rosa.png" alt="" class="dot-rose" />
@@ -111,7 +111,7 @@
         <!-- Trasera: circulitos de visitas, con sticker cuando ya se cumplió -->
         <div class="mv-face mv-face--back">
           <div class="mv-card-back">
-            <div class="mv-back-logo"><img src="imagenes/logocosmec.jpeg" alt="" /></div>
+            <img class="mv-back-logo-mj" src="imagenes/logo-mj.png" alt="" />
             <p class="mv-back-heading">Tu constancia, nuestra recompensa</p>
             <div class="mv-punch-grid" id="mv-punch-grid"></div>
           </div>
@@ -125,7 +125,7 @@
           <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
           <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
         </svg>
-        <span id="btn-voltear-texto">Toca la tarjeta para ver el reverso</span>
+        <span id="btn-voltear-texto">Gira la tarjeta para ver el reverso</span>
       </button>
     </div>
 
