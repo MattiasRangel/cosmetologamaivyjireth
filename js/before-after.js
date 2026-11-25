@@ -1,7 +1,5 @@
-/**
- * before-after.js — comparador de imágenes "Antes / Después" arrastrable,
- * compatible con mouse y pantallas táctiles.
- */
+// Comparador antes/después
+
 document.addEventListener("DOMContentLoaded", () => {
   const sliders = document.querySelectorAll(".ba-slider");
 
@@ -22,13 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
       setPosition(percent);
     };
 
-    // --- Mouse ---
     handle.addEventListener("mousedown", (e) => {
       dragging = true;
       e.preventDefault();
-      // Evita que este mismo clic también dispare el mousedown del
-      // slider (más abajo) y "salte" la posición justo al empezar a
-      // arrastrar desde el propio manubrio.
       e.stopPropagation();
     });
     slider.addEventListener("mousedown", (e) => {
@@ -41,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     window.addEventListener("mouseup", () => (dragging = false));
 
-    // --- Touch ---
     slider.addEventListener(
       "touchstart",
       (e) => {
@@ -60,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     window.addEventListener("touchend", () => (dragging = false));
 
-    // --- Teclado (accesibilidad): flechas mueven el divisor ---
+    // Teclado (accesibilidad): flechas mueven el divisor
     handle.setAttribute("tabindex", "0");
     handle.setAttribute("role", "slider");
     handle.setAttribute("aria-label", "Deslizar para comparar antes y después");

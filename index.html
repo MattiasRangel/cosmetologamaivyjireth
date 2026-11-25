@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<!-- Favicon: el mismo logo en medidas múltiplo de 48 px (lo que pide Google). Rutas relativas:
-     funcionan igual si la página se publica en la raíz del dominio o en una subcarpeta. -->
 <link rel="icon" href="favicon.ico" sizes="48x48" />
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png" />
@@ -47,13 +45,9 @@
   Saltar al contenido
 </a>
 
-<!-- ======================================================================
-     NAVBAR
-====================================================================== -->
 <header id="navbar" class="fixed top-0 inset-x-0 z-50">
   <nav class="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-4">
     <!-- Logo (sin bordes adicionales) -->
-    <!-- Logo dorado (sacado de video_navidad/Publicado de navidad.pptx); ya trae el nombre y "Cosmetóloga". -->
     <a href="#inicio" class="flex items-center group" aria-label="Maivy Jireth Cosmetóloga, ir al inicio">
       <img src="imagenes/logo-mj.png" width="480" height="306" alt="Maivy Jireth Cosmetóloga" class="h-12 md:h-14 w-auto" />
     </a>
@@ -67,7 +61,6 @@
       <li><a href="#ubicacion" class="nav-link">Ubicación</a></li>
     </ul>
 
-    <!-- Acciones -->
     <div class="hidden lg:flex items-center gap-3">
       <a href="tarjeta-vip.html" class="btn-outline-gold text-sm font-semibold px-5 py-2.5 rounded-full inline-flex items-center gap-2">
         <i data-lucide="crown" class="w-4 h-4"></i>
@@ -108,9 +101,6 @@
 
 <main id="contenido">
 
-<!-- ======================================================================
-     HERO
-====================================================================== -->
 <section id="inicio" class="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24 md:pt-44 md:pb-28 bg-[#FDE8EF]">
   <div class="max-w-7xl mx-auto px-5 md:px-8 relative grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-16 items-center">
     <div>
@@ -138,9 +128,6 @@
       </ul>
     </div>
 
-    <!-- Foto real de la cabina (vertical 9:16), en la misma familia visual que «Sobre mí»:
-         marco redondeado, contorno rosa desplazado y etiqueta blanca. El encuadre conserva
-         el letrero con su nombre, el espejo y la camilla. -->
     <figure class="hero-foto entrada entrada-3">
       <span class="hero-contorno" aria-hidden="true"></span>
       <div class="hero-frame">
@@ -159,10 +146,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     SERVICIOS — justo después del hero: el catálogo es lo primero que busca la clienta.
-     En celular cada servicio es una fila corta; la descripción se abre con «Ver detalles».
-====================================================================== -->
 <section id="servicios" class="py-16 md:py-24 bg-[#fef4f8]">
   <div class="max-w-6xl mx-auto px-5 md:px-8">
     <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-16 lg:items-end mb-8 md:mb-10 reveal">
@@ -183,7 +166,6 @@
     </div>
 
     <div id="services-category-tabs" class="servicios-tabs mb-8 md:mb-10 reveal" role="group" aria-label="Categorías de tratamientos">
-      <!-- Renderizado dinámicamente desde js/data.js (SERVICE_CATEGORIES) -->
     </div>
 
     <div id="services-grid" class="grid lg:grid-cols-2 gap-3 md:gap-4">
@@ -192,9 +174,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     SOBRE MÍ
-====================================================================== -->
 <section id="sobre-mi" class="about relative overflow-hidden py-20 md:py-32">
   <div class="ambient-glow w-72 h-72 bg-[#E882A6]/30 top-10 -right-16"></div>
   <div class="ambient-glow delay w-80 h-80 bg-[#F5CCDF]/70 bottom-0 -left-20"></div>
@@ -247,9 +226,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     EL RITUAL
-====================================================================== -->
 <section id="ritual" class="py-16 md:py-24 bg-[#FDE8EF]">
   <div class="max-w-6xl mx-auto px-5 md:px-8">
     <div class="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-16 lg:items-end mb-10 md:mb-14 reveal">
@@ -262,7 +238,6 @@
       </p>
     </div>
 
-    <!-- Un hilo une los 4 pasos: vertical en celular, horizontal en escritorio (js/main.js lo dibuja al entrar en pantalla). -->
     <div class="ritual-thread-wrap">
       <ol id="ritual-steps" class="ritual-lista">
         <!-- Renderizado dinámicamente desde js/data.js -->
@@ -271,18 +246,12 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     TARJETA VIP — resumen breve; el detalle y la consulta viven en tarjeta-vip.html
-====================================================================== -->
 <section id="tarjeta-vip" class="py-16 md:py-24 bg-white">
-  <!-- Celular: título → tarjeta → texto (lo visual aparece antes). Escritorio: texto a la izquierda, tarjeta a la derecha. -->
   <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-[1fr_1.05fr] gap-x-16 gap-y-7 lg:gap-y-5 items-center">
     <h2 class="reveal font-display text-[2.15rem] md:text-5xl font-semibold leading-[1.08] lg:self-end">
       Tu constancia también merece un ritual
     </h2>
     <div class="reveal lg:col-start-2 lg:row-start-1 lg:row-span-2" style="transition-delay:120ms">
-      <!-- Misma tarjeta de tarjeta-vip.html (mismo HTML y colores), sin el marco rosa:
-           ver .vip-card-enlace en css/style.css. Toda la tarjeta lleva a tarjeta-vip.html. -->
       <a href="tarjeta-vip.html" class="vip-card-enlace block max-w-lg mx-auto" aria-label="Tarjeta Cliente VIP: ver cómo funciona">
         <div class="vip-card-wrap">
           <div class="vip-card">
@@ -318,10 +287,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     ENCUENTRA TU TRATAMIENTO IDEAL — filas de necesidad → tratamiento. Cada fila
-     abre la reserva con ese servicio ya elegido.
-====================================================================== -->
 <section id="tratamiento-ideal" class="py-16 md:py-24 bg-[#fef4f8]">
   <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-[0.85fr_1.15fr] gap-8 lg:gap-16 items-start">
     <div class="reveal lg:sticky lg:top-28">
@@ -388,9 +353,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     NUESTRO CONTENIDO — videos de TikTok con carga diferida
-====================================================================== -->
 <section id="nuestro-contenido" class="py-16 md:py-24 bg-white">
   <div class="max-w-6xl mx-auto px-5 md:px-8">
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-8 md:mb-10 reveal">
@@ -407,9 +369,7 @@
       </a>
     </div>
 
-    <!-- En celular los videos se deslizan de lado (se ve el borde del siguiente); desde 640px van en 4 columnas. -->
     <div id="tiktok-grid" class="tiktok-carril">
-      <!-- Las 4 tarjetas se arman en js/main.js a partir de TIKTOK_VIDEOS (js/data.js) -->
     </div>
 
     <a href="https://www.tiktok.com/@cosmetologa_maivyjireth" target="_blank" rel="noopener noreferrer"
@@ -420,9 +380,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     UBICACIÓN
-====================================================================== -->
 <section id="ubicacion" class="py-16 md:py-24 bg-[#FDE8EF]">
   <div class="max-w-6xl mx-auto px-5 md:px-8 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
     <div class="reveal">
@@ -448,7 +405,6 @@
           </span>
           <div>
             <p class="font-display font-semibold">Horario de atención</p>
-            <!-- js/booking.js lo reemplaza con el horario real de la tabla `horarios` (panel > Disponibilidad) -->
             <ul id="horario-atencion" class="text-sm text-[#6b6464] space-y-0.5">
               <li>Con cita previa; al agendar ves las horas libres de cada día.</li>
             </ul>
@@ -487,9 +443,6 @@
   </div>
 </section>
 
-<!-- ======================================================================
-     CIERRE — claro, firmado por Maivy, con las dos salidas: agendar o escribirle.
-====================================================================== -->
 <section id="cierre" class="cierre py-20 md:py-28">
   <div class="max-w-3xl mx-auto px-5 text-center reveal">
     <h2 class="font-display text-[2.35rem] sm:text-5xl md:text-6xl font-semibold leading-[1.05] tracking-[-0.01em]">
@@ -516,11 +469,7 @@
 
 </main>
 
-<!-- ======================================================================
-     FOOTER
-====================================================================== -->
 <footer class="bg-white border-t border-[#f1dbe3] pt-12 md:pt-16 pb-8">
-  <!-- Celular: marca arriba, Navegación y Sígueme lado a lado, Contacto al final. Escritorio: 4 columnas. -->
   <div class="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mb-10 md:mb-12">
     <div class="col-span-2 lg:col-span-1">
       <a href="#inicio" class="inline-flex mb-4" aria-label="Maivy Jireth Cosmetóloga, ir al inicio">
@@ -574,10 +523,6 @@
   </div>
 </footer>
 
-<!-- ======================================================================
-     BARRA MÓVIL — Agendar + WhatsApp al alcance del pulgar (solo en celular/tablet).
-     Aparece cuando los botones del hero salen de pantalla (js/main.js → initBarraMovil).
-====================================================================== -->
 <div id="barra-movil" class="barra-movil">
   <button type="button" class="js-open-booking btn-primary barra-movil-agendar">Agendar cita</button>
   <a href="https://wa.me/573122855055?text=Hola%20Maivy%2C%20me%20gustar%C3%ADa%20agendar%20una%20cita."
@@ -586,9 +531,6 @@
   </a>
 </div>
 
-<!-- ======================================================================
-     LIGHTBOX — ver la foto completa (sin recortar) al tocarla
-====================================================================== -->
 <div id="image-lightbox" class="hidden fixed inset-0 z-[110] items-center justify-center p-4 sm:p-8">
   <div id="image-lightbox-overlay" class="absolute inset-0 bg-black/85"></div>
   <button type="button" id="image-lightbox-close" aria-label="Cerrar"
@@ -600,9 +542,6 @@
     class="relative max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl" />
 </div>
 
-<!-- ======================================================================
-     MODAL DE RESERVA (Stepper)
-====================================================================== -->
 <div id="booking-modal" hidden class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
   <div id="booking-overlay" class="absolute inset-0 bg-[#2B2B2B]/60 backdrop-blur-sm"></div>
 
@@ -633,7 +572,6 @@
       <div class="booking-step" data-step="2">
         <div id="step-panel-2">
           <h4 tabindex="-1" class="font-display font-semibold text-lg mb-4 focus:outline-none">Elige fecha y hora</h4>
-          <!-- Desde 640px: calendario a la izquierda y horas a la derecha, para que las horas no queden bajo el pliegue. -->
           <div class="sm:grid sm:grid-cols-[1.15fr_1fr] sm:gap-7 sm:items-start">
           <div>
           <div class="flex items-center justify-between mb-3">
@@ -698,7 +636,6 @@
               <i data-lucide="calendar-check" class="w-6 h-6 text-[#AE2967]"></i>
             </div>
             <h4 id="booking-success-titulo" tabindex="-1" class="font-display text-2xl font-semibold mb-2 focus:outline-none">Tu horario quedó apartado</h4>
-            <!-- js/booking.js completa este texto con el teléfono que escribió la clienta. -->
             <p id="booking-success-texto" class="text-sm text-[#6b6464] max-w-sm mx-auto leading-relaxed">
               Ya está en mi agenda. Si me escribes por WhatsApp te confirmo más rápido; si no, yo te escribo.
             </p>

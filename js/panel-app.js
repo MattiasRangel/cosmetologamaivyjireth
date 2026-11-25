@@ -1,17 +1,8 @@
-/**
- * panel-app.js
- * -----------------------------------------------------------------------
- * Toda la interacción del panel. Este archivo NUNCA toca datos en crudo:
- * solo llama a las funciones de panel-data.js y pinta el resultado. El
- * día que panel-data.js hable con Supabase de verdad, este archivo no
- * necesita cambios.
- * -----------------------------------------------------------------------
- */
+// Panel administrativo
+
 import * as api from "./panel-data.js";
 
-/* ========================================================================
-   UTILIDADES
-   ======================================================================== */
+// UTILIDADES
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $all = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -53,14 +44,6 @@ function showToast(mensaje) {
   }, 2600);
 }
 
-/* ========================================================================
-   GUARDIA DE SESIÓN
-   Esta página (panel-admin.html) es un archivo independiente del login,
-   así que se protege sola: revisa la sesión REAL de Supabase Auth antes
-   de pintar nada y, si no hay sesión, vuelve al login. Devuelve `true`
-   si hay sesión válida (para que el arranque, más abajo, sepa si debe
-   seguir inicializando el panel o no).
-   ======================================================================== */
 async function protegerPanel() {
   const { data, error } = await window.supabaseClient.auth.getSession();
   if (error) console.error("[panel-app.js] Error revisando la sesión:", error);
@@ -71,9 +54,7 @@ async function protegerPanel() {
   return true;
 }
 
-/* ========================================================================
-   PANEL: inicialización y navegación entre pestañas
-   ======================================================================== */
+// PANEL: inicialización y navegación entre pestañas
 
 const pestanasCargadas = new Set();
 
@@ -112,7 +93,7 @@ function cambiarPestana(tab) {
   $all(".tab-panel").forEach((panel) => panel.classList.toggle("is-active", panel.id === `tab-${tab}`));
   $("#panel-page-title").textContent = TITULOS_PESTANA[tab] || "";
 
-  // Carga perezosa: cada pestaña trae sus datos la primera vez que se visita.
+  // Carga perezosa
   if (!pestanasCargadas.has(tab)) {
     pestanasCargadas.add(tab);
     if (tab === "agenda") cargarAgenda();
@@ -125,14 +106,10 @@ function cambiarPestana(tab) {
 
 function initLogout() {
   $("#logout-btn").addEventListener("click", async () => {
-    await api.logout(); // ya cierra la sesión real de Supabase (supabase.auth.signOut())
+    await api.logout();
     window.location.href = "panel-privado.html";
   });
 }
-
-/* ========================================================================
-   KPIs
-   ======================================================================== */
 
 async function cargarKpis() {
   const grid = $("#kpi-grid");
@@ -157,9 +134,7 @@ async function cargarKpis() {
   `;
 }
 
-/* ========================================================================
-   PESTAÑA 1 — AGENDA
-   ======================================================================== */
+// PESTAÑA 1: AGENDA
 
 const agendaState = { rango: "hoy", estado: "", busqueda: "" };
 let ultimaAgendaCargada = [];
@@ -207,8 +182,6 @@ function initAgendaTab() {
       cargarAgenda();
       cargarKpis();
     } else if (accion === "editar") {
-      // Se usa la lista ya cargada en pantalla en vez de volver a pedir
-      // todas las citas — la fila ya tiene todo lo que este modal necesita.
       const cita = ultimaAgendaCargada.find((c) => c.id === id);
       if (cita) abrirModalEditar(cita);
     }
@@ -261,9 +234,7 @@ async function cargarAgenda() {
   }
 }
 
-/* ========================================================================
-   MODAL — editar cita
-   ======================================================================== */
+// MODAL: editar cita
 
 function initModalEditar() {
   $("#modal-editar-close").addEventListener("click", cerrarModalEditar);
@@ -316,9 +287,7 @@ function cerrarModalEditar() {
   $("#modal-editar").classList.remove("is-open");
 }
 
-/* ========================================================================
-   PESTAÑA 2 — CALENDARIO
-   ======================================================================== */
+// PESTAÑA 2: CALENDARIO
 
 let calFecha = new Date();
 calFecha.setDate(1);
@@ -376,14 +345,6 @@ async function cargarDetalleDia(fechaISO) {
     .join("");
 }
 
-/**
- * Dibuja una grilla mensual reutilizable (la usan tanto "Calendario"
- * como "Días bloqueados" en Horarios).
- * @param {HTMLElement} grid
- * @param {number} year
- * @param {number} month 0-indexado
- * @param {{counts?:Record<string,number>, bloqueadas?:string[], seleccionado?:string, onDayClick?:(fechaISO:string)=>void}} opts
- */
 function pintarGrillaMes(grid, year, month, opts = {}) {
   const hoyISO = new Date().toISOString().slice(0, 10);
   const primerDia = new Date(year, month, 1);
@@ -415,9 +376,7 @@ function pintarGrillaMes(grid, year, month, opts = {}) {
   });
 }
 
-/* ========================================================================
-   PESTAÑA 3 — SERVICIOS
-   ======================================================================== */
+// PESTAÑA 3: SERVICIOS
 
 function initServiciosTab() {
   $("#form-servicio").addEventListener("submit", async (e) => {
@@ -472,9 +431,7 @@ async function cargarServicios() {
     .join("");
 }
 
-/* ========================================================================
-   PESTAÑA 4 — HORARIOS
-   ======================================================================== */
+// PESTAÑA 4: HORARIOS
 
 function initHorariosTab() {
   $("#horarios-semana").addEventListener("change", onCambioHorarioSemana);
@@ -539,16 +496,13 @@ function leerFilaHorario(row) {
   return { cerrado, franjas };
 }
 
-// Los guardados se encadenan (uno tras otro) para que un guardado viejo
-// no llegue tarde y pise al nuevo.
 let colaGuardadoHorario = Promise.resolve();
 
-/** "HH:MM" en 24h: se puede comparar como texto. */
+// "HH:MM" en 24h: se puede comparar como texto.
 function franjasValidas(franjas) {
   return franjas.every((f) => f.inicio && f.fin && f.fin >= f.inicio); // inicio = fin vale: un solo turno
 }
 
-/** @returns {Promise<boolean>} true si se guardó, false si se rechazó por horas inválidas */
 async function guardarFilaHorario(row) {
   const dia = row.dataset.dia;
   const data = leerFilaHorario(row);
@@ -589,7 +543,7 @@ function onClickHorarioSemana(e) {
   }
 }
 
-/* ---- Días bloqueados (mini calendario dentro de Horarios) ---- */
+// Días bloqueados (mini calendario dentro de Horarios)
 
 let bloqFecha = new Date();
 bloqFecha.setDate(1);
@@ -649,7 +603,7 @@ async function renderListaBloqueadas() {
   });
 }
 
-/* ---- Horarios especiales por fecha (reemplazan al semanal solo ese día) ---- */
+// Horarios especiales por fecha
 
 const DIA_KEY_POR_INDICE = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
 
@@ -668,7 +622,6 @@ function fechaDesdeISO(fechaISO) {
   return new Date(y, m - 1, d);
 }
 
-/** "09:00" -> "9:00 am", "15:30" -> "3:30 pm" */
 function horaBonita(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
   const ampm = h >= 12 ? "pm" : "am";
@@ -688,9 +641,9 @@ function resumenFranjas(esp) {
     .join(" · ");
 }
 
-let espExcluidas = new Set(); // horas "HH:MM" que la cosmetóloga NO quiere ofrecer ese día
-let espEditadas = {}; // { "14:00": "14:45" } horas que la cosmetóloga movió a mano
-let espEditando = null; // hora original cuyo campo de edición está abierto
+let espExcluidas = new Set();
+let espEditadas = {};
+let espEditando = null;
 
 function aMinutos(hhmm) {
   const [h, m] = String(hhmm).split(":").map(Number);
@@ -701,11 +654,6 @@ function minutosAHHMM(min) {
   return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 }
 
-/**
- * Horas ("HH:MM", 24h) que genera una lista de franjas. Misma regla que el sitio público:
- * turnos de 1 hora desde el inicio de cada franja, el turno debe terminar a más tardar en `fin`;
- * si inicio = fin hay un único turno.
- */
 function horasDeFranjas(franjas) {
   const set = new Set();
   franjas.forEach(({ inicio, fin }) => {
@@ -722,7 +670,7 @@ function horasDeFranjas(franjas) {
   return [...set].sort((a, b) => a - b).map(minutosAHHMM);
 }
 
-/** Lista final de horas de un día: generadas - quitadas, con las cambiadas a mano, ordenada. */
+// Lista final de horas de un día
 function horasFinales(franjas, excluidas = [], editadas = {}) {
   const set = new Set();
   horasDeFranjas(franjas).forEach((h) => {
@@ -732,7 +680,6 @@ function horasFinales(franjas, excluidas = [], editadas = {}) {
   return [...set].sort((a, b) => a - b).map(minutosAHHMM);
 }
 
-/** Dibuja los botones de hora según las franjas que hay ahora en el editor. */
 function renderHorasEspecial() {
   const cont = $("#esp-horas");
   const row = $("#esp-editor .schedule-day-row");
@@ -778,7 +725,7 @@ function renderHorasEspecial() {
   if (campo) campo.focus();
 }
 
-/** Acepta el cambio de hora que se está editando. */
+// Acepta el cambio de hora que se está editando.
 function aceptarHoraEditada(original) {
   const campo = $("[data-esp-nueva]");
   const valor = campo ? campo.value : "";
@@ -932,7 +879,7 @@ async function seleccionarFechaEspecial(fechaISO) {
   const existente = espCache.find((e) => e.fechaISO === fechaISO);
   let base = existente;
   if (!base) {
-    // Punto de partida: el horario semanal de ese día de la semana.
+    // Punto de partida
     const semanal = await api.getSchedule();
     const delDia = semanal[DIA_KEY_POR_INDICE[fechaDesdeISO(fechaISO).getDay()]];
     base = {
@@ -1033,9 +980,7 @@ async function quitarEspecial(fechaISO) {
   }
 }
 
-/* ========================================================================
-   PESTAÑA 5 — TARJETAS VIP
-   ======================================================================== */
+// PESTAÑA 5: TARJETAS VIP
 
 function initVipTab() {
   $("#form-vip").addEventListener("submit", async (e) => {
@@ -1107,12 +1052,10 @@ async function cargarVip() {
     .join("");
 }
 
-/* ========================================================================
-   ARRANQUE
-   ======================================================================== */
+// ARRANQUE
 
 document.addEventListener("DOMContentLoaded", async () => {
   const sesionValida = await protegerPanel();
-  if (!sesionValida) return; // protegerPanel ya redirigió a panel-privado.html
+  if (!sesionValida) return;
   initPanel();
 });

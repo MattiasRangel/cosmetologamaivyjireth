@@ -1,7 +1,4 @@
-/**
- * booking.js — flujo de reserva de citas en 4 pasos.
- * Maivy es la única cosmetóloga, así que no existe paso de "profesional".
- */
+// Reserva de citas en 4 pasos
 
 const bookingState = {
   step: 1,
@@ -15,13 +12,12 @@ const bookingState = {
 let calendarViewDate = new Date();
 let diasBloqueados = [];
 let horariosSemana = [];
-let horariosEspeciales = {}; // { "2026-10-21": fila } — horario puntual que reemplaza al semanal ese día
+let horariosEspeciales = {};
 let configCalendarioPromise = null;
-let configCalendarioError = false; // true si horarios/días bloqueados no cargaron: no se ofrece ningún horario
+let configCalendarioError = false;
 let renderSlotsRequestId = 0;
 let icsUrlActual = null;
 
-// Margen mínimo entre "ahora" y el primer turno que se puede pedir hoy.
 const ANTICIPACION_MIN = 60;
 
 const DIAS_CLAVE = [
@@ -34,7 +30,6 @@ const DIAS_CLAVE = [
   "sabado",
 ];
 
-/** Normaliza texto quitando tildes, espacios extra y pasando a minúsculas ("Miércoles " -> "miercoles"). */
 function normalizarDia(texto) {
   return String(texto || "")
     .trim()
@@ -43,23 +38,17 @@ function normalizarDia(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-/** Todas las filas de `horarios` que corresponden a un día (0 = domingo .. 6 = sábado). */
 function obtenerConfigsDia(dayIndex) {
   const clave = DIAS_CLAVE[dayIndex];
   if (!Array.isArray(horariosSemana) || horariosSemana.length === 0) return [];
   return horariosSemana.filter((h) => normalizarDia(h.dia) === clave);
 }
 
-/** Interpreta `cerrado` aunque llegue como true/"true"/"t"/1/"si". */
 function esVerdadero(v) {
   if (v === true || v === 1) return true;
   return ["true", "t", "1", "si", "sí", "yes"].includes(String(v ?? "").trim().toLowerCase());
 }
 
-/**
- * "HH:MM", "HH:MM:SS", "9 am", "09:30 p. m." -> { hora: decimal 0..24, conMeridiano }.
- * Devuelve null si no se puede leer.
- */
 function parsearHora(valor) {
   if (valor === null || valor === undefined) return null;
   const limpio = String(valor).trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, "");
@@ -74,7 +63,7 @@ function parsearHora(valor) {
   return { hora: h + min / 60, conMeridiano: Boolean(mer) };
 }
 
-/** Formatea una hora decimal (9 -> "09:00 am", 14.5 -> "02:30 pm"), formato que usa la tabla citas. */
+// Formatea una hora decimal
 function formatearHora12(horaDecimal) {
   const h24 = Math.floor(horaDecimal + 1e-9);
   const min = Math.round((horaDecimal - h24) * 60);
@@ -84,14 +73,12 @@ function formatearHora12(horaDecimal) {
   return `${String(h12).padStart(2, "0")}:${String(min).padStart(2, "0")} ${ampm}`;
 }
 
-/** Normaliza una hora guardada en `citas` ("9:00 AM", "09:00 am", "09:00") a "09:00 am". */
 function normalizarHoraCita(valor) {
   const p = parsearHora(valor);
   if (!p) return String(valor || "").trim().toLowerCase();
   return formatearHora12(p.hora);
 }
 
-/** Lee las franjas de una fila de `horarios` (array, JSON string o nombres de clave alternos). */
 function leerFranjas(fila) {
   let franjas = fila.franjas;
   if (typeof franjas === "string") {
@@ -106,11 +93,6 @@ function leerFranjas(fila) {
   return Array.isArray(franjas) ? franjas : [];
 }
 
-/**
- * Lee una franja { inicio, fin } (o claves alternas) y la pasa a horas decimales.
- * Corrige turnos de tarde capturados sin am/pm (ej. "02:00" a "06:00").
- * Devuelve null si la franja no se puede leer.
- */
 function normalizarFranja(franja) {
   if (!franja) return null;
   const pIni = parsearHora(franja.inicio ?? franja.desde ?? franja.apertura ?? franja.start);
@@ -121,30 +103,24 @@ function normalizarFranja(franja) {
   let fin = pFin.hora;
   if (!pIni.conMeridiano && ini >= 1 && ini < 6) ini += 12;
   if (!pFin.conMeridiano && fin < ini) {
-    // "12:00 am" (00:00) como cierre: si abre en la mañana casi seguro quiso decir mediodía.
+    // "12:00 am" (00:00) como cierre
     if (fin === 0) fin = ini < 12 ? 12 : 24;
     else if (fin + 12 > ini && fin < 12) fin += 12;
   }
   return { ini, fin };
 }
 
-/**
- * Extrae la lista de horarios ("09:00 am", etc.) para un día de la semana (0..6).
- * Tolera filas duplicadas, `cerrado` como texto, claves alternas y errores
- * típicos de captura (ej. "06:00" queriendo decir 6:00 pm).
- */
 function generarSlotsParaDia(dayIndex, fechaISO = null) {
-  // Si esa fecha tiene horario especial (tabla horarios_especiales), reemplaza al semanal.
+  // Si esa fecha tiene horario especial
   const especial = fechaISO ? horariosEspeciales[fechaISO] : null;
   const filas = especial ? [especial] : obtenerConfigsDia(dayIndex);
 
-  // Sin configuración para ese día: domingo cerrado, lunes a sábado usa TIME_SLOTS de respaldo.
+  // Sin configuración para ese día
   if (filas.length === 0) {
     if (dayIndex === 0) return [];
     return typeof TIME_SLOTS !== "undefined" ? [...TIME_SLOTS] : [];
   }
 
-  // Si hay filas duplicadas para el mismo día, se usan todas las que NO estén cerradas.
   const filasAbiertas = filas.filter((f) => !esVerdadero(f.cerrado));
   if (filasAbiertas.length === 0) return [];
 
@@ -161,20 +137,15 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
       const { ini, fin } = rango;
 
       if (ini === fin) {
-        // Franja de inicio = fin (ej. 03:30 pm a 03:30 pm): un único turno a esa hora.
+        // Franja de inicio = fin (ej. 03:30 pm a 03:30 pm)
         horas.add(ini);
         return;
       }
 
-      // Turnos de 1 hora contados desde el inicio de la franja (14:30 -> 14:30, 15:30, ...).
-      // El turno debe terminar a más tardar a la hora fin.
       for (let h = ini; h + 1 <= fin + 1e-9 && h < 24; h += 1) horas.add(h);
     });
   });
 
-  // Ajustes hechos a mano en un horario especial (panel > Horarios especiales):
-  //  - horas_excluidas: horas que NO se ofrecen.
-  //  - horas_editadas:  { "14:00": "14:45" } la hora 14:00 se ofrece a las 14:45.
   let excluidasMin = new Set();
   let editadasMin = new Map();
   if (especial) {
@@ -216,7 +187,6 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
     .sort((a, b) => a - b)
     .map((m) => formatearHora12(m / 60));
 
-  // Franjas vacías = día cerrado a propósito desde el panel; solo se avisa si había franjas y no salió ninguna hora.
   const teniaFranjas = filasAbiertas.some((f) => leerFranjas(f).length > 0);
   if (slots.length === 0 && teniaFranjas) {
     console.warn(
@@ -227,7 +197,7 @@ function generarSlotsParaDia(dayIndex, fechaISO = null) {
   return slots;
 }
 
-/** "2026-11-02" para una fecha local (sin pasar por UTC). */
+// "2026-11-02" para una fecha local (sin pasar por UTC).
 function fechaISOLocal(fecha) {
   const y = fecha.getFullYear();
   const m = String(fecha.getMonth() + 1).padStart(2, "0");
@@ -235,7 +205,6 @@ function fechaISOLocal(fecha) {
   return `${y}-${m}-${d}`;
 }
 
-/** ¿El turno "02:30 pm" del día `fecha` ya pasó (o empieza antes del margen de anticipación)? */
 function turnoYaPaso(fecha, horaTexto, ahora = new Date()) {
   const p = parsearHora(horaTexto);
   if (!p) return false;
@@ -244,7 +213,7 @@ function turnoYaPaso(fecha, horaTexto, ahora = new Date()) {
   return inicio.getTime() < ahora.getTime() + ANTICIPACION_MIN * 60 * 1000;
 }
 
-/** Turnos que de verdad se pueden pedir ese día: los configurados menos los que ya pasaron. */
+// Turnos que de verdad se pueden pedir ese día
 function slotsReservables(fecha) {
   if (configCalendarioError) return [];
   const ahora = new Date();
@@ -253,7 +222,7 @@ function slotsReservables(fecha) {
   );
 }
 
-/** Carga días bloqueados y horarios semanales desde Supabase. */
+// Carga días bloqueados y horarios semanales desde Supabase.
 async function cargarConfiguracionCalendario() {
   configCalendarioError = false;
   if (!window.supabaseClient) {
@@ -267,8 +236,6 @@ async function cargarConfiguracionCalendario() {
       window.supabaseClient.from("horarios_especiales").select("*"),
     ]);
 
-    // Sin horarios o sin días bloqueados no se puede saber qué está libre: mejor no ofrecer nada
-    // que ofrecer el horario de respaldo y aceptar citas en días cerrados.
     if (bloqueadosRes.error) {
       console.error("[booking.js] Error leyendo dias_bloqueados:", bloqueadosRes.error);
       configCalendarioError = true;
@@ -277,7 +244,6 @@ async function cargarConfiguracionCalendario() {
       console.error("[booking.js] Error leyendo horarios:", horariosRes.error);
       configCalendarioError = true;
     }
-    // Si la tabla horarios_especiales aún no existe, el sitio sigue con el horario semanal normal.
     if (especialesRes.error) console.warn("[booking.js] horarios_especiales no disponible:", especialesRes.error.message);
 
     if (bloqueadosRes.data) {
@@ -299,33 +265,26 @@ async function cargarConfiguracionCalendario() {
   renderHorarioAtencion();
 }
 
-/* ---------------------------------------------------------------------- */
-/* Horario de atención (sección Ubicación) — sale de la tabla `horarios`   */
-/* ---------------------------------------------------------------------- */
+// Horario de atención (sección Ubicación)
 const NOMBRES_DIA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-/** 8 -> "8:00 am", 14.5 -> "2:30 pm" (para leer, sin el cero inicial). */
 function horaLegible(horaDecimal) {
   // Espacio duro: "2:30 pm" nunca se parte en dos líneas.
   return formatearHora12(horaDecimal).replace(/^0/, "").replace(" ", " ");
 }
 
-/** "Lunes, martes y jueves" */
+// "Lunes, martes y jueves"
 function unirDias(nombres) {
   if (nombres.length === 1) return nombres[0];
   const resto = nombres.slice(1).map((n) => n.toLowerCase());
   return `${nombres[0]}${resto.length > 1 ? ", " + resto.slice(0, -1).join(", ") : ""} y ${resto[resto.length - 1]}`;
 }
 
-/**
- * Resume el horario semanal agrupando los días con las mismas franjas,
- * en orden de lunes a domingo. Si la tabla no cargó, deja el texto del HTML.
- */
 function renderHorarioAtencion() {
   const lista = document.getElementById("horario-atencion");
   if (!lista || configCalendarioError || !horariosSemana.length) return;
 
-  const grupos = new Map(); // "8-18|..." -> { dias: [], texto }
+  const grupos = new Map();
   [1, 2, 3, 4, 5, 6, 0].forEach((i) => {
     const filas = obtenerConfigsDia(i).filter((f) => !esVerdadero(f.cerrado));
     const rangos = filas
@@ -359,20 +318,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindClientForm();
 });
 
-/* ---------------------------------------------------------------------- */
-/* Apertura / cierre del modal                                            */
-/* ---------------------------------------------------------------------- */
+// Apertura / cierre del modal
 function bindOpenTriggers() {
   document.querySelectorAll(".js-open-booking").forEach((btn) => {
     btn.addEventListener("click", () => openBookingModal());
   });
 }
 
-/**
- * "Quiero una valoración": para quien no sabe qué tratamiento elegir. No existe en
- * la tabla `servicios`, así que la cita se guarda sin servicio_id ni precio
- * (Maivy confirma el valor por WhatsApp) y aparta 30 minutos.
- */
 const VALORACION = {
   id: "valoracion",
   nombre: "Valoración de piel",
@@ -381,7 +333,7 @@ const VALORACION = {
   precio: null,
 };
 
-/** Precio para mostrar; null = "a confirmar" (la valoración). */
+// Precio para mostrar; null = "a confirmar" (la valoración).
 function precioLegible(precio) {
   return precio == null ? "Precio a confirmar" : formatCOP(precio);
 }
@@ -431,12 +383,6 @@ function opcionesReserva() {
   );
 }
 
-/**
- * Preselecciona un servicio (y su variante) si existe en el catálogo.
- * Un servicio con variantes llamado sin variante (ej. las tarjetas de
- * "Encuentra tu tratamiento ideal") toma la primera, igual que la tarjeta
- * del catálogo muestra la primera opción activa por defecto.
- */
 function preseleccionarServicio(serviceId, varianteId) {
   if (serviceId === VALORACION.id) {
     bookingState.serviceId = VALORACION.id;
@@ -454,15 +400,13 @@ function preseleccionarServicio(serviceId, varianteId) {
   }
 }
 
-/* ---------------------------------------------------------------------- */
-/* Diálogo accesible: fondo inerte, foco atrapado y devuelto al cerrar     */
-/* ---------------------------------------------------------------------- */
+// Diálogo accesible
 let focoAntesDelModal = null;
 
 const SELECTOR_ENFOCABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Elementos con los que se puede interactuar dentro del panel (visibles). */
+// Elementos con los que se puede interactuar dentro del panel
 function enfocablesDelModal() {
   const panel = document.querySelector("#booking-modal .booking-panel");
   if (!panel) return [];
@@ -471,7 +415,7 @@ function enfocablesDelModal() {
   );
 }
 
-/** Todo lo que no es el modal queda inerte (ni clic, ni Tab, ni lector de pantalla). */
+// Todo lo que no es el modal queda inerte
 function fondoInerte(activo) {
   const modal = document.getElementById("booking-modal");
   [...document.body.children].forEach((el) => {
@@ -480,7 +424,6 @@ function fondoInerte(activo) {
   });
 }
 
-/** Tab y Shift+Tab dan la vuelta dentro del panel en vez de salir a la página. */
 function atraparFoco(e) {
   const modal = document.getElementById("booking-modal");
   if (e.key !== "Tab" || !modal || modal.hidden) return;
@@ -510,13 +453,11 @@ window.openBookingModal = async function (serviceId = null, varianteId = null) {
   requestAnimationFrame(() => {
     panel.classList.add("scale-100", "opacity-100");
   });
-  // El foco entra al diálogo (el lector anuncia su título) sin saltos de scroll.
+  // El foco entra al diálogo
   panel.focus({ preventScroll: true });
 
   goToStep(1, { enfocar: false });
 
-  // Si la clienta toca "Reservar" antes de que llegue el catálogo, se espera aquí
-  // en vez de perder la preselección.
   if (!SERVICES.length && !window.catalogoError) {
     const panel = document.getElementById("step-panel-1");
     if (panel) panel.innerHTML = `<p class="text-sm text-[#6b6464] italic animate-pulse">Cargando tratamientos…</p>`;
@@ -585,15 +526,12 @@ function resetBookingState() {
   document.getElementById("booking-footer")?.classList.remove("hidden");
 }
 
-/* ---------------------------------------------------------------------- */
-/* Indicador de pasos                                                      */
-/* ---------------------------------------------------------------------- */
+// Indicador de pasos
 const STEP_LABELS = ["Servicio", "Fecha y hora", "Tus datos", "Confirmación"];
 
 function buildStepIndicator() {
   const wrap = document.getElementById("step-indicator");
   if (!wrap) return;
-  // Los círculos son visuales; el lector recibe "Paso 2 de 4: Fecha y hora" desde #step-status.
   wrap.setAttribute("aria-hidden", "true");
   wrap.innerHTML = STEP_LABELS.map(
     (label, i) => `
@@ -627,10 +565,6 @@ function updateStepIndicator() {
   }
 }
 
-/**
- * Aviso en línea del modal (reemplaza a los alert()). `html` puede traer un
- * enlace; null lo oculta. Se limpia solo al cambiar de paso.
- */
 function mostrarAviso(html) {
   const el = document.getElementById("booking-alert");
   if (!el) return;
@@ -652,10 +586,9 @@ async function goToStep(step, { aviso = null, enfocar = true } = {}) {
     el.classList.toggle("is-active", Number(el.dataset.step) === step);
   });
   updateStepIndicator();
-  // Sin scroll anidado, el paso 1 es largo: cada paso nuevo empieza arriba del panel.
+  // Sin scroll anidado, el paso 1 es largo
   const panel = document.querySelector("#booking-modal .booking-panel");
   if (panel) panel.scrollTop = 0;
-  // Al cambiar de paso el foco va al título del paso nuevo; si no, quedaría en un botón oculto.
   if (enfocar) {
     document.querySelector(`.booking-step[data-step="${step}"] h4`)?.focus({ preventScroll: true });
   }
@@ -714,9 +647,7 @@ function shake(selector) {
   );
 }
 
-/* ---------------------------------------------------------------------- */
-/* Paso 1 — Selección de servicio                                         */
-/* ---------------------------------------------------------------------- */
+// Paso 1: Selección de servicio
 function renderStepOneServices() {
   const wrap = document.getElementById("step-panel-1");
   if (!wrap || typeof SERVICES === "undefined") return;
@@ -744,8 +675,6 @@ function renderStepOneServices() {
     ? `${bookingState.serviceId}::${bookingState.varianteId}`
     : bookingState.serviceId;
 
-  // Radios reales (mismo name): Tab entra al grupo y las flechas cambian de opción.
-  // En celular el precio baja junto a la duración para que el nombre use todo el ancho.
   const opcion = (o, visual) => `
     <label class="service-choice flex items-center gap-3 min-[360px]:gap-4 border-2 border-[#eadde2] rounded-xl p-3 sm:p-4 ${
       keyActual === o.key ? "is-selected" : ""
@@ -770,7 +699,7 @@ function renderStepOneServices() {
       <i data-lucide="sparkles" class="w-6 h-6 text-[#AE2967]"></i>
     </span>`;
 
-  // Agrupado por categoría, en el mismo orden que el catálogo (faciales primero).
+  // Agrupado por categoría, en el mismo orden que el catálogo
   const opciones = opcionesReserva();
   const categorias = categoriasEnOrden();
   const conocidas = new Set(categorias.map((c) => c.id));
@@ -802,8 +731,6 @@ function renderStepOneServices() {
     });
   });
 
-  // Con 20+ opciones la preseleccionada puede quedar fuera de vista: el panel (único scroll
-  // del modal) la trae al centro.
   const elegida = wrap.querySelector(".service-choice.is-selected");
   const panel = wrap.closest(".booking-panel");
   if (elegida && panel) {
@@ -813,9 +740,7 @@ function renderStepOneServices() {
   }
 }
 
-/* ---------------------------------------------------------------------- */
-/* Paso 2 — Calendario + horarios                                         */
-/* ---------------------------------------------------------------------- */
+// Paso 2: Calendario + horarios
 const MONTHS_ES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
@@ -850,7 +775,6 @@ function renderCalendar() {
     const fechaActualISO = `${year}-${mesIso}-${diaIso}`;
 
     const isPast = dateObj < today;
-    // Hoy queda deshabilitado en cuanto no le quedan turnos futuros.
     const isClosedDay = isPast || slotsReservables(dateObj).length === 0;
     const isBlocked = diasBloqueados.includes(fechaActualISO);
 
@@ -877,7 +801,7 @@ function renderCalendar() {
       bookingState.time = null; // Reinicia la hora al cambiar de día
       mostrarAviso(null);
       renderCalendar();
-      // El repintado destruye la celda enfocada: el foco vuelve al día elegido.
+      // El repintado destruye la celda enfocada
       grid.querySelector(".calendar-day.is-selected")?.focus({ preventScroll: true });
       renderTimeSlots();
     };
@@ -959,7 +883,6 @@ async function renderTimeSlots() {
     return;
   }
 
-  // Si la consulta de citas falla, NO se asume que todo está libre.
   let horasOcupadas = null;
   try {
     const { data, error } = await window.supabaseClient
@@ -977,7 +900,6 @@ async function renderTimeSlots() {
     console.error("[booking.js] Error al consultar horas ocupadas:", err);
   }
 
-  // Si el usuario cambió de día mientras respondía Supabase, ignoramos esta respuesta vieja
   if (currentRequestId !== renderSlotsRequestId) return;
 
   if (horasOcupadas === null) {
@@ -1018,14 +940,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("calendar-next")?.addEventListener("click", () => changeCalendarMonth(1));
 });
 
-/* ---------------------------------------------------------------------- */
-/* Paso 3 — Datos del cliente                                             */
-/* ---------------------------------------------------------------------- */
+// Paso 3: Datos del cliente
 function bindClientForm() {
   const form = document.getElementById("client-form");
   if (!form) return;
   form.addEventListener("input", (e) => {
-    // El mensaje de error se va en cuanto la clienta corrige ese campo.
     if (e.target?.classList.contains("is-invalid")) marcarCampo(e.target.id, null);
     bookingState.cliente.nombre = document.getElementById("client-name").value.trim();
     bookingState.cliente.telefono = document.getElementById("client-phone").value.trim();
@@ -1033,7 +952,6 @@ function bindClientForm() {
   });
 }
 
-/** Marca (o limpia, con mensaje null) un campo del paso 3 con su mensaje debajo. */
 function marcarCampo(id, mensaje) {
   const el = document.getElementById(id);
   const err = document.getElementById(`${id}-error`);
@@ -1046,7 +964,6 @@ function marcarCampo(id, mensaje) {
   }
 }
 
-/** Acepta "300 123 4567", "300-123-4567", "(300) 123.4567", "+57 300…": cuenta solo los dígitos. */
 function telefonoValido(valor) {
   const limpio = valor.trim();
   if (!/^\+?[\d\s().-]+$/.test(limpio)) return false;
@@ -1064,7 +981,6 @@ function validateClientForm() {
     "client-phone": telefonoValido(phoneEl.value)
       ? null
       : "Escribe un teléfono de 7 a 15 dígitos, por ejemplo 300 123 4567.",
-    // Opcional: solo se revisa el formato si la clienta escribió algo.
     "client-email": !emailEl.value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())
       ? null
       : "Revisa el correo; debe verse como maria@correo.com. Si prefieres, déjalo vacío.",
@@ -1087,10 +1003,6 @@ function validateClientForm() {
   return valid;
 }
 
-/* ---------------------------------------------------------------------- */
-/* Paso 4 — Resumen y confirmación                                        */
-/* ---------------------------------------------------------------------- */
-/** "Lunes, 2 de noviembre" (solo la primera letra en mayúscula; `capitalize` ponía "De"). */
 function fechaLegible(fecha) {
   if (!fecha) return "—";
   const texto = fecha.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
@@ -1137,19 +1049,16 @@ function renderSummary() {
   `;
 }
 
-/** Escapa texto escrito por la clienta antes de meterlo en innerHTML. */
 function escaparHTML(texto) {
   return String(texto ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
-/** Escapa texto para un campo de .ics (RFC 5545: \ , ; y saltos de línea). */
 function escaparICS(texto) {
   return String(texto ?? "").replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\r?\n/g, "\\n");
 }
 
 const DIRECCION_ESTUDIO = "Conjunto cerrado La Rayuela, casa B15, Villa del Rosario, Norte de Santander";
 
-/** Texto del WhatsApp que la clienta le envía a Maivy con los datos de su solicitud. */
 function mensajeSolicitud(servicio) {
   return [
     "¡Hola Maivy! Acabo de solicitar una cita desde la página ✨",
@@ -1165,7 +1074,6 @@ function mensajeSolicitud(servicio) {
   ].join("\n");
 }
 
-/** Archivo .ics de la cita como URL de blob (para el botón "Agregar a mi calendario"). */
 function crearArchivoCalendario(servicio, duracionMin) {
   const p = parsearHora(bookingState.time);
   const inicio = new Date(bookingState.date);
@@ -1198,7 +1106,7 @@ function crearArchivoCalendario(servicio, duracionMin) {
   return icsUrlActual;
 }
 
-/** Pantalla final: resumen, dirección y el botón de WhatsApp que la clienta toca ella misma. */
+// Pantalla final
 function mostrarSolicitudEnviada(servicio, duracionMin) {
   const resumen = document.getElementById("booking-success-resumen");
   if (resumen) {
@@ -1219,8 +1127,6 @@ function mostrarSolicitudEnviada(servicio, duracionMin) {
       .join("");
   }
 
-  // La cita ya quedó guardada: WhatsApp solo acelera la confirmación. Si la clienta no escribe,
-  // Maivy la ve en el panel y la contacta al teléfono que dejó.
   const texto = document.getElementById("booking-success-texto");
   if (texto) {
     texto.textContent = `Ya está en mi agenda. Si me escribes por WhatsApp te confirmo más rápido; si no, yo te escribo al ${bookingState.cliente.telefono.replace(/ /g, " ")}.`;
@@ -1244,7 +1150,6 @@ function mostrarSolicitudEnviada(servicio, duracionMin) {
 
 async function confirmBooking() {
   if (!validateClientForm()) {
-    // Primero se muestra el paso 3 y luego se valida otra vez para enfocar el campo con error.
     await goToStep(3, { enfocar: false });
     validateClientForm();
     return;
@@ -1291,7 +1196,6 @@ async function confirmBooking() {
 
     if (error) {
       if (error.code === "23505") {
-        // Otra persona tomó el turno entre que se pintó la lista y se envió: se vuelve a consultar.
         bookingState.time = null;
         goToStep(2, { aviso: "Alguien acaba de tomar ese horario. Elige otra hora; tus datos siguen guardados." });
         return;
@@ -1302,7 +1206,6 @@ async function confirmBooking() {
     mostrarSolicitudEnviada(servicio, duracionMin);
   } catch (err) {
     console.error("[booking.js] Error al guardar la cita en Supabase:", err);
-    // Los datos siguen en el formulario; el enlace lleva la solicitud ya escrita por si la página no responde.
     mostrarAviso(
       `No se pudo enviar tu solicitud. Revisa tu conexión e inténtalo de nuevo, o
        <a href="${enlaceWhatsApp(mensajeSolicitud(servicio))}" target="_blank" rel="noopener" class="estado-error-link">envíamela por WhatsApp</a>.`
@@ -1313,10 +1216,6 @@ async function confirmBooking() {
   }
 }
 
-/**
- * Diagnóstico: en la consola del sitio escribe  depurarHorarios()
- * Muestra, por día, lo que hay guardado en la tabla `horarios` y las horas que genera el sitio.
- */
 window.depurarHorarios = async function () {
   await cargarConfiguracionCalendario();
   const filas = DIAS_CLAVE.map((clave, i) => {

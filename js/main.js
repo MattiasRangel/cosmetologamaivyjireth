@@ -1,8 +1,4 @@
-/**
- * main.js — comportamiento general de la landing:
- * navbar, menú móvil, scroll reveal, "Hilo del Ritual", catálogo de
- * servicios, videos de TikTok y barra móvil.
- */
+// Funciones generales del sitio
 
 document.addEventListener("DOMContentLoaded", async () => {
   initNavbar();
@@ -14,24 +10,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   initAutoOpenBooking();
   initBarraMovil();
 
-  // El Ritual y los videos de TikTok usan datos estáticos (RITUAL_STEPS y
-  // TIKTOK_VIDEOS, en data.js) que NO dependen de Supabase, así que se
-  // pintan de inmediato — antes, esperaban innecesariamente la respuesta
-  // de Supabase junto con los servicios, lo que retrasaba a simple vista
-  // secciones que no tenían por qué esperar nada (por eso el TikTok se
-  // sentía lento: ni siquiera empezaba a montarse hasta que llegaba el
-  // catálogo).
   renderRitual();
   initRitualThread();
   renderTikTokVideos();
 
-  // SERVICE_CATEGORIES y SERVICES sí los llena data.js con una consulta
-  // real a Supabase; solo lo que depende de ellos espera esa promesa.
   await window.datosListos;
   renderCatalogo();
 });
 
-/** Pinta pestañas + tarjetas, o el estado de error si Supabase no respondió. */
 function renderCatalogo() {
   const grid = document.getElementById("services-grid");
   if (window.catalogoError && grid) {
@@ -57,9 +43,7 @@ function renderCatalogo() {
   renderServices();
 }
 
-/* ---------------------------------------------------------------------- */
-/* Navbar: cambia de fondo al hacer scroll                                */
-/* ---------------------------------------------------------------------- */
+// Navbar: cambia de fondo al hacer scroll
 function initNavbar() {
   const nav = document.getElementById("navbar");
   if (!nav) return;
@@ -71,27 +55,17 @@ function initNavbar() {
   window.addEventListener("scroll", toggle, { passive: true });
 }
 
-/* ---------------------------------------------------------------------- */
-/* Menú móvil                                                              */
-/* ---------------------------------------------------------------------- */
+// Menú móvil
 function initMobileMenu() {
   const btn = document.getElementById("mobile-menu-btn");
   const menu = document.getElementById("mobile-menu");
   if (!btn || !menu) return;
 
-  // Los íconos NO se guardan en una variable al inicio: Lucide reemplaza
-  // cada <i data-lucide="..."> por un <svg> nuevo cuando corre
-  // lucide.createIcons() (en la carga de la página). Si aquí guardáramos
-  // la referencia al <i> original de una vez, se quedaría "vieja" (ya
-  // desconectada del DOM) y el ícono dejaría de cambiar visualmente al
-  // abrir/cerrar el menú. Por eso se buscan en el momento, cada vez.
   const getIcons = () => ({
     iconOpen: document.getElementById("icon-menu-open"),
     iconClose: document.getElementById("icon-menu-close"),
   });
 
-  // Cerrado, el menú queda fuera del orden de tabulación y del lector de pantalla
-  // (antes solo se ocultaba con max-height y sus enlaces seguían recibiendo foco).
   menu.inert = true;
 
   const closeMenu = () => {
@@ -117,15 +91,10 @@ function initMobileMenu() {
   );
 }
 
-/* ---------------------------------------------------------------------- */
-/* Scroll reveal genérico (IntersectionObserver)                          */
-/* ---------------------------------------------------------------------- */
+// Scroll reveal genérico (IntersectionObserver)
 let scrollRevealObserver = null;
 
 function initScrollReveal() {
-  // Se excluyen los que ya están marcados como visibles para no volver a
-  // observarlos cada vez que esta función se llama de nuevo (se llama una
-  // vez al cargar y otra vez después de cada render dinámico).
   const targets = document.querySelectorAll(
     ".reveal:not(.is-visible), .reveal-stagger:not(.is-visible)"
   );
@@ -152,10 +121,6 @@ function initScrollReveal() {
   targets.forEach((t) => scrollRevealObserver.observe(t));
 }
 
-/* ---------------------------------------------------------------------- */
-/* Catálogo compacto: pestañas por categoría (faciales primero) y filas    */
-/* con foto pequeña en vez de tarjetas altas.                              */
-/* ---------------------------------------------------------------------- */
 let categoriaActiva = null;
 
 function renderServiceTabs() {
@@ -180,7 +145,6 @@ function renderServiceTabs() {
       categoriaActiva = btn.dataset.categoria;
       renderServiceTabs();
       renderServices();
-      // Solo se mueve la página si las pestañas quedaron arriba de la vista (antes saltaba siempre).
       const top = tabs.getBoundingClientRect().top;
       if (top < 0) tabs.scrollIntoView({ behavior: "smooth", block: "start" });
       tabs.querySelector(`[data-categoria="${categoriaActiva}"]`)?.focus({ preventScroll: true });
@@ -188,7 +152,7 @@ function renderServiceTabs() {
   });
 }
 
-/** Miniatura que abre la foto completa en el lightbox. */
+// Miniatura que abre la foto completa en el lightbox.
 function miniaturaServicio(src, alt, clases) {
   return `
     <button type="button" class="js-ver-foto relative block overflow-hidden group/foto ${clases}" data-src="${src}" data-alt="${alt}" aria-label="Ver foto completa de ${alt}">
@@ -206,17 +170,12 @@ function renderServices() {
   const serviciosFiltrados = SERVICES.filter((s) => s.categoria === categoriaActiva);
 
   grid.innerHTML = serviciosFiltrados.map((s, i) => {
-    // "Especiales" (o cualquier servicio con galería) muestra la primera foto
-    // como miniatura y el resto en una tira pequeña bajo la descripción.
     const galeria = Array.isArray(s.imagenes) ? s.imagenes : null;
     const fotoPrincipal = galeria ? galeria[0] : s.imagen;
     const tira = galeria && galeria.length > 1
       ? `<div class="flex gap-1.5 mt-3">${galeria.slice(1).map((src) => miniaturaServicio(src, s.nombre, "w-11 h-11 rounded-lg flex-shrink-0")).join("")}</div>`
       : "";
 
-    // Una sola estructura: en celular es una fila corta (foto, nombre, precio · duración,
-    // "Ver detalles" y Agendar); desde 1024px la misma marca se acomoda como tarjeta con la
-    // descripción visible. Ver .sc en css/style.css.
     const idDetalles = `detalles-${s.id}`;
     return `
     <article class="service-card sc reveal" style="transition-delay:${Math.min(i, 6) * 50}ms">
@@ -256,7 +215,7 @@ function renderServices() {
 
   if (window.lucide) lucide.createIcons();
 
-  // Re-observe newly injected cards for scroll reveal
+  // Vuelve a observar las tarjetas nuevas
   initScrollReveal();
 
   grid.querySelectorAll(".js-agendar-servicio").forEach((btn) => {
@@ -265,7 +224,7 @@ function renderServices() {
     });
   });
 
-  // Selector de opciones (una zona / cuerpo completo): actualiza precio, duración y el botón Agendar
+  // Selector de opciones (una zona / cuerpo completo)
   grid.querySelectorAll(".variant-picker").forEach((picker) => {
     const servicio = SERVICES.find((x) => x.id === picker.dataset.picker);
     picker.querySelectorAll(".variant-chip").forEach((chip) => {
@@ -283,7 +242,7 @@ function renderServices() {
     });
   });
 
-  // "Ver detalles" (solo se ve en celular/tablet): abre la descripción de ese servicio.
+  // "Ver detalles" (solo se ve en celular/tablet)
   grid.querySelectorAll(".sc-toggle").forEach((btn) => {
     btn.addEventListener("click", () => {
       const abierto = btn.getAttribute("aria-expanded") !== "true";
@@ -298,9 +257,7 @@ function renderServices() {
   });
 }
 
-/* ---------------------------------------------------------------------- */
-/* Lightbox: ver la foto completa (sin recortar) al tocarla               */
-/* ---------------------------------------------------------------------- */
+// Lightbox: ver la foto completa (sin recortar) al tocarla
 function openImageLightbox(src, alt) {
   const lightbox = document.getElementById("image-lightbox");
   const img = document.getElementById("image-lightbox-img");
@@ -330,10 +287,6 @@ function initImageLightbox() {
   });
 }
 
-/* ---------------------------------------------------------------------- */
-/* Render de los pasos de "El Ritual": lista compacta unida por un hilo     */
-/* (vertical en celular, horizontal en escritorio).                        */
-/* ---------------------------------------------------------------------- */
 function renderRitual() {
   const wrap = document.getElementById("ritual-steps");
   if (!wrap || typeof RITUAL_STEPS === "undefined") return;
@@ -350,9 +303,7 @@ function renderRitual() {
   ).join("");
 }
 
-/* ---------------------------------------------------------------------- */
-/* "Hilo del Ritual" — la línea dorada se dibuja al hacer scroll          */
-/* ---------------------------------------------------------------------- */
+// "Hilo del Ritual": la línea dorada se dibuja al hacer scroll
 function initRitualThread() {
   const lista = document.getElementById("ritual-steps");
   const line = document.getElementById("ritual-thread-line");
@@ -364,7 +315,7 @@ function initRitualThread() {
   };
   if (!("IntersectionObserver" in window)) return dibujar();
 
-  // Un solo momento: al entrar la lista se dibuja el hilo y los nodos se llenan en orden.
+  // Un solo momento
   const observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
@@ -377,25 +328,6 @@ function initRitualThread() {
   observer.observe(lista);
 }
 
-/* ---------------------------------------------------------------------- */
-/* "Nuestro contenido" — videos de TikTok                                 */
-/* ---------------------------------------------------------------------- */
-/**
- * Usa el "Embed Player" oficial de TikTok para desarrolladores
- * (tiktok.com/player/v1/{id}) en vez del widget de blockquote + embed.js
- * de antes.
- *
- * OJO: `loading="lazy"` en un <iframe> ayuda, pero solo retrasa la CARGA;
- * si los 4 <iframe> ya están en el DOM con su `src` puesto, el navegador
- * igual arranca los 4 reproductores (con su JS/video propio) casi al
- * mismo tiempo apenas se acercan al viewport, y eso es lo que se sentía
- * como lag. Por eso ahora los <iframe> NO se crean junto con la tarjeta:
- * cada tarjeta empieza como un contenedor vacío (`.tiktok-frame-inner`,
- * ver `renderTikTokVideos`) y un IntersectionObserver (`initTikTokLazyMount`)
- * recién crea y monta el <iframe> de un video cuando ESE video en
- * particular está a punto de entrar en pantalla — así nunca hay más de
- * uno o dos reproduciendo autoplay a la vez.
- */
 const PARAMETROS_REPRODUCTOR_TIKTOK = [
   "autoplay=1",
   "muted=1",
@@ -436,13 +368,6 @@ function renderTikTokVideos() {
   initTikTokLazyMount();
 }
 
-/**
- * Observa cada `.tiktok-frame-inner` y solo crea su <iframe> (con el
- * `src` del Embed Player, o sea, solo ahí arranca la descarga y el
- * autoplay) cuando el video está a ~200px de entrar en pantalla. Si el
- * navegador no soporta IntersectionObserver, se hace un fallback simple:
- * montar todos de una vez, como antes.
- */
 function initTikTokLazyMount() {
   const contenedores = document.querySelectorAll(".tiktok-frame-inner");
   if (!contenedores.length) return;
@@ -467,7 +392,6 @@ function initTikTokLazyMount() {
   contenedores.forEach((el) => observer.observe(el));
 }
 
-/** Crea el <iframe> del Embed Player dentro de un `.tiktok-frame-inner`. */
 function montarIframeTikTok(contenedor) {
   if (contenedor.querySelector("iframe")) return; // ya montado, no duplicar
   const src = `https://www.tiktok.com/player/v1/${contenedor.dataset.videoId}?${PARAMETROS_REPRODUCTOR_TIKTOK}`;
@@ -481,11 +405,6 @@ function montarIframeTikTok(contenedor) {
   contenedor.prepend(iframe);
 }
 
-/**
- * Botón de silencio/sonido por video: usa el postMessage documentado por
- * TikTok (mute / unMute) para hablarle al iframe sin necesidad de
- * recargarlo. https://developers.tiktok.com/docs/en/embed-player#message_the_html_host
- */
 function initTikTokMuteButtons() {
   document.querySelectorAll(".tiktok-mute-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -504,18 +423,11 @@ function initTikTokMuteButtons() {
   });
 }
 
-/* ---------------------------------------------------------------------- */
-/* Utilidades                                                              */
-/* ---------------------------------------------------------------------- */
 function initYear() {
   const el = document.getElementById("current-year");
   if (el) el.textContent = new Date().getFullYear();
 }
 
-/* ---------------------------------------------------------------------- */
-/* Abrir el modal de reserva automáticamente si se llega desde otra       */
-/* página (ej. tarjeta-vip.html) con ?agendar=1                           */
-/* ---------------------------------------------------------------------- */
 function initAutoOpenBooking() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("agendar") === "1") {
@@ -523,11 +435,6 @@ function initAutoOpenBooking() {
   }
 }
 
-/* ---------------------------------------------------------------------- */
-/* Barra móvil "Agendar + WhatsApp": aparece cuando los botones del hero   */
-/* salen de pantalla y se esconde frente al cierre, que ya trae los mismos */
-/* dos botones, para no repetirlos mientras todavía se ven.               */
-/* ---------------------------------------------------------------------- */
 function initBarraMovil() {
   const barra = document.getElementById("barra-movil");
   const zonas = ["hero-ctas", "cierre-ctas"].map((id) => document.getElementById(id)).filter(Boolean);
@@ -544,9 +451,7 @@ function initBarraMovil() {
   zonas.forEach((z) => obs.observe(z));
 }
 
-/* ---------------------------------------------------------------------- */
-/* Sobre mí: parallax suave con el mouse                                  */
-/* ---------------------------------------------------------------------- */
+// Sobre mí: parallax suave con el mouse
 function initAbout() {
   const section = document.getElementById("sobre-mi");
   if (!section) return;

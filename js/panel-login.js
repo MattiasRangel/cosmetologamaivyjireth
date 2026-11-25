@@ -1,17 +1,5 @@
-/**
- * panel-login.js
- * -----------------------------------------------------------------------
- * Lógica exclusiva de panel-privado.html. Al iniciar sesión con éxito,
- * navega a panel-admin.html — panel-app.js se encarga de proteger esa
- * página revisando la sesión real de Supabase con
- * `supabase.auth.getSession()` (ver el guard al inicio de panel-app.js).
- *
- * login() (en panel-data.js) ya llama internamente a
- * `supabase.auth.signInWithPassword()`, que deja una sesión real (JWT
- * gestionado por el propio SDK) — no hace falta ninguna marca casera de
- * sessionStorage.
- * -----------------------------------------------------------------------
- */
+// Login del panel
+
 import { login } from "./panel-data.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -37,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultado = await login(email, password);
       if (resultado.ok) {
         window.location.href = "panel-admin.html";
-        return; // no reactivar el botón: la página está navegando
+        return;
       }
       errorEl.textContent = resultado.mensaje || "No se pudo iniciar sesión.";
       errorEl.hidden = false;

@@ -1,0 +1,10 @@
+# Configuración local de herramientas de desarrollo
+.claude/
+.agents/
+.impeccable/
+.mcp.json
+skills-lock.json
+PRODUCT.md
+
+# Otros proyectos
+video_navidad/

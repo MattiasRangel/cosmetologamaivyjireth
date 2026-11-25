@@ -1,11 +1,5 @@
-/**
- * tarjeta-consulta.js
- * -----------------------------------------------------------------------
- * Maneja el modal "Consultar mi tarjeta" de tarjeta-vip.html: pide el
- * código, lo valida contra vip-data.js (misma fuente que usa el panel) y,
- * si es válido, lleva a la clienta a mi-tarjeta-vip.html con su código.
- * -----------------------------------------------------------------------
- */
+// Consulta de la tarjeta VIP por código
+
 import { getVipCardByCodigo } from "./vip-data.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -68,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = `mi-tarjeta-vip.html?codigo=${encodeURIComponent(tarjeta.codigo)}`;
   });
 
-  // Si se llega con ?tarjeta=1 desde otra página, abre el modal directo.
   if (new URLSearchParams(window.location.search).get("tarjeta") === "1") {
     setTimeout(abrirModal, 400);
   }

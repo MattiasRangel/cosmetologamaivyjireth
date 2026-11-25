@@ -1,13 +1,5 @@
-/**
- * panel-vip.js
- * -----------------------------------------------------------------------
- * Pantalla de gestión de UNA Tarjeta VIP (abierta desde el botón
- * "Gestionar" en la fila de la tabla de Tarjetas VIP). Muestra la
- * delantera y la trasera de la tarjeta, y deja "pegar" o "quitar" los
- * stickers de las 10 visitas — que es justo lo que la clienta ve reflejado
- * en mi-tarjeta-vip.html a través del mismo código de acceso.
- * -----------------------------------------------------------------------
- */
+// Tarjetas VIP en el panel
+
 import * as api from "./panel-data.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -17,11 +9,9 @@ const TOTAL_VISITAS = 10;
 const VISITA_DESCUENTO = 5;
 const VISITA_OBSEQUIO = 10;
 
-let tarjetaActual = null; // la tarjeta VIP abierta actualmente en esta pantalla
+let tarjetaActual = null;
 
-/* ========================================================================
-   ABRIR / CERRAR LA PANTALLA
-   ======================================================================== */
+// ABRIR / CERRAR LA PANTALLA
 
 function initBotonGestionar() {
   $("#vip-tbody")?.addEventListener("click", async (e) => {
@@ -48,7 +38,7 @@ function volverAListaVip() {
   $("#tab-vip").classList.add("is-active");
   $all(".nav-item").forEach((btn) => btn.classList.toggle("is-active", btn.dataset.tab === "vip"));
   $("#panel-page-title").textContent = "Tarjetas VIP";
-  // La tabla puede haber cambiado (visitas actualizadas) — se refresca al volver.
+  // La tabla puede haber cambiado (visitas actualizadas)
   window.dispatchEvent(new CustomEvent("mj:vip-refrescar-lista"));
 }
 
@@ -74,7 +64,6 @@ function initTopbar() {
   });
 }
 
-/** Aviso pequeño reutilizando el mismo #toast del resto del panel (panel-app.js lo controla, pero el elemento es compartido). */
 function avisar(mensaje) {
   const toast = $("#toast");
   if (!toast) return;
@@ -88,9 +77,7 @@ function avisar(mensaje) {
   }, 2400);
 }
 
-/* ========================================================================
-   PINTAR LA TARJETA (delantera + trasera + panel de control)
-   ======================================================================== */
+// PINTAR LA TARJETA (delantera + trasera + panel de control)
 
 function formatearFechaCorta(iso) {
   if (!iso) return "—";
@@ -108,22 +95,20 @@ function pintarTarjeta() {
   if (!tarjetaActual) return;
   const t = tarjetaActual;
 
-  // --- Topbar ---
   $("#vipg-cliente-label").textContent = t.cliente;
   $("#vipg-codigo-texto").textContent = t.codigo;
   $("#vipg-toggle-estado").textContent = t.estado === "activa" ? "Dar de baja" : "Reactivar";
 
-  // --- Delantera ---
   $("#vipg-front-nombre").textContent = t.cliente;
   const numeroSpans = $all("#vipg-front-numero span");
   const grupos = (t.numeroTarjeta || "").split(" ");
   numeroSpans.forEach((span, i) => (span.textContent = grupos[i] || "****"));
   $("#vipg-front-valido").textContent = formatearFechaSlash(t.validaHasta);
 
-  // --- Trasera: grilla de 10 círculos ---
+  // Trasera: grilla de 10 círculos
   pintarPunchGrid(t.visitas || 0);
 
-  // --- Panel de control: progreso ---
+  // Panel de control: progreso
   const visitas = t.visitas || 0;
   $("#vipg-progress-texto").textContent = `${visitas} de ${TOTAL_VISITAS} visitas`;
   $("#vipg-progress-fill").style.width = `${(visitas / TOTAL_VISITAS) * 100}%`;
@@ -138,7 +123,7 @@ function pintarTarjeta() {
   $("#vipg-agregar-visita").disabled = visitas >= TOTAL_VISITAS;
   $("#vipg-canjear-ciclo").hidden = visitas < TOTAL_VISITAS;
 
-  // --- Panel de control: datos ---
+  // Panel de control: datos
   $("#vipg-dato-codigo").textContent = t.codigo;
   $("#vipg-dato-numero").textContent = t.numeroTarjeta || "—";
   $("#vipg-dato-creada").textContent = formatearFechaCorta(t.fechaCreacion);
@@ -178,16 +163,8 @@ function pintarPunchGrid(visitas) {
   });
 }
 
-/* ========================================================================
-   ACCIONES: tocar un círculo, +1/−1, canjear ciclo
-   ======================================================================== */
+// ACCIONES: tocar un círculo, +1/−1, canjear ciclo
 
-/**
- * Tocar el círculo N: si N ya estaba pegado y es el último pegado, lo
- * despega (retrocede una visita). Si no estaba pegado, pega TODOS los
- * círculos hasta N (una tarjeta de sellos no tiene huecos: si se marca la
- * visita 4, las visitas 1-3 tenían que haber pasado antes).
- */
 async function alClickCirculo(numero) {
   if (!tarjetaActual) return;
   const visitasActuales = tarjetaActual.visitas || 0;
@@ -218,9 +195,7 @@ async function actualizarVisitas(nuevoValor) {
   pintarTarjeta();
 }
 
-/* ========================================================================
-   ARRANQUE
-   ======================================================================== */
+// ARRANQUE
 
 document.addEventListener("DOMContentLoaded", () => {
   initBotonGestionar();

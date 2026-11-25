@@ -1,13 +1,5 @@
-/**
- * mi-tarjeta.js
- * -----------------------------------------------------------------------
- * Página mi-tarjeta-vip.html — puramente visual, de solo lectura para la
- * clienta. Busca la tarjeta por el código que viene en la URL
- * (?codigo=MJVIP-XXXXX), pinta la delantera y la trasera (con los
- * stickers de las visitas que la administradora ya marcó desde el panel)
- * y maneja el volteo 3D de la tarjeta.
- * -----------------------------------------------------------------------
- */
+// Tarjeta VIP de la clienta
+
 import { getVipCardByCodigo, VIP_CONFIG } from "./vip-data.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -59,7 +51,6 @@ function pintarTarjeta(tarjeta) {
   $("#tarjeta-nombre").textContent = primerNombre || tarjeta.cliente || "";
   const nombreFrente = $("#front-nombre");
   nombreFrente.textContent = tarjeta.cliente || "";
-  // Nombres largos van en letra más pequeña para no meterse debajo del logo.
   const largoNombre = (tarjeta.cliente || "").length;
   if (largoNombre > 16) nombreFrente.dataset.largo = "muy";
   else if (largoNombre > 11) nombreFrente.dataset.largo = "si";
@@ -69,10 +60,8 @@ function pintarTarjeta(tarjeta) {
   $all("#front-numero span").forEach((span, i) => (span.textContent = grupos[i] || "****"));
   $("#front-valido").textContent = formatearFechaSlash(tarjeta.validaHasta);
 
-  // Trasera
   pintarPunchGrid(visitas);
 
-  // Progreso
   $("#progreso-texto").textContent = `${visitas} de ${TOTAL_VISITAS} visitas`;
   $("#progreso-fill").style.width = `${(visitas / TOTAL_VISITAS) * 100}%`;
   $("#progreso-ciclos").textContent = tarjeta.ciclosCompletados
@@ -89,17 +78,6 @@ function pintarTarjeta(tarjeta) {
   if (window.lucide) lucide.createIcons();
 }
 
-/**
- * Volteo y giro 3D de la tarjeta.
- *
- * Celular: giro libre. La tarjeta sigue el dedo en todas direcciones (vueltas completas a
- * los lados y hacia arriba o abajo). Al soltarla conserva el impulso, frena sola y se
- * acomoda derecha mostrando el frente o el reverso.
- * Escritorio: se inclina siguiendo el mouse y el clic la voltea.
- *
- * Rendimiento: un solo bucle de requestAnimationFrame escribe únicamente `transform` en la
- * tarjeta y en el reflejo de luz; son capas que la tarjeta gráfica mueve sin repintarlas.
- */
 function initVoltear() {
   const wrap = $("#mv-flip-wrap");
   const inner = $("#mv-flip-inner");
@@ -111,11 +89,10 @@ function initVoltear() {
   const esMovil = window.matchMedia("(pointer: coarse)").matches;
   const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const MAX_TILT = 14;        // inclinación con el mouse, en grados
-  const GRADOS_POR_ANCHO = 240; // deslizar el ancho completo de la tarjeta gira 240°
-  const IMPULSO_MS = 260;     // cuánto "sigue de largo" al soltar, según la velocidad
-  const MAX_EXTRA = 540;      // tope de giro extra por impulso (1,5 vueltas)
+  const GRADOS_POR_ANCHO = 240;
+  const IMPULSO_MS = 260;
+  const MAX_EXTRA = 540;
 
-  // Un reflejo de luz por cara; se mueve con transform, nunca cambia su pintura.
   const brillos = [".vip-card", ".mv-card-back"].map((sel) => {
     const cara = inner.querySelector(sel);
     if (!cara) return null;
@@ -126,11 +103,11 @@ function initVoltear() {
     return brillo;
   }).filter(Boolean);
 
-  // Ángulos absolutos. baseY es la cara elegida (múltiplo de 180); rx en reposo es múltiplo de 360.
+  // Ángulos absolutos
   let baseY = 0;
   const objetivo = { rx: 0, ry: 0, s: 1, gx: 0.3, gy: 0.25 };
   const actual = { ...objetivo };
-  let suavizado = 0.12; // fracción por cuadro a 60 fps; más alto = más pegado
+  let suavizado = 0.12;
   let rafId = null;
   let ultimoT = 0;
   let rect = null;
@@ -141,7 +118,7 @@ function initVoltear() {
   let inicio = { x: 0, y: 0, rx: 0, ry: 0 };
   let previo = { x: 0, y: 0, t: 0 };
   let vel = { x: 0, y: 0 }; // grados por milisegundo, suavizada
-  let sentidoY = 1;          // -1 si la tarjeta está de cabeza: así el giro sigue al dedo
+  let sentidoY = 1;
 
   const muestraReverso = () => Math.abs(Math.round(baseY / 180)) % 2 === 1;
 
@@ -153,17 +130,13 @@ function initVoltear() {
       : `Haz clic en la tarjeta para ver ${lado}`;
   };
 
-  // Safari en iPhone no siempre respeta backface-visibility (sobre todo con capas animadas
-  // dentro de la cara) y mostraba el frente en espejo encima del reverso. Por eso se oculta
-  // a mano la cara que queda de espaldas: el frente mira a la clienta cuando
-  // cos(rx)·cos(ry) > 0 (componente z de su normal tras rotateX(rx) rotateY(ry)).
   const caraFrente = inner.querySelector(".mv-face--front");
   const caraReverso = inner.querySelector(".mv-face--back");
   let frenteVisible = null;
   const mostrarCaraCorrecta = () => {
     const rad = Math.PI / 180;
     const visible = Math.cos(actual.rx * rad) * Math.cos(actual.ry * rad) >= 0;
-    if (visible === frenteVisible) return; // solo se toca el DOM cuando cambia de cara
+    if (visible === frenteVisible) return;
     frenteVisible = visible;
     if (caraFrente) caraFrente.style.visibility = visible ? "visible" : "hidden";
     if (caraReverso) caraReverso.style.visibility = visible ? "hidden" : "visible";
@@ -178,7 +151,6 @@ function initVoltear() {
     brillos.forEach((b) => (b.style.transform = `translate3d(${tx}%, ${ty}%, 0)`));
   };
 
-  // Al quedar quieta, reduce los ángulos a su equivalente pequeño (mismo aspecto, números chicos).
   const normalizar = () => {
     const vueltasX = Math.round(actual.rx / 360) * 360;
     actual.rx -= vueltasX; objetivo.rx -= vueltasX;
@@ -230,9 +202,7 @@ function initVoltear() {
   actualizarTextoBoton();
   pintar();
 
-  // =====================================================================
   // CELULAR: giro libre con impulso
-  // =====================================================================
   wrap.addEventListener("touchstart", (e) => {
     if (e.touches.length !== 1) return;
     const t = e.touches[0];
@@ -279,7 +249,7 @@ function initVoltear() {
     const vx = quietoAntes ? 0 : vel.x;
     const vy = quietoAntes ? 0 : vel.y;
     const tope = (v) => Math.max(-MAX_EXTRA, Math.min(MAX_EXTRA, v * IMPULSO_MS));
-    // A dónde llegaría con ese impulso; ahí se elige la cara (frente o reverso) y se endereza.
+    // A dónde llegaría con ese impulso; ahí se elige la cara
     const destinoY = actual.ry + tope(vx);
     const destinoX = actual.rx + tope(vy);
     elegirCara(Math.round(destinoY / 180) * 180);
@@ -287,16 +257,14 @@ function initVoltear() {
     objetivo.rx = Math.round(destinoX / 360) * 360;
     objetivo.s = 1;
     objetivo.gx = 0.3; objetivo.gy = 0.25;
-    suavizado = 0.085; // sale rápido y frena suave: se siente como impulso
+    suavizado = 0.085;
     wrap.classList.remove("is-activa");
     animar();
   };
   wrap.addEventListener("touchend", soltar);
   wrap.addEventListener("touchcancel", soltar);
 
-  // =====================================================================
   // ESCRITORIO: inclinación con el mouse y clic para voltear
-  // =====================================================================
   wrap.addEventListener("mouseenter", () => { rect = wrap.getBoundingClientRect(); });
   wrap.addEventListener("mousemove", (e) => {
     if (Date.now() - lastTouchTime < 600) return;
@@ -316,7 +284,6 @@ function initVoltear() {
   window.addEventListener("resize", () => { rect = null; }, { passive: true });
   window.addEventListener("scroll", () => { rect = null; }, { passive: true });
 
-  // En escritorio el clic voltea; en celular el toque simple no hace nada (se gira arrastrando).
   wrap.addEventListener("click", () => {
     if (Date.now() - lastTouchTime < 600) return;
     voltear(180);
@@ -353,18 +320,11 @@ async function init() {
   pintarTarjeta(tarjeta);
   initVoltear();
 
-  // Si la administradora marca una visita mientras la clienta tiene esta
-  // misma página abierta en otra pestaña de ESTE MISMO navegador, se
-  // refresca sola (ver el CustomEvent que dispara vip-data.js al guardar).
   window.addEventListener("mj:vip-tarjetas-cambiaron", async () => {
     const actualizada = await getVipCardByCodigo(codigo);
     if (actualizada) pintarTarjeta(actualizada);
   });
 
-  // Con Supabase el cambio puede venir de OTRO dispositivo por completo
-  // (la administradora marcando visitas desde el panel en su propio
-  // celular o computador) — para eso, en vez del evento "storage" de
-  // localStorage, se escucha en tiempo real la fila de esta tarjeta.
   if (window.supabaseClient) {
     window.supabaseClient
       .channel(`tarjeta-vip-${codigo}`)

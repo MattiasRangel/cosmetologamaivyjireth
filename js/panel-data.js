@@ -1,15 +1,4 @@
-/**
- * panel-data.js
- * -----------------------------------------------------------------------
- * Capa de datos del panel privado. Habla directamente con Supabase
- * (tablas `citas`, `servicios`, `horarios`, `dias_bloqueados`,
- * `historias_clinicas` y Supabase Auth). panel-app.js y panel-historia.js
- * SOLO conocen estas funciones — nunca la forma real de las filas de la
- * base de datos — así que cada función mapea de snake_case (columnas) a
- * camelCase (lo que ya esperaba el resto del frontend) antes de devolver
- * cualquier cosa.
- * -----------------------------------------------------------------------
- */
+// Consultas a Supabase del panel
 
 function supabase() {
   const cliente = window.supabaseClient;
@@ -27,16 +16,8 @@ const addDays = (date, days) => {
   return d;
 };
 
-/* ========================================================================
-   AUTENTICACIÓN
-   ======================================================================== */
+// AUTENTICACIÓN
 
-/**
- * Intenta iniciar sesión con Supabase Auth.
- * @param {string} email
- * @param {string} password
- * @returns {Promise<{ok: boolean, mensaje?: string}>}
- */
 export async function login(email, password) {
   if (!email || !password) {
     return { ok: false, mensaje: "Ingresa tu correo y tu contraseña." };
@@ -46,22 +27,11 @@ export async function login(email, password) {
   return { ok: true };
 }
 
-/**
- * Cierra la sesión actual.
- * @returns {Promise<void>}
- */
 export async function logout() {
   const { error } = await supabase().auth.signOut();
   if (error) console.error("[panel-data.js] Error cerrando sesión:", error);
 }
 
-/* ========================================================================
-   KPIs
-   ======================================================================== */
-
-/**
- * @returns {Promise<{turnosHoy:number, pendientes:number, proximos7:number, servicioTop:string}>}
- */
 export async function getKpis() {
   const hoyISO = toISODate(new Date());
   const en7ISO = toISODate(addDays(new Date(), 7));
@@ -101,11 +71,8 @@ export async function getKpis() {
   };
 }
 
-/* ========================================================================
-   AGENDA / CITAS
-   ======================================================================== */
+// AGENDA / CITAS
 
-/** Convierte una fila de `citas` (snake_case) al objeto camelCase que ya usaba el panel. */
 function mapearCita(fila) {
   return {
     id: fila.id,
@@ -119,10 +86,6 @@ function mapearCita(fila) {
   };
 }
 
-/**
- * @param {{rango?: 'hoy'|'mañana'|'7dias'|'30dias', estado?: string, busqueda?: string}} filtros
- * @returns {Promise<Array>}
- */
 export async function getAppointments(filtros = {}) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -159,11 +122,6 @@ export async function getAppointments(filtros = {}) {
   return data.map(mapearCita);
 }
 
-/**
- * @param {string} id
- * @param {'pendiente'|'confirmado'|'completado'|'cancelado'} nuevoEstado
- * @returns {Promise<void>}
- */
 export async function updateAppointmentStatus(id, nuevoEstado) {
   const { error } = await supabase().from("citas").update({ estado: nuevoEstado }).eq("id", id);
   if (error) {
@@ -172,11 +130,6 @@ export async function updateAppointmentStatus(id, nuevoEstado) {
   }
 }
 
-/**
- * @param {string} id
- * @param {{fechaISO:string, hora:string, cliente:string, contacto:string, servicioId:string, estado:string}} cambios
- * @returns {Promise<void>}
- */
 export async function updateAppointment(id, cambios) {
   const payload = {
     fecha_iso: cambios.fechaISO,
@@ -187,9 +140,6 @@ export async function updateAppointment(id, cambios) {
     estado: cambios.estado,
   };
 
-  // servicio_nombre es una "foto" histórica del nombre del servicio (ver
-  // NOTA DE DISEÑO en schema.sql) — si cambia el servicio, se actualiza
-  // también su nombre guardado en la cita.
   if (cambios.servicioId) {
     const { data: servicioRow, error: errorServicio } = await supabase()
       .from("servicios")
@@ -207,10 +157,6 @@ export async function updateAppointment(id, cambios) {
   }
 }
 
-/**
- * @param {string} fechaISO
- * @returns {Promise<Array>}
- */
 export async function getAppointmentsByDate(fechaISO) {
   const { data, error } = await supabase()
     .from("citas")
@@ -224,13 +170,6 @@ export async function getAppointmentsByDate(fechaISO) {
   return data.map(mapearCita);
 }
 
-/**
- * Conteo de citas (no canceladas) por día, para las etiquetas del
- * calendario mensual.
- * @param {number} year
- * @param {number} month 0-indexado (0 = enero)
- * @returns {Promise<Record<string, number>>}
- */
 export async function getMonthAppointmentCounts(year, month) {
   const inicio = `${year}-${String(month + 1).padStart(2, "0")}-01`;
   const fin = toISODate(new Date(year, month + 1, 0));
@@ -253,11 +192,8 @@ export async function getMonthAppointmentCounts(year, month) {
   return counts;
 }
 
-/* ========================================================================
-   SERVICIOS
-   ======================================================================== */
+// SERVICIOS
 
-/** @returns {Promise<Array>} */
 export async function getServices() {
   const { data, error } = await supabase()
     .from("servicios")
@@ -270,13 +206,9 @@ export async function getServices() {
   return data;
 }
 
-/**
- * @param {{nombre:string, descripcion:string, duracion:number, precio:number}} data
- * @returns {Promise<object>}
- */
 export async function createService(data) {
   const nuevo = {
-    id: `serv-${Date.now()}`, // servicios.id es TEXT PRIMARY KEY sin valor por defecto
+    id: `serv-${Date.now()}`,
     nombre: data.nombre,
     descripcion: data.descripcion,
     duracion: data.duracion,
@@ -291,10 +223,6 @@ export async function createService(data) {
   return fila;
 }
 
-/**
- * @param {string} id
- * @returns {Promise<boolean>} nuevo valor de "activo"
- */
 export async function toggleServiceActive(id) {
   const { data: actual, error: errorLectura } = await supabase()
     .from("servicios")
@@ -315,11 +243,8 @@ export async function toggleServiceActive(id) {
   return nuevoValor;
 }
 
-/* ========================================================================
-   HORARIOS DE ATENCIÓN
-   ======================================================================== */
+// HORARIOS DE ATENCIÓN
 
-/** @returns {Promise<object>} objeto {lunes:{cerrado,franjas}, martes:{...}, ...} */
 export async function getSchedule() {
   const { data, error } = await supabase().from("horarios").select("dia, cerrado, franjas");
   if (error) {
@@ -333,11 +258,6 @@ export async function getSchedule() {
   return horarios;
 }
 
-/**
- * @param {string} dia clave en minúsculas: lunes..domingo
- * @param {{cerrado:boolean, franjas:Array<{inicio:string,fin:string}>}} data
- * @returns {Promise<void>}
- */
 export async function updateScheduleDay(dia, data) {
   const { error } = await supabase()
     .from("horarios")
@@ -349,7 +269,6 @@ export async function updateScheduleDay(dia, data) {
   }
 }
 
-/** @returns {Promise<string[]>} fechas ISO */
 export async function getBlockedDates() {
   const { data, error } = await supabase().from("dias_bloqueados").select("fecha_iso");
   if (error) {
@@ -359,23 +278,15 @@ export async function getBlockedDates() {
   return data.map((fila) => fila.fecha_iso);
 }
 
-/**
- * @param {string} fechaISO
- * @returns {Promise<void>}
- */
 export async function addBlockedDate(fechaISO) {
   const { error } = await supabase().from("dias_bloqueados").insert({ fecha_iso: fechaISO });
-  // 23505 = ya estaba bloqueada (fecha_iso es PRIMARY KEY) — no es un error real.
+  // 23505 = ya estaba bloqueada (fecha_iso es PRIMARY KEY)
   if (error && error.code !== "23505") {
     console.error("[panel-data.js] Error bloqueando la fecha:", error);
     throw error;
   }
 }
 
-/**
- * @param {string} fechaISO
- * @returns {Promise<void>}
- */
 export async function removeBlockedDate(fechaISO) {
   const { error } = await supabase().from("dias_bloqueados").delete().eq("fecha_iso", fechaISO);
   if (error) {
@@ -384,12 +295,6 @@ export async function removeBlockedDate(fechaISO) {
   }
 }
 
-/* ========================================================================
-   HORARIOS ESPECIALES (por fecha) — reemplazan al horario semanal solo ese día
-   Tabla: horarios_especiales (fecha_iso date PK, cerrado, franjas jsonb, nota)
-   ======================================================================== */
-
-/** @returns {Promise<Array<{fechaISO:string, cerrado:boolean, franjas:Array, nota:string}>>} */
 export async function getSpecialSchedules() {
   const { data, error } = await supabase().from("horarios_especiales").select("*").order("fecha_iso", { ascending: true });
   if (error) {
@@ -406,7 +311,7 @@ export async function getSpecialSchedules() {
   }));
 }
 
-/** Crea o reemplaza el horario especial de una fecha. */
+// Crea o reemplaza el horario especial de una fecha.
 export async function saveSpecialSchedule({ fechaISO, cerrado, franjas, horasExcluidas = [], horasEditadas = {}, nota }) {
   const { error } = await supabase()
     .from("horarios_especiales")
@@ -420,7 +325,7 @@ export async function saveSpecialSchedule({ fechaISO, cerrado, franjas, horasExc
   }
 }
 
-/** Quita el horario especial: esa fecha vuelve al horario semanal normal. */
+// Quita el horario especial
 export async function deleteSpecialSchedule(fechaISO) {
   const { error } = await supabase().from("horarios_especiales").delete().eq("fecha_iso", fechaISO);
   if (error) {
@@ -429,14 +334,6 @@ export async function deleteSpecialSchedule(fechaISO) {
   }
 }
 
-/* ========================================================================
-   TARJETAS VIP
-   Viven en vip-data.js (Supabase, tabla tarjetas_vip) en vez de un arreglo
-   en memoria de este archivo, porque tanto el panel como las páginas
-   públicas (tarjeta-vip.html, mi-tarjeta-vip.html) necesitan ver la MISMA
-   tarjeta. panel-app.js sigue importando estas funciones solo desde
-   "./panel-data.js" — de dónde vengan realmente no le importa.
-   ======================================================================== */
 export {
   getVipCards,
   getVipCardById,
@@ -449,15 +346,6 @@ export {
   VIP_CONFIG,
 } from "./vip-data.js";
 
-/* ========================================================================
-   HISTORIAS CLÍNICAS (Facial y Corporal)
-   Una historia queda asociada a la cita desde la que se creó (citaId),
-   para poder abrirla de nuevo más adelante desde esa misma fila de la
-   agenda. El "tipo" (facial | corporal) decide qué formulario y qué
-   plantilla de PDF se usan.
-   ======================================================================== */
-
-/** Convierte una fila de `historias_clinicas` (snake_case) al objeto camelCase que espera panel-historia.js. */
 function mapearHistoria(fila) {
   if (!fila) return null;
   return {
@@ -469,10 +357,6 @@ function mapearHistoria(fila) {
   };
 }
 
-/**
- * @param {string} citaId
- * @returns {Promise<object|null>} la historia más reciente para esa cita, o null si no tiene
- */
 export async function getHistoriaClinicaPorCita(citaId) {
   const { data, error } = await supabase()
     .from("historias_clinicas")
@@ -488,15 +372,6 @@ export async function getHistoriaClinicaPorCita(citaId) {
   return mapearHistoria(data);
 }
 
-/**
- * Guarda (crea o actualiza) una historia clínica ya completada en el
- * formulario. La tabla tiene UNIQUE(cita_id, tipo), así que si ya existe
- * una historia de este tipo para esta cita se actualiza en vez de
- * duplicarse — esto es justo lo que permite reabrir y editar la misma
- * historia desde panel-historia.js.
- * @param {{citaId:string, tipo:'facial'|'corporal', datos:object}} registro
- * @returns {Promise<object>}
- */
 export async function guardarHistoriaClinica(registro) {
   const cliente = registro.datos?.nombreCompleto || registro.datos?.cliente || "";
   const fila = {

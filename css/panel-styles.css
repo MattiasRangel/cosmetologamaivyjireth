@@ -1,17 +1,5 @@
-/* =========================================================================
-   panel-styles.css — Panel privado de administración
-   Reutiliza la paleta e identidad tipográfica de la página pública
-   (Playfair Display + Poppins, familia de rosas) pero en una composición
-   pensada para trabajo diario: base neutra, acentos de color reservados
-   para estado y acción, tablas y formularios con prioridad de lectura.
-   ========================================================================= */
+/* Estilos del panel administrativo */
 
-/* Blindaje: cualquier elemento con el atributo `hidden` debe ocultarse
-   siempre, sin importar qué otra regla de `display` le pongamos a su
-   clase más adelante en esta hoja (ej. `.hc-form { display:flex }`).
-   Sin esto, un simple `elemento.hidden = true` desde JS puede quedar
-   sin efecto porque una regla de autor con `display` explícito le gana
-   a la regla `[hidden]{display:none}` del navegador. */
 [hidden] { display: none !important; }
 
 :root {
@@ -29,9 +17,6 @@
   --blanco: #ffffff;
   --fondo: #faf7f6;
 
-  /* Colores de estado: deliberadamente NO son de la familia rosa, para
-     que un vistazo a la columna "Estado" no se confunda con los acentos
-     de marca/acción. */
   --estado-pendiente: #b8842a;
   --estado-pendiente-bg: #fbf1e0;
   --estado-confirmado: #2f7d5c;
@@ -71,9 +56,7 @@ select:focus-visible,
   border-radius: 4px;
 }
 
-/* =========================================================================
-   Pantalla de login
-   ========================================================================= */
+/* Pantalla de login */
 .login-view {
   min-height: 100vh;
   display: flex;
@@ -143,9 +126,7 @@ select:focus-visible,
   font-size: 0.75rem;
 }
 
-/* =========================================================================
-   Campos de formulario / botones (compartidos en todo el panel)
-   ========================================================================= */
+/* Campos de formulario / botones */
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label {
   font-size: 0.8rem;
@@ -214,9 +195,7 @@ input:focus, .select-field:focus {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* =========================================================================
-   Layout general del panel (sidebar + contenido)
-   ========================================================================= */
+/* Layout general del panel (sidebar + contenido) */
 .panel-view {
   display: flex;
   min-height: 100vh;
@@ -308,9 +287,7 @@ input:focus, .select-field:focus {
 .panel-page-title { font-size: 1.6rem; font-weight: 600; }
 .panel-page-date { margin: 0; font-size: 0.85rem; color: var(--gris-suave); text-transform: capitalize; }
 
-/* =========================================================================
-   Tarjetas KPI
-   ========================================================================= */
+/* Tarjetas KPI */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -341,9 +318,6 @@ input:focus, .select-field:focus {
 .kpi-value.kpi-value-text { font-size: 1.25rem; line-height: 1.3; }
 .kpi-card.kpi-accent .kpi-value { color: var(--rosa-intenso); }
 
-/* =========================================================================
-   Pestañas
-   ========================================================================= */
 .tab-panel { display: none; }
 .tab-panel.is-active { display: block; animation: fadeIn 0.25s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -359,9 +333,7 @@ input:focus, .select-field:focus {
 .panel-card-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 4px; }
 .panel-card-subtitle { color: var(--gris-suave); font-size: 0.85rem; margin: 0 0 20px; }
 
-/* =========================================================================
-   Toolbar (filtros de Agenda)
-   ========================================================================= */
+/* Toolbar (filtros de Agenda) */
 .toolbar {
   display: flex;
   align-items: center;
@@ -393,9 +365,6 @@ input:focus, .select-field:focus {
 .search-field input { padding-left: 34px; min-width: 220px; }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--gris-suave); }
 
-/* =========================================================================
-   Tablas
-   ========================================================================= */
 .table-wrap { overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .data-table th {
@@ -462,9 +431,7 @@ input:focus, .select-field:focus {
 .icon-btn.icon-btn-danger:hover { border-color: var(--estado-cancelado); color: var(--estado-cancelado); }
 .icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* =========================================================================
-   Formularios en grilla (servicios, VIP, editar cita)
-   ========================================================================= */
+/* Formularios en grilla (servicios, VIP, editar cita) */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -504,9 +471,6 @@ input:focus, .select-field:focus {
 .switch input:checked + .switch-track { background: var(--rosa-intenso); }
 .switch input:checked + .switch-track::before { transform: translateX(18px); }
 
-/* =========================================================================
-   Calendario (pestaña Calendario y "Días bloqueados" en Horarios)
-   ========================================================================= */
 .calendar-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: start; }
 .calendar-card {
   background: var(--blanco);
@@ -573,9 +537,7 @@ input:focus, .select-field:focus {
 }
 .day-detail-item time { font-weight: 600; color: var(--rosa-intenso-oscuro); min-width: 48px; }
 
-/* =========================================================================
-   Horarios semanales
-   ========================================================================= */
+/* Horarios semanales */
 .schedule-week { display: flex; flex-direction: column; gap: 10px; }
 .schedule-day-row {
   display: flex;
@@ -673,9 +635,7 @@ input:focus, .select-field:focus {
   font-size: 0.85rem;
 }
 
-/* =========================================================================
-   Modal (editar cita)
-   ========================================================================= */
+/* Modal (editar cita) */
 .modal-overlay {
   display: none;
   position: fixed; inset: 0;
@@ -700,9 +660,6 @@ input:focus, .select-field:focus {
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .modal-header h3 { font-size: 1.15rem; }
 
-/* =========================================================================
-   Toast
-   ========================================================================= */
 .toast {
   position: fixed;
   bottom: 24px;
@@ -720,9 +677,6 @@ input:focus, .select-field:focus {
 }
 .toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* =========================================================================
-   Responsivo
-   ========================================================================= */
 @media (max-width: 1080px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .calendar-layout { grid-template-columns: 1fr; }
@@ -766,9 +720,7 @@ input:focus, .select-field:focus {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
-/* =========================================================================
-   Historia Clínica — modal de tipo + área de trabajo a pantalla completa
-   ========================================================================= */
+/* Historia Clínica */
 .modal-card-sm { max-width: 400px; text-align: center; }
 .modal-card-sm .modal-header { text-align: left; }
 .hc-modal-question { color: var(--gris-suave); font-size: 0.9rem; margin: 0 0 18px; }
@@ -788,8 +740,6 @@ input:focus, .select-field:focus {
 .hc-tipo-btn svg { width: 28px; height: 28px; color: var(--rosa-intenso); }
 .hc-tipo-btn:hover { border-color: var(--rosa-intenso); background: var(--rosa-base); transform: translateY(-1px); }
 
-/* Cuando la historia clínica está activa, el sidebar y las KPI se ocultan
-   para trabajar en el formulario sin distracciones ("pantalla completa"). */
 #panel-view.is-historia-activa .sidebar,
 #panel-view.is-historia-activa .panel-header {
   display: none;
@@ -896,9 +846,7 @@ input:focus, .select-field:focus {
 .hc-simple-check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 400; cursor: pointer; margin-top: 6px; }
 .hc-simple-check input { width: 16px; height: 16px; accent-color: var(--rosa-intenso); }
 
-/* =========================================================================
-   Historia Clínica — Lado A (formulario) + Lado B (vista previa A4 en vivo)
-   ========================================================================= */
+/* Historia Clínica */
 .tab-panel-full { max-width: 1760px; }
 
 .hc-workarea { display: flex; align-items: flex-start; gap: 28px; }
@@ -930,7 +878,6 @@ input:focus, .select-field:focus {
 }
 .hc-preview-doc { display: flex; flex-direction: column; align-items: center; gap: 24px; width: 100%; }
 
-/* ---- Hoja A4 nativa (794 × 1123 px @ 96dpi) — esta es la "Plantilla B" ---- */
 .hc-page {
   position: relative;
   width: 794px;
@@ -942,7 +889,7 @@ input:focus, .select-field:focus {
   box-sizing: border-box;
   font-family: var(--font-body);
   color: #4a3b42;
-  overflow: hidden; /* una hoja A4 real nunca "crece": el texto que no cabe se recorta aquí, igual que en papel */
+  overflow: hidden;
 }
 .hc-p-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; align-items: start; }
 .hc-page::before {
@@ -999,15 +946,9 @@ input:focus, .select-field:focus {
 .hc-p-value {
   flex: 1; min-height: 13px; border-bottom: 1px solid #ecd6de;
   padding-bottom: 1px; font-weight: 500; color: #3c2c33;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* texto largo se recorta con "…" en vez de romper el layout */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .hc-p-value.hc-p-multiline {
-  /* Nota técnica: antes esto dibujaba "líneas de cuaderno" repetidas con un
-     background-image en gradiente — se veía perfecto en pantalla, pero
-     html2canvas (el motor que usa el PDF para "fotografiar" esta hoja) no
-     sabe reconstruir bien ese tipo de gradiente y lo pintaba como una barra
-     gris sólida en el PDF. Por eso ahora es un solo borde simple, igual al
-     de los demás campos — se ve limpio tanto en pantalla como en el PDF. */
   display: block; height: 32px; overflow: hidden; white-space: pre-wrap; line-height: 16px;
   border-bottom: 1px solid #ecd6de; padding-bottom: 2px;
 }
@@ -1029,7 +970,7 @@ input:focus, .select-field:focus {
 .hc-p-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; margin-top: 4px; table-layout: fixed; }
 .hc-p-table th, .hc-p-table td {
   border: 1px solid var(--rosa-intenso-claro); padding: 5px 7px; text-align: left; height: 18px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* una celda nunca puede crecer la fila, aunque el texto sea largo */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .hc-p-table th { background: var(--rosa-base); color: var(--rosa-intenso-oscuro); font-weight: 600; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.02em; }
 
@@ -1046,11 +987,9 @@ input:focus, .select-field:focus {
   padding: 2px 12px; border-radius: 999px; background: #fff;
 }
 
-/* Cuando html2pdf clona el nodo para renderizar, esta clase evita que se
-   vea el "recorte" del contenedor con scroll — ver panel-historia.js */
 .hc-page.is-exportando-pdf { box-shadow: none; }
 
-/* ---- Lado A: tablas editables (control de sesiones / precios) ---- */
+/* Lado A: tablas editables (control de sesiones / precios) */
 .hc-edit-table-title { margin: 14px 0 2px; }
 .hc-edit-table-hint { font-weight: 400; font-size: 0.72rem; color: var(--gris-suave); text-transform: none; letter-spacing: 0; }
 .hc-edit-table { width: 100%; border-collapse: collapse; margin: 6px 0 4px; font-size: 0.78rem; }
@@ -1065,7 +1004,7 @@ input:focus, .select-field:focus {
 }
 .hc-edit-table input:focus { outline: 2px solid var(--rosa-acento); outline-offset: -2px; background: var(--rosa-base-soft); }
 
-/* ---- Lado A: contador de caracteres bajo textareas con maxlength ---- */
+/* Lado A: contador de caracteres bajo textareas con maxlength */
 .hc-char-count { display: block; text-align: right; font-size: 0.7rem; color: var(--gris-suave); margin-top: 2px; }
 .hc-char-count.is-cerca { color: var(--rosa-acento-dark, #c85f82); font-weight: 600; }
 
@@ -1091,16 +1030,12 @@ input:focus, .select-field:focus {
   .hc-page { box-shadow: none; margin: 0 auto; page-break-after: always; }
   @page { size: A4; margin: 0; }
 }
-/* =========================================================================
-   TARJETAS VIP — mini-barra de progreso en la tabla
-   ========================================================================= */
+/* TARJETAS VIP: mini-barra de progreso en la tabla */
 .vip-mini-progress { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--gris-suave); white-space: nowrap; }
 .vip-mini-progress-bar { width: 64px; height: 6px; border-radius: 999px; background: var(--rosa-base-soft, #fef4f8); overflow: hidden; flex-shrink: 0; }
 .vip-mini-progress-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--rosa-acento, #e882a6), var(--rosa-intenso, #ae2967)); border-radius: 999px; }
 
-/* =========================================================================
-   TARJETAS VIP — pantalla de gestión (Lado A: control / Lado B: tarjeta)
-   ========================================================================= */
+/* TARJETAS VIP */
 .vipg-topbar-actions { display: flex; align-items: center; gap: 10px; }
 .vipg-topbar-actions .btn code, .vipg-topbar-actions .btn { font-family: inherit; }
 #vipg-copiar-codigo { font-family: "Courier New", monospace; letter-spacing: 0.02em; }

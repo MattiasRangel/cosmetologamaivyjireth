@@ -1,6 +1,4 @@
-/* =========================================================================
-   Maivy Jireth · Cosmetóloga — hoja de estilos de marca
-   ========================================================================= */
+/* Estilos del sitio */
 
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600;700&family=Mrs+Saint+Delafield&display=swap");
 
@@ -12,7 +10,7 @@
   --dorado: #ae2967;
   --dorado-light: #f5ccdf;
   --dorado-dark: #6b1940;
-  --dorado-hover: #8f1f53; /* hover del CTA: 8.4:1 con texto blanco */
+  --dorado-hover: #8f1f53;
   --gris: #2b2b2b;
   --gris-suave: #6b6464;
   --blanco: #ffffff;
@@ -43,7 +41,7 @@ body {
   font-family: var(--font-display);
 }
 
-/* --- Scrollbar de marca -------------------------------------------------- */
+/* Scrollbar de marca */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -56,7 +54,7 @@ body {
   border: 2px solid var(--rosa-base-soft);
 }
 
-/* --- Foco visible accesible ----------------------------------------------*/
+/* Foco visible accesible */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -67,15 +65,13 @@ textarea:focus-visible,
   border-radius: 4px;
 }
 
-/* --- Selección de texto de marca ------------------------------------------*/
+/* Selección de texto de marca */
 ::selection {
   background: var(--rosa-acento);
   color: var(--blanco);
 }
 
-/* =========================================================================
-   Utilidades de texto
-   ========================================================================= */
+/* Utilidades de texto */
 .eyebrow {
   font-family: var(--font-display);
   font-style: italic;
@@ -83,8 +79,6 @@ textarea:focus-visible,
   color: var(--dorado-dark);
 }
 
-/* Páginas de la Tarjeta VIP: mismo estilo con espaciado normal entre letras (más fácil de leer).
-   No se aplica a «Sobre mí» del inicio, que conserva su diseño. */
 .eyebrow--compacta {
   letter-spacing: 0.01em;
 }
@@ -100,9 +94,7 @@ textarea:focus-visible,
   border-radius: 999px;
 }
 
-/* =========================================================================
-   Glow ambiental del Hero (respiración suave)
-   ========================================================================= */
+/* Glow ambiental del Hero (respiración suave) */
 .ambient-glow {
   position: absolute;
   border-radius: 999px;
@@ -159,15 +151,13 @@ textarea:focus-visible,
   text-decoration-color: var(--dorado);
 }
 
-/* Foto de la cabina — misma familia visual que «Sobre mí»: marco redondeado,
-   contorno rosa desplazado detrás y etiqueta blanca que flota sobre la esquina. */
 .hero-foto {
   --desfase: 14px;
   position: relative;
   width: calc(100% - var(--desfase));
   max-width: 25rem;
   margin: 6px auto 0;
-  translate: calc(var(--desfase) / -2) 0; /* centra foto + contorno como un solo bloque */
+  translate: calc(var(--desfase) / -2) 0;
 }
 .hero-contorno {
   position: absolute;
@@ -228,7 +218,7 @@ textarea:focus-visible,
   }
 }
 
-/* Títulos sin palabras sueltas al final (fuera de "Sobre mí", que se queda igual) */
+/* Títulos sin palabras sueltas al final */
 main > section:not(#sobre-mi) :is(h1, h2, h3) {
   text-wrap: balance;
 }
@@ -237,9 +227,7 @@ footer p {
   text-wrap: pretty;
 }
 
-/* =========================================================================
-   Scroll reveal genérico
-   ========================================================================= */
+/* Scroll reveal genérico */
 .reveal {
   opacity: 0;
   transform: translateY(28px) scale(0.98);
@@ -266,9 +254,7 @@ footer p {
 .reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.45s; }
 .reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.55s; }
 
-/* =========================================================================
-   Animaciones de entrada al cargar la página (hero + navbar)
-   ========================================================================= */
+/* Animaciones de entrada al cargar la página (hero + navbar) */
 @keyframes entradaSuave {
   from {
     opacity: 0;
@@ -323,10 +309,6 @@ footer p {
   width: 100%;
 }
 
-/* =========================================================================
-   Botones de marca
-   ========================================================================= */
-/* Fondo magenta (6.3:1 con blanco); el rosa claro de antes daba 2.6:1 y no pasaba AA. */
 .btn-primary {
   background: var(--dorado);
   color: var(--blanco);
@@ -338,7 +320,7 @@ footer p {
   transform: translateY(-2px);
   box-shadow: 0 16px 28px -12px rgba(174, 41, 103, 0.65);
 }
-/* Sobre fondo oscuro la sombra de color se vuelve halo: ahí solo sombra neutra. */
+/* Sobre fondo oscuro la sombra de color se vuelve halo */
 .bg-\[\#2B2B2B\] .btn-primary {
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
 }
@@ -364,9 +346,7 @@ footer p {
   color: var(--blanco);
 }
 
-/* =========================================================================
-   Tarjetas de servicio (sombra suave para distinguirlas en celular y PC)
-   ========================================================================= */
+/* Tarjetas de servicio */
 .service-card {
   display: flex;
   flex-direction: column;
@@ -388,9 +368,6 @@ footer p {
     padding: 20px 22px;
   }
 }
-/* Fila de servicio (.sc). Celular/tablet: foto + nombre + precio · duración arriba,
-   "Ver detalles" y Agendar abajo; la descripción se abre al tocar. Desde 1024px la misma
-   marca se acomoda como tarjeta con la descripción siempre visible. */
 .sc {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr) auto;
@@ -478,7 +455,7 @@ footer p {
       "det    det    det"
       "var    var    var"
       "precio precio boton";
-    grid-template-rows: auto 1fr auto auto; /* el precio y Agendar quedan al pie aunque las tarjetas midan distinto */
+    grid-template-rows: auto 1fr auto auto;
     column-gap: 16px;
   }
   .sc-foto {
@@ -552,11 +529,6 @@ footer p {
   transform: scale(1.08);
 }
 
-/* =========================================================================
-   El Ritual — lista compacta unida por un hilo. En celular el hilo baja por
-   la izquierda; en escritorio corre de lado a lado. Al entrar en pantalla
-   cada tramo se dibuja y cada nodo se llena, en orden (un solo momento).
-   ========================================================================= */
 .ritual-thread-wrap {
   position: relative;
 }
@@ -652,9 +624,7 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Encuentra tu tratamiento ideal — filas de necesidad → tratamiento
-   ========================================================================= */
+/* Encuentra tu tratamiento ideal */
 .necesidades {
   list-style: none;
   margin: 0;
@@ -761,9 +731,7 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Tarjeta VIP — medida directamente sobre la tarjeta de referencia
-   ========================================================================= */
+/* Tarjeta VIP */
 .font-script {
   font-family: var(--font-script);
 }
@@ -782,8 +750,6 @@ footer p {
   inset: 0;
   border-radius: 4cqw;
   background: linear-gradient(135deg, #fffcfb 0%, #fdf3f1 50%, #f9e2ec 100%);
-  /* Como una tarjeta real: sin marco de color; un filo fino de luz arriba, un canto apenas
-     marcado y una sombra suave debajo. Todo fijo, para que moverla no obligue a repintar. */
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 0 0 1px rgba(120, 80, 70, 0.07),
@@ -842,7 +808,7 @@ footer p {
     0 1px 0 rgba(255, 255, 255, 0.95),
     0 2px 3px rgba(107, 25, 64, 0.18);
 }
-/* Nombre de la clienta (mi-tarjeta-vip.html): no pasa por debajo del logo; si es largo se achica. */
+/* Nombre de la clienta (mi-tarjeta-vip.html) */
 .vc-cliente {
   max-width: 50%;
   overflow: hidden;
@@ -872,8 +838,6 @@ footer p {
     0 6px 15px -4px rgba(174, 41, 103, 0.3),
     0 0 0 1.5px rgba(255, 255, 255, 0.85);
 }
-/* Logo dorado MJ (ancho, con fondo transparente): sin círculo ni aro blanco, suelto en la esquina
-   y con una sombra suave que sigue su silueta para que el dorado se despegue del fondo claro. */
 .vc-logo.vc-logo--mj {
   left: 58%; top: 6%;
   width: 37%;
@@ -1033,9 +997,6 @@ footer p {
   border-radius: 999px;
 }
 
-/* =========================================================================
-   Testimonios
-   ========================================================================= */
 .testimonial-track {
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1046,9 +1007,7 @@ footer p {
   color: #e7dae0;
 }
 
-/* =========================================================================
-   Modal de Reserva (Stepper)
-   ========================================================================= */
+/* Modal de Reserva (Stepper) */
 #booking-modal {
   transition: opacity 0.3s ease;
 }
@@ -1075,7 +1034,7 @@ footer p {
   transition: all 0.35s ease;
   flex-shrink: 0;
 }
-/* Paso actual: anillo magenta con número magenta (el blanco sobre rosa claro no se leía). */
+/* Paso actual */
 .step-dot.is-active {
   border-color: var(--dorado);
   background: var(--rosa-base-soft);
@@ -1121,7 +1080,7 @@ footer p {
   transition: all 0.25s ease;
   cursor: pointer;
 }
-/* Paso 1: título de cada categoría dentro de la lista de tratamientos. */
+/* Paso 1 */
 .booking-grupo {
   padding-top: 0.9rem;
   font-size: 0.75rem;
@@ -1130,7 +1089,7 @@ footer p {
   letter-spacing: 0.12em;
   color: var(--gris-suave);
 }
-/* Las opciones del paso 1 son radios ocultos: el foco de teclado se dibuja en la tarjeta. */
+/* Las opciones del paso 1 son radios ocultos */
 .service-choice:has(input:focus-visible) {
   outline: 2px solid var(--dorado);
   outline-offset: 2px;
@@ -1160,7 +1119,7 @@ footer p {
   background: var(--rosa-base);
 }
 .calendar-day.is-selected {
-  background: var(--dorado); /* 6.3:1 con blanco; el rosa acento daba 2.5:1 */
+  background: var(--dorado);
   color: var(--blanco);
   font-weight: 600;
 }
@@ -1188,7 +1147,7 @@ footer p {
 .input-field.is-invalid:focus {
   box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.12);
 }
-/* Mensaje bajo el campo: rojo oscuro (6.6:1 sobre blanco) para que se lea, no solo se vea. */
+/* Mensaje bajo el campo */
 .field-error {
   margin-top: 0.4rem;
   font-size: 0.8125rem;
@@ -1196,9 +1155,7 @@ footer p {
   color: #a12a1f;
 }
 
-/* =========================================================================
-   Estados de error (reemplazan a los alert()): dicen qué pasó y qué hacer
-   ========================================================================= */
+/* Estados de error (reemplazan a los alert()) */
 .estado-error {
   display: flex;
   align-items: flex-start;
@@ -1277,9 +1234,7 @@ footer p {
   transform: none;
 }
 
-/* =========================================================================
-   Menú móvil
-   ========================================================================= */
+/* Menú móvil */
 #mobile-menu {
   transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
   max-height: 0;
@@ -1291,9 +1246,7 @@ footer p {
   opacity: 1;
 }
 
-/* =========================================================================
-   Accesibilidad: respeto a "reduce motion"
-   ========================================================================= */
+/* Accesibilidad: respeto a "reduce motion" */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
@@ -1303,9 +1256,7 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Tarjeta VIP del cliente (mi-tarjeta-vip.html) — 3D interactivo + flip
-   ========================================================================= */
+/* Tarjeta VIP del cliente (mi-tarjeta-vip.html) */
 .mv-flip-wrap {
   --rx: 0deg;
   --ry: 0deg;
@@ -1339,7 +1290,7 @@ footer p {
 .mv-flip-wrap.is-activa .mv-flip-inner {
   cursor: grabbing;
 }
-/* Reflejo de luz que sigue al dedo o al mouse: solo se traslada (capa propia), nunca se repinta. */
+/* Reflejo de luz que sigue al dedo o al mouse */
 .mv-brillo {
   position: absolute;
   inset: -50%;
@@ -1360,7 +1311,6 @@ footer p {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-/* Safari aplica backface-visibility solo si la cara tiene su propio transform 3D. */
 .mv-face--front {
   transform: rotateY(0deg);
 }
@@ -1469,9 +1419,7 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Sobre mí
-   ========================================================================= */
+/* Sobre mí */
 .about { background: linear-gradient(180deg, #ffffff 0%, #fef4f8 100%); }
 .about-stage { position: relative; max-width: 380px; margin: 0 auto; aspect-ratio: 4 / 5; }
 .about-arch {
@@ -1531,7 +1479,7 @@ footer p {
   .about-script { font-size: 2.2rem; }
 }
 
-/* Selector de opciones en las tarjetas del catálogo (una zona / cuerpo completo) */
+/* Selector de opciones en las tarjetas del catálogo */
 .variant-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
 .variant-chip {
   display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px;
@@ -1546,15 +1494,11 @@ footer p {
 .variant-chip-name { font-size: 0.8rem; font-weight: 600; color: var(--gris); line-height: 1.2; }
 .variant-chip-info { font-size: 0.72rem; color: var(--gris-suave); }
 .variant-chip.is-active .variant-chip-info { color: var(--dorado); font-weight: 600; }
-/* =========================================================================
-   Barra móvil "Agendar + WhatsApp" (solo < 1024px). Fondo sólido, no vidrio:
-   tiene que leerse encima de fotos y de la sección oscura.
-   ========================================================================= */
 .barra-movil {
   position: fixed;
   inset-inline: 0;
   bottom: 0;
-  z-index: 45; /* bajo el header (50), el modal (100) y el lightbox (110) */
+  z-index: 45;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1598,7 +1542,6 @@ footer p {
 .barra-movil-wa:active {
   background: var(--rosa-base);
 }
-/* El SVG de WhatsApp se usa como máscara para pintarlo con el color del texto. */
 .icono-wa {
   width: 20px;
   height: 20px;
@@ -1607,7 +1550,7 @@ footer p {
   -webkit-mask: url("../imagenes/whatsapp.svg") center / contain no-repeat;
   mask: url("../imagenes/whatsapp.svg") center / contain no-repeat;
 }
-/* Tablet / celular horizontal: los botones no se estiran a todo el ancho. */
+/* Tablet / celular horizontal */
 @media (min-width: 640px) {
   .barra-movil {
     justify-content: center;
@@ -1616,7 +1559,7 @@ footer p {
     flex: 0 1 340px;
   }
 }
-/* Pantallas bajas (celular acostado): barra más delgada para no comerse la vista. */
+/* Pantallas bajas (celular acostado) */
 @media (max-height: 480px) {
   .barra-movil {
     padding-top: 6px;
@@ -1627,7 +1570,6 @@ footer p {
     min-height: 44px;
   }
 }
-/* Espacio al final de la página para que la barra no tape el footer. */
 @media (max-width: 1023.98px) {
   body:has(#barra-movil) {
     padding-bottom: calc(68px + env(safe-area-inset-bottom));
@@ -1639,11 +1581,6 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Videos de TikTok — carril deslizable en celular, 4 columnas desde 640px.
-   Mientras el reproductor no carga se ve un fondo rosa con el logo, no una
-   caja negra.
-   ========================================================================= */
 .tiktok-carril {
   display: flex;
   gap: 12px;
@@ -1698,9 +1635,6 @@ footer p {
   opacity: 0.4;
 }
 
-/* =========================================================================
-   Cierre — fondo claro, firma de Maivy y las dos salidas (agendar / WhatsApp)
-   ========================================================================= */
 .cierre {
   background: var(--blanco);
 }
@@ -1717,11 +1651,6 @@ footer p {
   }
 }
 
-/* =========================================================================
-   Tarjeta VIP en el inicio — la misma .vip-card de tarjeta-vip.html, pero sin
-   el marco rosa ni el borde interior de relieve. Se conserva la sombra suave
-   de abajo para que la tarjeta clara no se pierda sobre el fondo blanco.
-   ========================================================================= */
 .vip-card-enlace {
   border-radius: 4cqw;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1733,13 +1662,13 @@ footer p {
   outline-offset: 6px;
   border-radius: 20px;
 }
-/* En tarjeta-vip.html la tarjeta bloquea el gesto táctil; aquí es un enlace y debe dejar desplazar la página. */
+/* En tarjeta-vip */
 .vip-card-enlace .vip-card-wrap {
   touch-action: auto;
   user-select: auto;
   -webkit-user-select: auto;
 }
-/* Lucide ya no trae el ícono de Instagram: se pinta con imagenes/instagram.svg en el mismo rosa. */
+/* Lucide ya no trae el ícono de Instagram */
 .vc-insta i {
   display: inline-block;
   background: currentColor;

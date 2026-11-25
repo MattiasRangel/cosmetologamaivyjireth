@@ -1,32 +1,9 @@
-/**
- * data.js
- * -----------------------------------------------------------------------
- * Fuente única de datos del sitio. Antes eran arreglos estáticos; ahora
- * `SERVICE_CATEGORIES` y `SERVICES` se llenan con una consulta real a
- * Supabase (tablas `categorias_servicio` y `servicios`) apenas carga la
- * página, conservando EXACTAMENTE la misma forma de objeto que ya
- * consumían main.js y booking.js — por eso ningún otro archivo necesita
- * cambios para leer estos dos arreglos.
- *
- * Como la consulta es asíncrona, `SERVICE_CATEGORIES`/`SERVICES` empiezan
- * vacíos y se llenan con `.push(...)` (nunca se reasignan) cuando la
- * respuesta llega — así, cualquier script que ya tenga una referencia a
- * estos arreglos (main.js, booking.js) ve los datos en cuanto existen,
- * sin tener que volver a pedir la referencia.
- *
- * `window.datosListos` es la promesa que main.js y booking.js deben
- * esperar (`await window.datosListos`) antes de pintar cualquier cosa que
- * dependa de estos dos arreglos.
- *
- * Se exponen en `window` (script clásico, sin módulos) para que main.js y
- * booking.js los consuman tal como antes.
- * -----------------------------------------------------------------------
- */
+// Catálogo de servicios
 
-/** Categorías del catálogo — se llena desde Supabase, ver cargarCatalogo(). */
+// Categorías del catálogo
 const SERVICE_CATEGORIES = [];
 
-/** Catálogo completo de servicios — se llena desde Supabase, ver cargarCatalogo(). */
+// Catálogo completo de servicios
 const SERVICES = [];
 
 const RITUAL_STEPS = [
@@ -60,8 +37,6 @@ const TIKTOK_VIDEOS = [
 
 ];
 
-/* <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@cosmetoloca_maivyjireth/video/7686928671273143572" data-video-id="7686928671273143572" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@cosmetoloca_maivyjireth" href="https://www.tiktok.com/@cosmetoloca_maivyjireth?refer=embed">@cosmetoloca_maivyjireth</a> Una de mis experiencias más hermosas🥹😭.  Hay momentos que se sienten más allá de la piel… 🤍  La calma de mamá, la espera de un nuevo amor y esa conexión tan hermosa que comienza desde el primer latido. 🤰🏻👶🏻✨ <a title="limpiezafacialembarazada" target="_blank" href="https://www.tiktok.com/tag/limpiezafacialembarazada?refer=embed">#limpiezafacialembarazada</a> <a title="limpiezafacial" target="_blank" href="https://www.tiktok.com/tag/limpiezafacial?refer=embed">#limpiezafacial</a> <a title="embarazada" target="_blank" href="https://www.tiktok.com/tag/embarazada?refer=embed">#embarazada</a> <a target="_blank" title="♬ Le Carrousel - James Quinn" href="https://www.tiktok.com/music/Le-Carrousel-7224198515874138114?refer=embed">♬ Le Carrousel - James Quinn</a> </section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script>   **/
-
 const TIME_SLOTS = [
   "09:00 am",
   "10:00 am",
@@ -73,7 +48,7 @@ const TIME_SLOTS = [
   "05:00 pm",
 ];
 
-// Colombian peso formatter reused across the site.
+// Formato de pesos colombianos
 const formatCOP = (valor) =>
   new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -81,30 +56,19 @@ const formatCOP = (valor) =>
     maximumFractionDigits: 0,
   }).format(valor);
 
-/**
- * Categorías en el orden en que se muestran: "faciales" primero y el resto
- * según su `orden` en Supabase. La usan el catálogo (main.js) y el paso 1
- * de la reserva (booking.js), para que ambos lean igual.
- */
 const CATEGORIA_INICIAL = "faciales";
 function categoriasEnOrden() {
   const primera = SERVICE_CATEGORIES.filter((c) => c.id === CATEGORIA_INICIAL);
   return [...primera, ...SERVICE_CATEGORIES.filter((c) => c.id !== CATEGORIA_INICIAL)];
 }
 
-/** WhatsApp de Maivy: lo usan los estados de error como salida alternativa. */
+// WhatsApp de Maivy
 const WHATSAPP_MAIVY = "573122855055";
 
-/** Enlace wa.me con el mensaje ya codificado (nombres con "&", "#" o tildes no rompen la URL). */
 function enlaceWhatsApp(texto) {
   return `https://wa.me/${WHATSAPP_MAIVY}?text=${encodeURIComponent(texto)}`;
 }
 
-/**
- * Bloque de error en línea (reemplaza a los alert()): dice qué pasó, ofrece
- * reintentar y deja WhatsApp como salida. `reintentar` es el id del botón
- * que el llamador conecta; si se omite, no se pinta el botón.
- */
 function htmlEstadoError({ titulo, texto, reintentar = null, compacto = false }) {
   return `
     <div class="estado-error ${compacto ? "is-compacto" : ""}" role="alert">
@@ -122,16 +86,8 @@ function htmlEstadoError({ titulo, texto, reintentar = null, compacto = false })
     </div>`;
 }
 
-/* ------------------------------------------------------------------------
-   Carga real desde Supabase (categorias_servicio + servicios)
-   ------------------------------------------------------------------------ */
+// Carga real desde Supabase (categorias_servicio + servicios)
 
-/**
- * Arma el texto de precio a mostrar en la tarjeta del catálogo a partir de
- * las columnas de la tabla `servicios` (precio / precio_hasta / precio_nota),
- * reproduciendo los mismos formatos que antes estaban escritos a mano
- * (rangos, paquetes, etc.).
- */
 function construirPrecioTexto(servicioRow) {
   if (servicioRow.precio_nota) {
     return `${formatCOP(servicioRow.precio)} ${servicioRow.precio_nota.startsWith("·") ? "" : "· "}${servicioRow.precio_nota}`.trim();
@@ -142,7 +98,7 @@ function construirPrecioTexto(servicioRow) {
   return formatCOP(servicioRow.precio);
 }
 
-/** Igual que arriba, pero para el texto de duración ("30 a 60 min", "60 min aprox."). */
+// Igual que arriba, pero para el texto de duración
 function construirDuracionTexto(servicioRow) {
   if (servicioRow.duracion_max && servicioRow.duracion_max !== servicioRow.duracion) {
     return `${servicioRow.duracion} a ${servicioRow.duracion_max} min`;
@@ -150,7 +106,6 @@ function construirDuracionTexto(servicioRow) {
   return `${servicioRow.duracion} min aprox.`;
 }
 
-/** Igual que `duracion` en el arreglo original: texto corto sin la palabra "min". */
 function construirDuracionCorta(servicioRow) {
   if (servicioRow.duracion_max && servicioRow.duracion_max !== servicioRow.duracion) {
     return `${servicioRow.duracion} a ${servicioRow.duracion_max}`;
@@ -158,11 +113,6 @@ function construirDuracionCorta(servicioRow) {
   return String(servicioRow.duracion);
 }
 
-/**
- * Llena SERVICE_CATEGORIES y SERVICES. Devuelve true si cargó y false si
- * falló; el fallo queda en `window.catalogoError` para que main.js y
- * booking.js pinten su propio estado de error en lugar de un alert().
- */
 async function cargarCatalogo() {
   window.catalogoError = false;
   SERVICE_CATEGORIES.length = 0;
@@ -206,12 +156,10 @@ async function cargarCatalogo() {
         precioTexto: construirPrecioTexto(s),
         imagen: s.imagen,
       };
-      // Solo se agrega `imagenes` si el servicio realmente trae galería
-      // (ej. "Especiales"), igual que en el arreglo estático original.
       if (Array.isArray(s.imagenes) && s.imagenes.length > 0) {
         servicio.imagenes = s.imagenes;
       }
-      // Opciones a elegir (ej. "Una zona" / "Cuerpo completo"): columna JSONB `variantes`.
+      // Opciones a elegir (ej. "Una zona" / "Cuerpo completo")
       if (Array.isArray(s.variantes) && s.variantes.length > 0) {
         servicio.variantes = s.variantes;
       }
@@ -227,12 +175,10 @@ async function cargarCatalogo() {
   }
 }
 
-/** Reintento desde los estados de error: vuelve a pedir el catálogo y reemplaza la promesa. */
+// Reintento desde los estados de error
 window.recargarCatalogo = function () {
   window.datosListos = cargarCatalogo();
   return window.datosListos;
 };
 
-// main.js y booking.js deben hacer `await window.datosListos;` antes de
-// pintar cualquier cosa que dependa de SERVICE_CATEGORIES o SERVICES.
 window.datosListos = cargarCatalogo();

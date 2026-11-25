@@ -1,25 +1,9 @@
-/**
- * vip-data.js
- * -----------------------------------------------------------------------
- * Fuente de datos de las Tarjetas VIP. La comparten dos mundos distintos:
- *
- *   - El panel privado (panel-admin.html vía panel-data.js), donde la
- *     administradora crea tarjetas y va marcando las visitas.
- *   - Las páginas públicas (tarjeta-vip.html y mi-tarjeta-vip.html), donde
- *     la clienta consulta su código y ve su tarjeta.
- *
- * Ahora habla directamente con la tabla `tarjetas_vip` de Supabase. Cada
- * función conserva su firma y devuelve el MISMO objeto en camelCase
- * (numeroTarjeta, fechaCreacion, validaHasta, ciclosCompletados...) que
- * antes vivía en localStorage, para que panel-vip.js, mi-tarjeta.js y
- * tarjeta-consulta.js no necesiten ningún cambio.
- * -----------------------------------------------------------------------
- */
+// Datos de las tarjetas VIP
 
 const TABLA = "tarjetas_vip";
 const TOTAL_VISITAS_CICLO = 10;
 const VISITA_DESCUENTO = 5; // en esta visita se desbloquea el 50%
-const VISITA_OBSEQUIO = 10; // en esta visita se desbloquea el obsequio + tratamiento gratis
+const VISITA_OBSEQUIO = 10;
 
 function supabase() {
   const cliente = window.supabaseClient;
@@ -29,7 +13,6 @@ function supabase() {
   return cliente;
 }
 
-/** Convierte una fila de la tabla (snake_case) al objeto camelCase que usa el resto del frontend. */
 function mapearFila(fila) {
   if (!fila) return null;
   return {
@@ -51,7 +34,7 @@ function generarNumeroTarjeta() {
 }
 
 function generarCodigo() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin O/0/I/1 para evitar confusiones al dictarlo
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const parte = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   return `MJVIP-${parte}`;
 }
@@ -63,16 +46,11 @@ const addDays = (date, days) => {
   return d;
 };
 
-/** Avisa a otras partes de la MISMA pestaña que las tarjetas cambiaron (igual que antes). */
 function avisarCambio() {
   window.dispatchEvent(new CustomEvent("mj:vip-tarjetas-cambiaron"));
 }
 
-/* ========================================================================
-   API pública — mismas firmas de siempre
-   ======================================================================== */
 
-/** @returns {Promise<Array>} todas las tarjetas, más recientes primero */
 export async function getVipCards() {
   const { data, error } = await supabase()
     .from(TABLA)
@@ -85,10 +63,6 @@ export async function getVipCards() {
   return data.map(mapearFila);
 }
 
-/**
- * @param {string} id
- * @returns {Promise<object|null>}
- */
 export async function getVipCardById(id) {
   const { data, error } = await supabase().from(TABLA).select("*").eq("id", id).maybeSingle();
   if (error) {
@@ -98,12 +72,6 @@ export async function getVipCardById(id) {
   return mapearFila(data);
 }
 
-/**
- * Búsqueda pública por código (la usa la clienta en "Consultar mi tarjeta").
- * Ni el código ni la búsqueda distinguen mayúsculas/espacios extra.
- * @param {string} codigo
- * @returns {Promise<object|null>}
- */
 export async function getVipCardByCodigo(codigo) {
   const normalizado = String(codigo || "").trim().toUpperCase();
   if (!normalizado) return null;
@@ -120,10 +88,6 @@ export async function getVipCardByCodigo(codigo) {
   return mapearFila(data);
 }
 
-/**
- * @param {{cliente:string}} data
- * @returns {Promise<object>}
- */
 export async function createVipCard(data) {
   const hoy = new Date();
   const nueva = {
@@ -137,9 +101,6 @@ export async function createVipCard(data) {
     ciclos_completados: 0,
   };
 
-  // El código se genera en el cliente y podría chocar por mala suerte con
-  // uno ya existente (codigo es UNIQUE en la tabla); si eso pasa, se
-  // reintenta una vez con un código nuevo antes de rendirse.
   let { data: fila, error } = await supabase().from(TABLA).insert(nueva).select().single();
   if (error && error.code === "23505") {
     nueva.codigo = generarCodigo();
@@ -154,10 +115,6 @@ export async function createVipCard(data) {
   return mapearFila(fila);
 }
 
-/**
- * @param {string} id
- * @returns {Promise<void>}
- */
 export async function deleteVipCard(id) {
   const { error } = await supabase().from(TABLA).delete().eq("id", id);
   if (error) {
@@ -167,10 +124,6 @@ export async function deleteVipCard(id) {
   avisarCambio();
 }
 
-/**
- * @param {string} id
- * @returns {Promise<string>} nuevo estado
- */
 export async function toggleVipCardStatus(id) {
   const actual = await getVipCardById(id);
   if (!actual) return null;
@@ -186,13 +139,6 @@ export async function toggleVipCardStatus(id) {
   return nuevoEstado;
 }
 
-/**
- * Fija el número de visitas (0 a 10) de una tarjeta — así es como el panel
- * "pega" o "despega" los stickers de la parte trasera.
- * @param {string} id
- * @param {number} visitas
- * @returns {Promise<object|null>} la tarjeta actualizada
- */
 export async function setVipCardVisitas(id, visitas) {
   const valor = Math.max(0, Math.min(TOTAL_VISITAS_CICLO, Math.round(visitas)));
   const { data, error } = await supabase()
@@ -210,12 +156,6 @@ export async function setVipCardVisitas(id, visitas) {
   return mapearFila(data);
 }
 
-/**
- * Canjea el ciclo de 10 visitas: reinicia el conteo a 0 y suma 1 al total
- * de ciclos completados. Solo tiene efecto si ya llegó a 10 visitas.
- * @param {string} id
- * @returns {Promise<object|null>} la tarjeta actualizada
- */
 export async function canjearCicloVip(id) {
   const actual = await getVipCardById(id);
   if (!actual || actual.visitas < TOTAL_VISITAS_CICLO) return actual;
@@ -235,8 +175,6 @@ export async function canjearCicloVip(id) {
   return mapearFila(data);
 }
 
-// Constantes exportadas para que panel-vip.js y las páginas públicas nunca
-// tengan que repetir estos números "a mano".
 export const VIP_CONFIG = {
   TOTAL_VISITAS_CICLO,
   VISITA_DESCUENTO,

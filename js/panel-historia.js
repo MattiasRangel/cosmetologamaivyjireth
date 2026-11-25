@@ -1,45 +1,17 @@
-/**
- * panel-historia.js
- * -----------------------------------------------------------------------
- * Módulo de "Historia Clínica" (Facial / Corporal).
- *
- * Reemplaza el flujo anterior (PDF armado con jsPDF + coordenadas sobre
- * las imágenes imagenes/facial*.jpeg y corporal*.jpeg) por una plantilla
- * 100% HTML/CSS que imita el diseño rosa de esas mismas imágenes:
- *
- *   LADO A — #hc-form-pane   : el <form> de siempre, donde se escribe.
- *   LADO B — #hc-preview-pane: un <div class="hc-page"> por cada hoja
- *            (tamaño A4 real: 794×1123px @96dpi), que se re-pinta en vivo
- *            cada vez que el Lado A cambia (evento "input"/"change").
- *
- * El PDF final ya NO se arma con jsPDF + texto en coordenadas: se genera
- * con html2pdf.js tomando literalmente el nodo del Lado B (la plantilla
- * ya renderizada), así el PDF es pixel-a-pixel lo que se ve en pantalla.
- *
- * Estructura de datos: `leerFormulario()` sigue devolviendo exactamente
- * el mismo objeto plano de siempre (mismos nombres de campo que antes),
- * así que tanto el Lado B como el payload para Supabase beben de la
- * misma fuente de verdad.
- * -----------------------------------------------------------------------
- */
+// Historia clínica facial y corporal
+
 import { guardarHistoriaClinica, getHistoriaClinicaPorCita } from "./panel-data.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $all = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-/* ========================================================================
-   ESTADO DE LA SESIÓN ACTUAL DE HISTORIA CLÍNICA
-   ======================================================================== */
-let citaActual = null; // { id, cliente } — la cita desde la que se abrió
+// ESTADO DE LA SESIÓN ACTUAL DE HISTORIA CLÍNICA
+let citaActual = null;
 let tipoActual = null; // 'facial' | 'corporal'
-const previewsConstruidas = new Set(); // evita reconstruir el HTML del Lado B más de una vez
-
-/* ========================================================================
-   1) BOTÓN NUEVO EN AGENDA → ABRIR MODAL DE TIPO
-   ======================================================================== */
+const previewsConstruidas = new Set();
 
 function initBotonAgenda() {
-  // Delegado sobre el tbody: los mismos <tr> que ya arma panel-app.js.
+  // Delegado sobre el tbody
   $("#agenda-tbody")?.addEventListener("click", (e) => {
     const btn = e.target.closest('button[data-accion="historia-clinica"]');
     if (!btn) return;
@@ -70,13 +42,9 @@ function initModalTipo() {
   });
 }
 
-/* ========================================================================
-   2) ÁREA DE TRABAJO A PANTALLA COMPLETA (Lado A + Lado B)
-   ======================================================================== */
+// ÁREA DE TRABAJO A PANTALLA COMPLETA (Lado A + Lado B)
 
 async function abrirAreaDeTrabajo(tipo) {
-  // Oculta el resto del panel (sidebar + KPIs) para trabajar sin
-  // distracciones, y muestra la sección de historia clínica.
   $("#panel-view").classList.add("is-historia-activa");
   $all(".tab-panel").forEach((p) => p.classList.remove("is-active"));
   $("#tab-historia-clinica").classList.add("is-active");
@@ -94,15 +62,11 @@ async function abrirAreaDeTrabajo(tipo) {
   $("#hc-preview-facial").hidden = tipo !== "facial";
   $("#hc-preview-corporal").hidden = tipo !== "corporal";
 
-  // Si esta cita ya tenía una historia de este tipo, la precarga para
-  // seguir editándola en vez de partir de cero.
   const previa = await getHistoriaClinicaPorCita(citaActual.id);
   if (previa && previa.tipo === tipo) {
     poblarFormulario(tipo === "facial" ? formFacial : formCorporal, previa.datos);
   }
 
-  // Primer pintado del Lado B con el estado actual del formulario
-  // (vacío, o precargado si había una historia previa).
   sincronizarVistaPrevia(tipo);
 }
 
@@ -110,7 +74,6 @@ function volverAAgenda() {
   $("#panel-view").classList.remove("is-historia-activa");
   $all(".tab-panel").forEach((p) => p.classList.remove("is-active"));
   $("#tab-agenda").classList.add("is-active");
-  // Sincroniza el resaltado del menú lateral con la pestaña a la que volvemos.
   $all(".nav-item").forEach((btn) => btn.classList.toggle("is-active", btn.dataset.tab === "agenda"));
   $("#panel-page-title").textContent = "Agenda";
   citaActual = null;
@@ -121,8 +84,6 @@ function initTopbar() {
   $("#hc-volver").addEventListener("click", volverAAgenda);
 }
 
-/** Un solo listener delegado para los dos <form>: cualquier tecleo o
- *  cambio de checkbox/radio vuelve a pintar el Lado B al instante. */
 function initSincronizacionEnVivo() {
   const contenedor = $("#tab-historia-clinica");
   ["input", "change"].forEach((evento) => {
@@ -134,21 +95,11 @@ function initSincronizacionEnVivo() {
   });
 }
 
-/* ========================================================================
-   LECTURA / PRE-CARGA DE FORMULARIO
-   ======================================================================== */
+// LECTURA / PRE-CARGA DE FORMULARIO
 
-/**
- * Lee un <form> de historia clínica y devuelve un objeto plano:
- * - inputs/textareas con "name" → su valor
- * - grupos de checkboxes (data-group) → arreglo con los values marcados
- * - filas "Sí/No + ¿Cuál?" (data-antecedente) → { respuesta: 'si'|'no'|null, detalle }
- */
 function leerFormulario(form) {
   const datos = {};
 
-  // Inputs de texto/número/fecha/email y radios "sueltos" (los de la
-  // sección 5 de Facial: Baja/Media/Alta) — todos tienen `name` propio.
   $all("input[name], textarea[name]", form).forEach((el) => {
     if (el.type === "radio") {
       if (el.checked) datos[el.name] = el.value;
@@ -165,8 +116,6 @@ function leerFormulario(form) {
     datos[grupo.dataset.group] = seleccionados;
   });
 
-  // Tablas editables (control de sesiones / precios): cada <table data-tabla="X">
-  // se guarda como un arreglo de filas (una por <tr>), leyendo sus [data-col].
   $all("table[data-tabla]", form).forEach((tabla) => {
     const filas = $all("tbody tr", tabla).map((tr) => {
       const fila = {};
@@ -178,9 +127,6 @@ function leerFormulario(form) {
     datos[tabla.dataset.tabla] = filas;
   });
 
-  // Filas Sí/No + ¿Cuál?/Zona (data-antecedente) — el radio ya quedó
-  // guardado arriba bajo su propio `name` (ej. datos.condicionMedica),
-  // esto solo añade la forma "objeto" por si se necesita en otro lado.
   $all("[data-antecedente]", form).forEach((fila) => {
     const nombre = fila.dataset.antecedente;
     const radioMarcado = fila.querySelector('input[type="radio"]:checked');
@@ -194,7 +140,7 @@ function leerFormulario(form) {
   return datos;
 }
 
-/** Precarga un formulario con datos guardados previamente (mismo formato que leerFormulario). */
+// Precarga un formulario con datos guardados previamente
 function poblarFormulario(form, datos) {
   Object.entries(datos).forEach(([clave, valor]) => {
     if (clave.endsWith("Detalle") && valor && typeof valor === "object" && "respuesta" in valor) return; // derivado, se ignora al precargar
@@ -227,9 +173,7 @@ function poblarFormulario(form, datos) {
   });
 }
 
-/* ========================================================================
-   3) LADO B — PLANTILLA HTML/CSS A4 (SE ARMA UNA SOLA VEZ POR TIPO)
-   ======================================================================== */
+// LADO B
 
 function asegurarPreviewConstruida(tipo) {
   if (previewsConstruidas.has(tipo)) return;
@@ -238,26 +182,20 @@ function asegurarPreviewConstruida(tipo) {
   previewsConstruidas.add(tipo);
 }
 
-/** Vuelve a leer el <form> visible y pinta sus valores dentro del Lado B. */
 function sincronizarVistaPrevia(tipo) {
   const form = tipo === "facial" ? $("#form-historia-facial") : $("#form-historia-corporal");
   const preview = tipo === "facial" ? $("#hc-preview-facial") : $("#hc-preview-corporal");
   if (!form || !preview) return;
   const datos = leerFormulario(form);
 
-  // Campos de texto simples: <span data-bind="nombreCompleto">
   $all("[data-bind]", preview).forEach((el) => {
     el.textContent = datos[el.dataset.bind] || "";
   });
 
-  // Fechas tipo <input type="date"> (aaaa-mm-dd) → dd/mm/aaaa
   $all("[data-bind-date]", preview).forEach((el) => {
     el.textContent = formatearFecha(datos[el.dataset.bindDate]);
   });
 
-  // Checkboxes de grupo, radios "Baja/Media/Alta" y filas Sí/No: todos
-  // comparten el mismo criterio → marcado si el valor guardado coincide
-  // (o, si es un arreglo, si lo incluye).
   $all("[data-field][data-value]", preview).forEach((el) => {
     const valorGuardado = datos[el.dataset.field];
     const marcado = Array.isArray(valorGuardado)
@@ -266,13 +204,10 @@ function sincronizarVistaPrevia(tipo) {
     el.classList.toggle("is-on", !!marcado);
   });
 
-  // "Fecha: __/__/__" del encabezado de cada hoja → fecha de hoy.
   $all("[data-fecha-hoy]", preview).forEach((el) => {
     el.textContent = fechaHoyCorta();
   });
 
-  // Tablas editables (control de sesiones / precios) → se repintan con los
-  // datos actuales, siempre con el mismo número fijo de filas.
   $all("table[data-tabla-preview]", preview).forEach((tabla) => {
     const campo = tabla.dataset.tablaPreview;
     pintarTablaEditable(tabla, campo, datos[campo]);
@@ -290,9 +225,6 @@ function fechaHoyCorta() {
   return new Date().toLocaleDateString("es-CO");
 }
 
-/** Config de las 3 tablas editables: cuántas filas fijas se dibujan en el
- *  Lado B (siempre las mismas, para que la altura de la hoja A4 nunca cambie)
- *  y qué columnas tiene cada una, en orden. */
 const TABLAS = {
   sesionesFacial: { filas: 4, cols: ["fecha", "sesion", "procedimiento", "observaciones"] },
   preciosFacial: { filas: 3, cols: ["fecha", "sesiones", "precio", "tratamiento"] },
@@ -304,10 +236,6 @@ function formatCeldaTabla(col, valor) {
   return col === "fecha" ? formatearFecha(valor) : valor;
 }
 
-/** Vuelve a dibujar las filas de una tabla editable en el Lado B a partir
- *  de los datos leídos del formulario. Siempre pinta el mismo número fijo
- *  de filas (TABLAS[campo].filas) — con datos si el usuario los llenó, o
- *  en blanco si no — para que la hoja A4 nunca cambie de alto. */
 function pintarTablaEditable(elTabla, campo, filasDatos) {
   const config = TABLAS[campo];
   if (!config) return;
@@ -321,38 +249,37 @@ function pintarTablaEditable(elTabla, campo, filasDatos) {
   tbody.innerHTML = filas.join("");
 }
 
-/* ---- Piezas reutilizables para armar las plantillas (evitan repetir HTML) ---- */
+// Piezas reutilizables para armar las plantillas
 
 function esc(str) {
   return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
-/** Casilla individual: sirve tanto para checkboxes de grupo como para radios sueltos. */
+// Casilla individual
 function chip(campo, valor, etiqueta = valor) {
   return `<span class="hc-p-check" data-field="${esc(campo)}" data-value="${esc(valor)}"><span class="hc-p-box"></span>${esc(etiqueta)}</span>`;
 }
 function chips(campo, valores) {
   return valores.map((v) => chip(campo, v)).join("");
 }
-/** Fila "¿Pregunta? Sí ⬜ No ⬜  [detalle]". */
+// Fila "¿Pregunta? Sí ⬜ No ⬜  [detalle]".
 function filaSiNo(campo, pregunta, campoDetalle) {
   return `<div class="hc-p-sino"><span>${esc(pregunta)}</span>
     ${chip(campo, "si", "Sí")}${chip(campo, "no", "No")}
     ${campoDetalle ? `<span class="hc-p-value" style="flex:1;min-width:130px" data-bind="${campoDetalle}"></span>` : ""}
   </div>`;
 }
-/** Campo tipo "Etiqueta: ______" (línea punteada) dentro de una fila. */
 function campo(etiqueta, bind, full = false) {
   return `<div class="hc-p-field${full ? " hc-p-field-full" : ""}"><span class="hc-p-label">${esc(etiqueta)}:</span><span class="hc-p-value" data-bind="${bind}"></span></div>`;
 }
 function campoFecha(etiqueta, bind) {
   return `<div class="hc-p-field"><span class="hc-p-label">${esc(etiqueta)}:</span><span class="hc-p-value" data-bind-date="${bind}"></span></div>`;
 }
-/** Fila "Etiqueta   Baja ⬜  Media ⬜  Alta ⬜". */
+// Fila "Etiqueta   Baja ⬜  Media ⬜  Alta ⬜".
 function escalaBMA(campoNombre, etiqueta) {
   return `<div class="hc-p-check-row"><span class="hc-p-inline-label">${esc(etiqueta)}</span>${chips(campoNombre, ["Baja", "Media", "Alta"])}</div>`;
 }
-/** Bloque "Etiqueta" + área de observaciones con líneas (varias líneas de alto). */
+// Bloque "Etiqueta" + área de observaciones con líneas
 function bloqueTexto(etiqueta, bind, grande = false) {
   return `<p class="hc-p-label" style="margin:7px 0 3px">${esc(etiqueta)}</p><div class="hc-p-value hc-p-multiline${grande ? " hc-p-multiline-lg" : ""}" data-bind="${bind}"></div>`;
 }
@@ -370,7 +297,7 @@ const ICONS = {
   leaf: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#ae2967" stroke-width="1.8"><path d="M12 21c-5-1-8-5-8-10 5 0 9 3 10 8 1-5 5-8 10-8 0 5-3 9-8 10"/></svg>`,
 };
 
-/** Adorno de esquina (rama con hojas), reutilizado en las 4 esquinas de cada hoja. */
+// Adorno de esquina
 const HOJA_ADORNO = `<svg viewBox="0 0 100 100" width="100" height="100" fill="none" stroke="#e882a6" stroke-width="1.4">
   <path d="M4 4c20 4 34 10 46 24 8 9 12 20 14 32" stroke-linecap="round"/>
   <ellipse cx="18" cy="14" rx="8" ry="4" transform="rotate(35 18 14)"/>
@@ -396,14 +323,12 @@ function encabezadoHoja(titulo, conFecha) {
   </div>
   <div class="hc-p-divider">♥</div>`;
 }
-/** Tabla de sesiones/precios en blanco — variante ESTÁTICA (sin datos del formulario). */
+// Tabla de sesiones/precios en blanco
 function tablaVacia(columnas, filas = 6) {
   const encabezado = columnas.map((c) => `<th>${esc(c)}</th>`).join("");
   const filaVacia = `<tr>${columnas.map(() => "<td>&nbsp;</td>").join("")}</tr>`;
   return `<table class="hc-p-table"><thead><tr>${encabezado}</tr></thead><tbody>${filaVacia.repeat(filas)}</tbody></table>`;
 }
-/** Tabla de sesiones/precios EDITABLE: arranca vacía, `sincronizarVistaPrevia`
- *  la repinta con los datos reales del <table data-tabla="campo"> del Lado A. */
 function tablaEditablePreview(campo, columnas) {
   const encabezado = columnas.map((c) => `<th>${esc(c)}</th>`).join("") + "<th>Firma</th>";
   return `<table class="hc-p-table" data-tabla-preview="${campo}"><thead><tr>${encabezado}</tr></thead><tbody></tbody></table>`;
@@ -435,9 +360,7 @@ function textoConsentimiento(tratamiento) {
   </p>`;
 }
 
-/* ========================================================================
-   PLANTILLA FACIAL — 3 hojas A4
-   ======================================================================== */
+// PLANTILLA FACIAL: 3 hojas A4
 function crearPreviewFacial() {
   const pagina1 = `<div class="hc-page">
     ${encabezadoHoja("Historia Clínica Facial", true)}
@@ -560,9 +483,7 @@ function crearPreviewFacial() {
   return pagina1 + pagina2 + pagina3;
 }
 
-/* ========================================================================
-   PLANTILLA CORPORAL — 3 hojas A4
-   ======================================================================== */
+// PLANTILLA CORPORAL: 3 hojas A4
 function crearPreviewCorporal() {
   const pagina1 = `<div class="hc-page">
     ${encabezadoHoja("Historia Clínica Corporal", true)}
@@ -655,9 +576,7 @@ function crearPreviewCorporal() {
   return pagina1 + pagina2 + pagina3;
 }
 
-/* ========================================================================
-   4) EXPORTACIÓN A PDF — html2pdf.js toma el Lado B tal cual está en pantalla
-   ======================================================================== */
+// EXPORTACIÓN A PDF
 
 function slug(texto) {
   return (
@@ -670,11 +589,6 @@ function slug(texto) {
   );
 }
 
-/** Espera a que las fuentes web y las imágenes (el logo) ya estén cargadas
- *  antes de capturar — si html2canvas dibuja mientras Playfair/Poppins
- *  todavía no cargaron, el texto se mide con la fuente de respaldo y el
- *  PDF sale con saltos de línea/alineación distintos a lo que se ve en
- *  pantalla (una de las causas de "se ve distorsionado"). */
 async function esperarRecursosListos(contenedor) {
   if (document.fonts && document.fonts.ready) {
     await document.fonts.ready;
@@ -692,24 +606,6 @@ async function esperarRecursosListos(contenedor) {
   );
 }
 
-/**
- * Genera y descarga el PDF.
- *
- * OJO: cada `.hc-page` se captura y se agrega a la página del PDF de forma
- * INDEPENDIENTE (una por una), en vez de capturar las 3 hojas juntas de un
- * solo tirón. La forma "todo junto" es la que traía el bug de distorsión:
- * html2pdf mide el contenedor completo (las 3 hojas + los espacios entre
- * ellas) como si fuera una sola imagen larga, y la corta en trozos de
- * "un alto de página" para armar el PDF — pero como entre hoja y hoja hay
- * espacio (el `gap` del layout) y el alto real de cada hoja podía variar
- * según cuánto texto tuviera, esos cortes no coincidían con el borde real
- * de cada hoja. Resultado: páginas que se ven corridas/recortadas raro,
- * y mientras más texto se escribe, más se acumula el desfase.
- *
- * Exportando hoja por hoja, cada `.hc-page` (que ahora además tiene un
- * alto FIJO de 1123px, ver panel-styles.css) se captura sola, así que no
- * hay ningún corte que calcular: 1 hoja = 1 página del PDF, siempre.
- */
 async function descargarPdf(tipo, datos) {
   const contenedor = tipo === "facial" ? $("#hc-preview-facial") : $("#hc-preview-corporal");
   const paginas = $all(".hc-page", contenedor);
@@ -717,47 +613,19 @@ async function descargarPdf(tipo, datos) {
 
   await esperarRecursosListos(contenedor);
 
-  // html2pdf arma cada hoja dentro de un overlay "position:fixed" pegado a la
-  // esquina superior izquierda de la ventana. Si la página está desplazada
-  // (scroll) — algo que pasa fácilmente después de llenar un formulario
-  // largo, porque el navegador va scrolleando solo hacia cada campo — html2
-  // canvas puede capturar ese overlay corrido por el mismo desplazamiento,
-  // dejando un espacio en blanco arriba y el contenido real empujado hacia
-  // abajo (o directamente fuera de la hoja). Por eso volvemos siempre al
-  // tope antes de capturar cada hoja.
   window.scrollTo(0, 0);
 
   const opciones = {
     margin: 0,
-    // PNG en vez de JPEG: esta plantilla es casi toda blanco + líneas finas
-    // de color + texto (no fotos), y JPEG comprime esas líneas finas con
-    // "chroma subsampling" que las deja con un halo oscuro alrededor — es
-    // justo lo que se veía en las líneas de escritura del PDF. PNG es sin
-    // pérdida, así que esas líneas salen limpias tal como se ven en pantalla.
     image: { type: "png" },
-    // IMPORTANTE: "scale" debe ser un número ENTERO (2, 3, 4…), nunca con
-    // decimales (2.5, etc). html2pdf calcula internamente cuántas páginas
-    // necesita como Math.ceil(canvas.height / pxPageHeight); con una hoja
-    // de 1123px de alto fijo, un scale entero hace que esa división dé
-    // EXACTO (1123*scale / 1123*scale = 1), así que siempre resulta en
-    // 1 sola página por hoja. Con un scale decimal, el redondeo del ancho
-    // del canvas puede desalinear esa cuenta por un pixel y html2pdf agrega
-    // una segunda página casi en blanco al final — otra causa de
-    // "distorsión" que ya se había colado antes.
     html2canvas: { scale: 3, useCORS: true, backgroundColor: "#ffffff" },
     jsPDF: { unit: "px", format: [794, 1123], orientation: "portrait", hotfixes: ["px_scaling"] },
   };
 
-  // Página 1: se pide el objeto jsPDF ya armado (html2pdf lo construye
-  // internamente con las opciones de arriba).
   let pdf = await window.html2pdf().set(opciones).from(paginas[0]).toPdf().get("pdf");
 
-  // Páginas siguientes: se captura solo el canvas de esa hoja y se agrega
-  // manualmente al MISMO documento pdf — así nunca se mezclan dos hojas
-  // en un mismo cálculo de "dónde cortar".
   for (let i = 1; i < paginas.length; i++) {
     window.scrollTo(0, 0);
-    // eslint-disable-next-line no-await-in-loop
     const canvas = await window.html2pdf().set(opciones).from(paginas[i]).toCanvas().get("canvas");
     const imgData = canvas.toDataURL("image/png");
     pdf.addPage([794, 1123], "portrait");
@@ -767,31 +635,19 @@ async function descargarPdf(tipo, datos) {
   pdf.save(`historia-clinica-${tipo}-${slug(datos.nombreCompleto)}.pdf`);
 }
 
-/* ========================================================================
-   5) PAYLOAD PARA SUPABASE (por ahora solo console.log + mock local)
-   ======================================================================== */
+// PAYLOAD PARA SUPABASE
 
-/**
- * Arma el objeto que en el futuro se envía directo a:
- *   supabase.from('historias_clinicas').insert([datosParaSupabase])
- * Por ahora solo lo imprime en consola y lo guarda en el mock de
- * panel-data.js para poder reabrir la misma historia después.
- */
 async function recolectarYGuardar(tipo, form) {
   const valoresFormulario = leerFormulario(form);
 
   const datosParaSupabase = {
     cita_id: citaActual?.id ?? null,
     cliente: valoresFormulario.nombreCompleto || citaActual?.cliente || "",
-    tipo, // 'facial' | 'corporal' — decide la tabla destino
+    tipo,
     creado_en: new Date().toISOString(),
     ...valoresFormulario,
   };
 
-  // TODO Supabase (cuando esté conectado, reemplazar el guardarHistoriaClinica
-  // del mock por esto directamente):
-  //   const tabla = tipo === 'facial' ? 'historia_clinica_facial' : 'historia_clinica_corporal';
-  //   const { data, error } = await supabase.from(tabla).insert([datosParaSupabase]).select().single();
   console.log(`Historia clínica (${tipo}) lista para Supabase:`, datosParaSupabase);
 
   await guardarHistoriaClinica({ citaId: citaActual?.id, tipo, datos: valoresFormulario });
@@ -799,18 +655,16 @@ async function recolectarYGuardar(tipo, form) {
   return valoresFormulario;
 }
 
-/* ========================================================================
-   BOTÓN "DESCARGAR PDF" — sincroniza, guarda y exporta
-   ======================================================================== */
+// BOTÓN "DESCARGAR PDF": sincroniza, guarda y exporta
 
 function initGenerarPdf() {
   $("#hc-generar-pdf").addEventListener("click", async () => {
     const btn = $("#hc-generar-pdf");
-    if (btn.disabled) return; // evita doble-generación si se hace doble clic rápido
+    if (btn.disabled) return;
     if (!tipoActual) return;
     const form = tipoActual === "facial" ? $("#form-historia-facial") : $("#form-historia-corporal");
 
-    if (!form.reportValidity()) return; // exige al menos el nombre completo (required)
+    if (!form.reportValidity()) return;
 
     btn.disabled = true;
     const textoOriginal = btn.innerHTML;
@@ -829,9 +683,7 @@ function initGenerarPdf() {
   });
 }
 
-/* ========================================================================
-   CONTADORES DE CARACTERES (textareas con maxlength + data-contador)
-   ======================================================================== */
+// CONTADORES DE CARACTERES
 
 function initContadores() {
   $all("textarea[data-contador]").forEach((textarea) => {
@@ -850,9 +702,7 @@ function initContadores() {
   });
 }
 
-/* ========================================================================
-   ARRANQUE
-   ======================================================================== */
+// ARRANQUE
 
 document.addEventListener("DOMContentLoaded", () => {
   initBotonAgenda();

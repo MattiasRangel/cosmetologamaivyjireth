@@ -13,7 +13,6 @@
 
 <div id="panel-view" class="panel-view">
 
-  <!-- ---------- Sidebar ---------- -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <img src="/imagenes/logocosmec.jpeg" alt="Maivy Jireth Cosmetóloga" class="sidebar-brand-mark" />
@@ -52,7 +51,7 @@
     </button>
   </aside>
 
-  <!-- ---------- Contenido principal ---------- -->
+  <!-- Contenido principal -->
   <div class="panel-main">
     <header class="panel-header">
       <div class="panel-header-top">
@@ -71,7 +70,7 @@
 
     <main class="panel-content">
 
-      <!-- ==================== PESTAÑA 1: AGENDA ==================== -->
+      <!-- PESTAÑA 1: AGENDA -->
       <section id="tab-agenda" class="tab-panel is-active">
         <div class="toolbar">
           <div class="filter-group" id="rango-filtros" role="group" aria-label="Filtrar por rango de fecha">
@@ -117,7 +116,7 @@
         </div>
       </section>
 
-      <!-- ==================== PESTAÑA 2: CALENDARIO ==================== -->
+      <!-- PESTAÑA 2: CALENDARIO -->
       <section id="tab-calendario" class="tab-panel">
         <div class="calendar-layout">
           <div class="calendar-card">
@@ -142,7 +141,7 @@
         </div>
       </section>
 
-      <!-- ==================== PESTAÑA 3: SERVICIOS ==================== -->
+      <!-- PESTAÑA 3: SERVICIOS -->
       <section id="tab-servicios" class="tab-panel">
         <div class="panel-card">
           <h2 class="panel-card-title">Nuevo servicio</h2>
@@ -187,7 +186,7 @@
         </div>
       </section>
 
-      <!-- ==================== PESTAÑA 4: HORARIOS ==================== -->
+      <!-- PESTAÑA 4: HORARIOS -->
       <section id="tab-horarios" class="tab-panel">
         <div class="panel-card">
           <h2 class="panel-card-title">Disponibilidad semanal</h2>
@@ -259,7 +258,7 @@
         </div>
       </section>
 
-      <!-- ==================== PESTAÑA 5: TARJETAS VIP ==================== -->
+      <!-- PESTAÑA 5: TARJETAS VIP -->
       <section id="tab-vip" class="tab-panel">
         <div class="panel-card">
           <h2 class="panel-card-title">Asignar nueva tarjeta VIP</h2>
@@ -296,7 +295,7 @@
         </div>
       </section>
 
-      <!-- ==================== GESTIÓN DE TARJETA VIP (a pantalla completa) ==================== -->
+      <!-- GESTIÓN DE TARJETA VIP (a pantalla completa) -->
       <section id="tab-vip-gestion" class="tab-panel tab-panel-full">
         <div class="hc-topbar">
           <button type="button" id="vipg-volver" class="btn btn-ghost">
@@ -314,7 +313,7 @@
         </div>
 
         <div class="vipg-workarea">
-          <!-- ---------- Vista previa de la tarjeta (delantera + trasera) ---------- -->
+          <!-- Vista previa de la tarjeta (delantera + trasera) -->
           <div class="vipg-preview-pane">
             <p class="vipg-preview-label">Delantera</p>
             <div class="vipg-card-wrap">
@@ -344,7 +343,7 @@
             </div>
           </div>
 
-          <!-- ---------- Panel de control ---------- -->
+          <!-- Panel de control -->
           <div class="vipg-control-pane">
             <div class="panel-card">
               <h2 class="panel-card-title">Progreso de visitas</h2>
@@ -379,7 +378,7 @@
         </div>
       </section>
 
-      <!-- ==================== HISTORIA CLÍNICA (a pantalla completa) ==================== -->
+      <!-- HISTORIA CLÍNICA (a pantalla completa) -->
       <section id="tab-historia-clinica" class="tab-panel tab-panel-full">
         <div class="hc-topbar">
           <button type="button" id="hc-volver" class="btn btn-ghost">
@@ -394,10 +393,10 @@
         </div>
 
         <div class="hc-workarea">
-        <!-- ================= LADO A — FORMULARIO ================= -->
+        <!-- LADO A: FORMULARIO -->
         <div class="hc-form-pane">
 
-        <!-- ---------- Formulario FACIAL ---------- -->
+        <!-- Formulario FACIAL -->
         <form id="form-historia-facial" class="hc-form" hidden>
           <fieldset class="hc-section">
             <legend class="hc-section-title">1. Datos personales</legend>
@@ -607,7 +606,7 @@
           </fieldset>
         </form>
 
-        <!-- ---------- Formulario CORPORAL ---------- -->
+        <!-- Formulario CORPORAL -->
         <form id="form-historia-corporal" class="hc-form" hidden>
           <fieldset class="hc-section">
             <legend class="hc-section-title">1. Datos personales</legend>
@@ -734,9 +733,9 @@
         </form>
 
         </div>
-        <!-- ================= /LADO A ================= -->
+        <!-- /LADO A -->
 
-        <!-- ================= LADO B — VISTA PREVIA (Plantilla A4) ================= -->
+        <!-- LADO B: VISTA PREVIA (Plantilla A4) -->
         <div class="hc-preview-pane">
           <div class="hc-preview-toolbar">
             <span class="hc-preview-toolbar-label">Vista previa</span>
@@ -747,16 +746,14 @@
             <div id="hc-preview-corporal" class="hc-preview-doc" hidden></div>
           </div>
         </div>
-        <!-- ================= /LADO B ================= -->
+        <!-- /LADO B -->
         </div>
-        <!-- ================= /hc-workarea ================= -->
       </section>
 
     </main>
   </div>
 </div>
 
-<!-- Modal: elegir tipo de historia clínica (se abre desde el botón nuevo en Agenda) -->
 <div id="modal-tipo-historia" class="modal-overlay">
   <div class="modal-card modal-card-sm" role="dialog" aria-modal="true" aria-labelledby="modal-tipo-historia-title">
     <div class="modal-header">
@@ -826,10 +823,8 @@
   </div>
 </div>
 
-<!-- Aviso pequeño de acción realizada (confirmar / cancelar / guardar / etc.) -->
 <div id="toast" class="toast" hidden></div>
 
-<!-- html2pdf.js: usado solo por panel-historia.js para exportar la Plantilla B (vista previa HTML) a PDF A4 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
